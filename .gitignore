@@ -34,3 +34,7 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
+
+# Бекапи бази
+*.bak
+db-backup-*.json

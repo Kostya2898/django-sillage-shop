@@ -1,4 +1,4 @@
-"""Реєстрація, вхід та сторінка профілю користувача."""
+"""Реєстрація, вхід та кабінет користувача."""
 
 from django.contrib import messages
 from django.contrib.auth import login
@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render
 
 from orders.models import Order
 
-from .forms import SignUpForm, UserProfileForm
+from .forms import SignUpForm, UserAccountForm, UserProfileForm
 
 
 def signup(request):
@@ -32,20 +32,24 @@ def signup(request):
 
 @login_required
 def profile(request):
-    """Профіль користувача: контактні дані та історія замовлень."""
-    # Профіль створює сигнал post_save на User (accounts/signals.py), тож
-    # тут він завжди вже існує — get_or_create був другою гілкою тієї самої
-    # логіки і мертвим кодом.
+    """Кабінет: контактні дані, налаштування профілю та історія замовлень."""
+    # Профіль створює сигнал post_save на користувачі, тож він завжди існує.
     user_profile = request.user.profile
 
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=user_profile)
-        if form.is_valid():
-            form.save()
+        account_form = UserAccountForm(request.POST, instance=request.user)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile)
+
+        if account_form.is_valid() and profile_form.is_valid():
+            account_form.save()
+            profile_form.save()
             messages.success(request, 'Профіль оновлено')
             return redirect('accounts:profile')
+
+        messages.error(request, 'Перевірте, будь ласка, поля форми')
     else:
-        form = UserProfileForm(instance=user_profile)
+        account_form = UserAccountForm(instance=request.user)
+        profile_form = UserProfileForm(instance=user_profile)
 
     orders = (
         Order.objects.filter(user=request.user)
@@ -57,7 +61,8 @@ def profile(request):
         request,
         'accounts/profile.html',
         {
-            'form': form,
+            'account_form': account_form,
+            'profile_form': profile_form,
             'profile': user_profile,
             'orders': orders,
         },
