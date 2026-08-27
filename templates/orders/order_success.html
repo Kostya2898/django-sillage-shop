@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Замовлення оформлено{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-6">✅ Дякуємо за замовлення!</h1>
+    <p class="lead">Номер вашого замовлення — <strong>{{ order.order_number }}</strong></p>
+    <p class="text-muted">Лист із підтвердженням надіслано на {{ order.user.email|default:'вашу пошту' }}.</p>
+
+    <div class="d-inline-flex gap-2 mt-3">
+        <a href="{% url 'orders:order_detail' order.order_number %}" class="btn btn-primary">
+            Деталі замовлення
+        </a>
+        {% if order.requires_online_payment %}
+            <a href="{% url 'payments:initiate_payment' order.order_number %}" class="btn btn-success">
+                Оплатити карткою
+            </a>
+        {% endif %}
+        <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary">До каталогу</a>
+    </div>
+</div>
+{% endblock %}

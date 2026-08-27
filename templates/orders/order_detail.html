@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Замовлення {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Замовлення {{ order.order_number }}</h1>
+    <span class="badge fs-6 {% if order.status == 'cancelled' %}bg-danger{% elif order.is_paid %}bg-success{% else %}bg-warning text-dark{% endif %}">
+        {{ order.get_status_display }}
+    </span>
+</div>
+
+{% if order.requires_online_payment %}
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <span>Замовлення очікує онлайн-оплати.</span>
+        <a href="{% url 'payments:initiate_payment' order.order_number %}" class="btn btn-success btn-sm">
+            Оплатити {{ order.total_amount }} грн
+        </a>
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">Товари</div>
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr><th>Товар</th><th>Ціна</th><th>К-сть</th><th>Сума</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                        <tr>
+                            <td>{{ item.product_name }}</td>
+                            <td>{{ item.price }} грн</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.get_total_price }} грн</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Разом</strong></td>
+                        <td><strong>{{ order.total_amount }} грн</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Історія статусів</div>
+            <ul class="list-group list-group-flush">
+                {% for entry in order.status_history.all %}
+                    <li class="list-group-item">
+                        <span class="badge bg-secondary">{{ entry.get_status_display }}</span>
+                        <span class="text-muted small ms-2">{{ entry.created_at|date:'d.m.Y H:i' }}</span>
+                        {% if entry.note %}<div class="small mt-1">{{ entry.note }}</div>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">Доставка</div>
+            <div class="card-body">
+                <p class="mb-0">{{ order.get_shipping_address_display|linebreaksbr }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Оплата</div>
+            <div class="card-body">
+                <p class="mb-1">Спосіб: {{ order.get_payment_method_display }}</p>
+                <p class="mb-0 text-muted small">Створено {{ order.created_at|date:'d.m.Y H:i' }}</p>
+                {% if order.notes %}
+                    <hr>
+                    <p class="mb-0 small"><strong>Коментар:</strong> {{ order.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary mt-4">← До списку замовлень</a>
+{% endblock %}

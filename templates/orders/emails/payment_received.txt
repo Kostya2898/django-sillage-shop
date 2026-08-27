@@ -1,0 +1,13 @@
+Оплату отримано!
+
+Номер замовлення: {{ order.order_number }}
+Сплачена сума: {{ order.total_amount }} грн
+Статус: {{ order.get_status_display }}
+
+Товари:
+{% for item in items %}- {{ item.product_name }} x {{ item.quantity }} = {{ item.get_total_price }} грн
+{% endfor %}
+Адреса доставки:
+{{ order.get_shipping_address_display }}
+
+Ми починаємо збирати ваше замовлення. Дякуємо!

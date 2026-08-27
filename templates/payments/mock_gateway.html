@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Платіжний шлюз (мок){% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">🔒 Демонстраційний платіжний шлюз</div>
+            <div class="card-body text-center">
+                <p class="mb-1">Замовлення {{ transaction.order.order_number }}</p>
+                <p class="fs-3 fw-bold">{{ transaction.amount }} {{ transaction.currency }}</p>
+                <p class="text-muted small">
+                    У реальному житті тут була б сторінка Flutterwave, PayPal чи LiqPay
+                    з формою введення картки.
+                </p>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a class="btn btn-success btn-lg"
+                       href="{% url 'payments:payment_callback' %}?status=successful&tx_ref={{ transaction.reference }}&transaction_id=MOCK-{{ transaction.id }}">
+                        Оплатити
+                    </a>
+                    <a class="btn btn-outline-danger"
+                       href="{% url 'payments:payment_callback' %}?status=cancelled&tx_ref={{ transaction.reference }}&transaction_id=MOCK-{{ transaction.id }}">
+                        Скасувати оплату
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

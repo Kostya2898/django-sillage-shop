@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Оплата замовлення {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Оплата замовлення {{ order.order_number }}</div>
+            <div class="card-body">
+                <p>Сума до сплати: <strong>{{ transaction.amount }} {{ transaction.currency }}</strong></p>
+                <p class="text-muted small">
+                    Референс транзакції: <code>{{ transaction.reference }}</code><br>
+                    Після оплати шлюз поверне вас на <code>{{ redirect_url }}</code>.
+                </p>
+
+                <a href="{{ hosted_link }}" class="btn btn-success w-100">Перейти до оплати →</a>
+            </div>
+            <div class="card-footer text-muted small">
+                Це навчальний мок платіжного шлюзу — жодних реальних грошей не списується.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Мої замовлення{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Мої замовлення</h1>
+
+{% if orders %}
+    <div class="table-responsive bg-white rounded border">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Номер</th>
+                    <th>Дата</th>
+                    <th>Позицій</th>
+                    <th>Сума</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><code>{{ order.order_number }}</code></td>
+                        <td>{{ order.created_at|date:'d.m.Y H:i' }}</td>
+                        <td>{{ order.get_total_items }}</td>
+                        <td>{{ order.total_amount }} грн</td>
+                        <td>
+                            <span class="badge {% if order.status == 'cancelled' %}bg-danger{% elif order.is_paid %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'orders:order_detail' order.order_number %}"
+                               class="btn btn-sm btn-outline-primary">Деталі</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">Ви ще нічого не замовляли.</div>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">До каталогу</a>
+{% endif %}
+{% endblock %}

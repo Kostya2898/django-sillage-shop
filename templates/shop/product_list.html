@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if category %}{{ category.name }}{% else %}Каталог{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <aside class="col-lg-3 mb-4">
+        <div class="list-group">
+            <a href="{% url 'shop:product_list' %}"
+               class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+                Усі товари
+            </a>
+            {% for c in categories %}
+                <a href="{{ c.get_absolute_url }}"
+                   class="list-group-item list-group-item-action {% if category.id == c.id %}active{% endif %}">
+                    {{ c.name }}
+                </a>
+                {% for child in c.children.all %}
+                    <a href="{{ child.get_absolute_url }}"
+                       class="list-group-item list-group-item-action ps-4 small {% if category.id == child.id %}active{% endif %}">
+                        └ {{ child.name }}
+                    </a>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </aside>
+
+    <div class="col-lg-9">
+        <h1 class="h3 mb-4">
+            {% if category %}{{ category.name }}{% else %}Каталог товарів{% endif %}
+            {% if query %}<small class="text-muted">— пошук «{{ query }}»</small>{% endif %}
+        </h1>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for product in products %}
+                <div class="col">
+                    <div class="card h-100">
+                        {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" class="card-img-top"
+                                 alt="{{ product.name }}">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="text-muted small mb-2">{{ product.category }}</p>
+                            <p class="fw-bold fs-5">{{ product.price }} грн</p>
+
+                            {% if product.is_in_stock %}
+                                <span class="badge bg-success mb-2 align-self-start">В наявності: {{ product.stock }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary mb-2 align-self-start">Немає в наявності</span>
+                            {% endif %}
+
+                            <div class="mt-auto d-grid gap-2">
+                                <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                                    Детальніше
+                                </a>
+                                {% if product.is_in_stock %}
+                                    <form method="post" action="{% url 'cart:cart_add' product.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            Додати в кошик
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">Товарів не знайдено.</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if page.paginator.num_pages > 1 %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">←</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">{{ page.number }} з {{ page.paginator.num_pages }}</span>
+                    </li>
+                    {% if page.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page.next_page_number }}{% if query %}&q={{ query }}{% endif %}">→</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

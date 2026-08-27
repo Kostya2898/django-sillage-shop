@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформлення замовлення — адреса{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-1">Оформлення замовлення</h1>
+<p class="text-muted">Крок 1 з 2 — адреса доставки</p>
+
+<div class="row">
+    <div class="col-lg-7">
+        {% if addresses %}
+            <div class="card mb-4">
+                <div class="card-header">Обрати збережену адресу</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for address in addresses %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="address_id"
+                                       value="{{ address.id }}" id="address{{ address.id }}"
+                                       {% if forloop.first %}checked{% endif %}>
+                                <label class="form-check-label" for="address{{ address.id }}">
+                                    <strong>{{ address.full_name }}</strong>, {{ address.phone }}<br>
+                                    <span class="text-muted small">
+                                        {{ address.postal_code }}, {{ address.city }}, {{ address.address_line1 }}
+                                        {% if address.is_default %}<span class="badge bg-secondary">за замовчуванням</span>{% endif %}
+                                    </span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                        <button type="submit" name="select_address" value="1" class="btn btn-primary mt-2">
+                            Продовжити з цією адресою
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">Нова адреса доставки</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="text-danger small">{{ field.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" name="add_new_address" value="1" class="btn btn-primary">
+                        Зберегти адресу та продовжити
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        {% include 'orders/_order_summary.html' %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{# Підсумок кошика. На цій сторінці кількість змінювати не можна — тільки в кошику. #}
+<div class="card">
+    <div class="card-header">Ваше замовлення</div>
+    <ul class="list-group list-group-flush">
+        {% for item in cart %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span>{{ item.product.name }} <span class="text-muted">× {{ item.quantity }}</span></span>
+                <span>{{ item.total_price }} грн</span>
+            </li>
+        {% endfor %}
+        <li class="list-group-item d-flex justify-content-between bg-light">
+            <strong>Разом</strong>
+            <strong>{{ cart.get_total_price }} грн</strong>
+        </li>
+    </ul>
+    <div class="card-footer">
+        <a href="{% url 'cart:cart_detail' %}" class="btn btn-sm btn-outline-secondary">
+            Змінити вміст кошика
+        </a>
+    </div>
+</div>

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Кошик{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">Ваш кошик</h1>
+
+{% if cart|length %}
+    <div class="table-responsive bg-white rounded border">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Товар</th>
+                    <th>Ціна</th>
+                    <th style="width: 230px;">Кількість</th>
+                    <th>Сума</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if item.product.images.first %}
+                                    <img src="{{ item.product.images.first.image.url }}"
+                                         alt="{{ item.product.name }}"
+                                         class="img-thumbnail me-3" style="width: 80px;">
+                                {% endif %}
+                                <div>
+                                    <a href="{{ item.product.get_absolute_url }}" class="text-decoration-none">
+                                        <h6 class="mb-0">{{ item.product.name }}</h6>
+                                    </a>
+                                    <small class="text-muted">{{ item.product.category }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ item.price }} грн</td>
+                        <td>
+                            <form method="post" action="{% url 'cart:cart_update' item.product.id %}"
+                                  class="d-flex align-items-center">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="stepQuantity(this, -1)">−</button>
+                                <input type="number" name="quantity" value="{{ item.quantity }}"
+                                       min="1" max="{{ max_quantity }}"
+                                       class="form-control mx-2 text-center" style="width: 80px;">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="stepQuantity(this, 1)">+</button>
+                                <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Оновити</button>
+                            </form>
+                        </td>
+                        <td><strong>{{ item.total_price }} грн</strong></td>
+                        <td>
+                            <form method="post" action="{% url 'cart:cart_remove' item.product.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-light">
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Загальна сума:</strong></td>
+                    <td colspan="2"><strong>{{ cart.get_total_price }} грн</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <div>
+            <a href="{% url 'shop:product_list' %}" class="btn btn-outline-primary">← Продовжити покупки</a>
+            <form method="post" action="{% url 'cart:cart_clear' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger">Очистити кошик</button>
+            </form>
+        </div>
+        <a href="{% url 'orders:checkout' %}" class="btn btn-primary btn-lg">Оформити замовлення →</a>
+    </div>
+{% else %}
+    <div class="alert alert-info">Ваш кошик порожній</div>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Перейти до покупок</a>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Кнопки «+» і «−» просто змінюють значення поля; збереження — кнопкою «Оновити».
+function stepQuantity(button, delta) {
+    const form = button.form;
+    const input = form.querySelector('input[name="quantity"]');
+    const min = parseInt(input.min, 10);
+    const max = parseInt(input.max, 10);
+    const next = parseInt(input.value, 10) + delta;
+
+    if (next >= min && next <= max) {
+        input.value = next;
+    }
+}
+</script>
+{% endblock %}

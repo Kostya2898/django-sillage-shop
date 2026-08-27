@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформлення замовлення — підтвердження{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-1">Підтвердження замовлення</h1>
+<p class="text-muted">Крок 2 з 2 — перевірте дані та оберіть спосіб оплати</p>
+
+<div class="row">
+    <div class="col-lg-7">
+        <div class="card mb-4">
+            <div class="card-header">Адреса доставки</div>
+            <div class="card-body">
+                <p class="mb-1"><strong>{{ address.full_name }}</strong></p>
+                <p class="mb-1">{{ address.phone }}</p>
+                <p class="mb-1">{{ address.postal_code }}, {{ address.city }}, {{ address.country }}</p>
+                <p class="mb-0">{{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}</p>
+                <a href="{% url 'orders:checkout' %}" class="btn btn-sm btn-outline-secondary mt-3">Змінити адресу</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Оплата та коментар</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.payment_method.label }}</label>
+                        {% for radio in form.payment_method %}
+                            <div class="form-check">{{ radio }}</div>
+                        {% endfor %}
+                        {% if form.payment_method.errors %}
+                            <div class="text-danger small">{{ form.payment_method.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.agree_terms }}
+                        <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
+                            {{ form.agree_terms.label }}
+                        </label>
+                        {% if form.agree_terms.errors %}
+                            <div class="text-danger small">{{ form.agree_terms.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg">Підтвердити замовлення</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        {% include 'orders/_order_summary.html' %}
+    </div>
+</div>
+{% endblock %}

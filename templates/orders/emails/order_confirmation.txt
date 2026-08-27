@@ -1,0 +1,17 @@
+Дякуємо за замовлення!
+
+Номер замовлення: {{ order.order_number }}
+Дата: {{ order.created_at|date:'d.m.Y H:i' }}
+Спосіб оплати: {{ order.get_payment_method_display }}
+
+Товари:
+{% for item in items %}- {{ item.product_name }} x {{ item.quantity }} = {{ item.get_total_price }} грн
+{% endfor %}
+Загальна сума: {{ order.total_amount }} грн
+
+Адреса доставки:
+{{ order.get_shipping_address_display }}
+{% if order.notes %}
+Ваш коментар: {{ order.notes }}
+{% endif %}
+Дякуємо за покупку!

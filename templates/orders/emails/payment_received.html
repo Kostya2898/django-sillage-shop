@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="uk">
+<body style="font-family: Arial, sans-serif; color: #212529;">
+    <h2>Оплату отримано ✅</h2>
+
+    <p>
+        Номер замовлення: <strong>{{ order.order_number }}</strong><br>
+        Сплачена сума: <strong>{{ order.total_amount }} грн</strong><br>
+        Статус: {{ order.get_status_display }}
+    </p>
+
+    <ul>
+        {% for item in items %}
+            <li>{{ item.product_name }} × {{ item.quantity }} — {{ item.get_total_price }} грн</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Адреса доставки</h3>
+    <p>{{ order.get_shipping_address_display|linebreaksbr }}</p>
+
+    <p>Ми починаємо збирати ваше замовлення. Дякуємо!</p>
+</body>
+</html>
