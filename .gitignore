@@ -12,7 +12,9 @@ venv/
 # Django
 db.sqlite3
 db.sqlite3-journal
-/media/
+# Саме /media/* , а не /media/ : виключений каталог git не переглядає
+# взагалі, і виняток для .gitkeep нижче не спрацював би.
+/media/*
 !/media/.gitkeep
 /staticfiles/
 /logs/
