@@ -147,8 +147,13 @@ def create_order(user, cart, address, payment_method, notes=''):
     if not items:
         raise ValueError('кошик порожній')
 
+    # SessionCart не має рядка в базі, DatabaseCart — має (атрибут `cart`).
+    # Записуємо його в замовлення, щоб оплата потім закрила саме цей кошик.
+    cart_instance = getattr(cart, 'cart', None)
+
     order = Order.objects.create(
         user=user,
+        cart=cart_instance,
         shipping_full_name=address.full_name,
         shipping_phone=address.phone,
         shipping_country=address.country,

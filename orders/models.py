@@ -83,6 +83,18 @@ class Order(models.Model):
         related_name='orders',
         verbose_name='Користувач',
     )
+    # Кошик, з якого зроблене замовлення. Потрібен, щоб після оплати закрити
+    # саме його, а не «останній неоплачений кошик користувача» — той міг бути
+    # уже новим. Nullable: замовлення можна створити й без кошика (адмінка),
+    # а сам кошик колись підчистить прибирання старих даних.
+    cart = models.ForeignKey(
+        'cart.Cart',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders',
+        verbose_name='Кошик',
+    )
 
     # Знімок адреси доставки
     shipping_full_name = models.CharField('ПІБ отримувача', max_length=200)

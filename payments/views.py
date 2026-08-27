@@ -172,8 +172,10 @@ def _complete_payment(transaction, gateway_transaction_id):
         created_by=transaction.user,
     )
 
-    # Позначаємо поточний кошик користувача оплаченим — у README історія
-    # покупок будується саме за ознакою Cart.paid_status=True.
-    Cart.objects.filter(user=transaction.user, paid_status=False).update(paid_status=True)
+    # Закриваємо рівно той кошик, з якого зроблене це замовлення. Фільтр
+    # «усі неоплачені кошики користувача» закривав і той, який покупець набрав
+    # уже після оформлення, — і товари з нього мовчки зникали.
+    if order.cart_id:
+        Cart.objects.filter(pk=order.cart_id).update(paid_status=True)
 
     send_payment_received_email(order)
