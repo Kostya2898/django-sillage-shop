@@ -81,9 +81,7 @@ class OrderCancellationTests(ShopTestCase):
 
         self._cancel(order)
 
-        history = OrderStatusHistory.objects.filter(
-            order=order, status=Order.STATUS_CANCELLED
-        )
+        history = OrderStatusHistory.objects.filter(order=order, status=Order.STATUS_CANCELLED)
         self.assertEqual(history.count(), 1)
         self.assertEqual(history.first().created_by, self.staff)
 
@@ -95,9 +93,7 @@ class OrderCancellationTests(ShopTestCase):
         self._cancel(order)
 
         self.assertEqual(
-            OrderStatusHistory.objects.filter(
-                order=order, status=Order.STATUS_CANCELLED
-            ).count(),
+            OrderStatusHistory.objects.filter(order=order, status=Order.STATUS_CANCELLED).count(),
             1,
         )
 
