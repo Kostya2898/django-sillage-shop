@@ -93,9 +93,14 @@ class SessionCart:
         )
 
     def clear(self):
-        """Очистити кошик."""
-        self.session.pop(settings.CART_SESSION_ID, None)
-        self.cart = {}
+        """Очистити кошик, не втративши звʼязок із сесією.
+
+        Раніше тут був `session.pop()` плюс новий словник у `self.cart` — і той
+        словник у сесії вже не лежав, тож наступний `add()` на тому самому
+        обʼєкті писав у нікуди. Спорожнюємо той самий словник, який лишається
+        в сесії.
+        """
+        self.cart = self.session[settings.CART_SESSION_ID] = {}
         self.save()
 
 

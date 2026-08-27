@@ -24,7 +24,7 @@
                             <div class="d-flex align-items-center">
                                 {% if item.product.images.first %}
                                     <img src="{{ item.product.images.first.image.url }}"
-                                         alt="{{ item.product.name }}"
+                                         alt="{{ item.product.images.first.alt_text|default:item.product.name }}"
                                          class="img-thumbnail me-3" style="width: 80px;">
                                 {% endif %}
                                 <div>

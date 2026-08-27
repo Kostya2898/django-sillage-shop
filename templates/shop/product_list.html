@@ -37,7 +37,7 @@
                     <div class="card h-100">
                         {% if product.images.first %}
                             <img src="{{ product.images.first.image.url }}" class="card-img-top"
-                                 alt="{{ product.name }}">
+                                 alt="{{ product.images.first.alt_text|default:product.name }}">
                         {% endif %}
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ product.name }}</h5>

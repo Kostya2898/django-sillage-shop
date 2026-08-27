@@ -14,7 +14,7 @@
 <div class="row">
     <div class="col-md-6">
         {% if product.images.first %}
-            <img src="{{ product.images.first.image.url }}" class="img-fluid rounded" alt="{{ product.name }}">
+            <img src="{{ product.images.first.image.url }}" class="img-fluid rounded" alt="{{ product.images.first.alt_text|default:product.name }}">
         {% else %}
             <div class="bg-white border rounded d-flex align-items-center justify-content-center" style="height: 320px;">
                 <span class="text-muted">Немає зображення</span>

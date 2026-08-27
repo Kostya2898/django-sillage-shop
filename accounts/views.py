@@ -34,7 +34,10 @@ def signup(request):
 @login_required
 def profile(request):
     """Профіль користувача: контактні дані та історія замовлень."""
-    user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    # Профіль створює сигнал post_save на User (accounts/signals.py), тож
+    # тут він завжди вже існує — get_or_create був другою гілкою тієї самої
+    # логіки і мертвим кодом.
+    user_profile = request.user.profile
 
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=user_profile)
