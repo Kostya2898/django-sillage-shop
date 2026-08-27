@@ -8,7 +8,6 @@ from django.shortcuts import redirect, render
 from orders.models import Order
 
 from .forms import SignUpForm, UserProfileForm
-from .models import UserProfile
 
 
 def signup(request):
