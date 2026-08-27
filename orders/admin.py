@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Order, OrderItem, OrderStatusHistory, ShippingAddress
+from .services import cancel_order
 
 
 @admin.register(ShippingAddress)
@@ -41,6 +42,7 @@ class OrderAdmin(admin.ModelAdmin):
     actions = ['mark_shipped', 'mark_delivered', 'mark_cancelled']
 
     def _change_status(self, request, queryset, status, label):
+        changed = 0
         for order in queryset:
             if order.status == status:
                 continue
@@ -52,7 +54,39 @@ class OrderAdmin(admin.ModelAdmin):
                 note=f'Статус змінено через адмінку на «{label}»',
                 created_by=request.user,
             )
-        self.message_user(request, f'Оновлено замовлень: {queryset.count()}')
+            changed += 1
+        # Рахуємо саме змінені, а не весь queryset: замовлення, які вже мали
+        # цей статус, ми пропустили вище.
+        self.message_user(request, f'Оновлено замовлень: {changed}')
+
+    def _cancel(self, request, queryset):
+        """Скасування — не просто зміна статусу: воно повертає товар на склад."""
+        cancelled = sum(
+            1
+            for order in queryset
+            if cancel_order(
+                order,
+                actor=request.user,
+                note='Скасовано через адмінку, товари повернуто на склад',
+            )
+        )
+        self.message_user(request, f'Скасовано замовлень: {cancelled}')
+
+    def save_model(self, request, obj, form, change):
+        """Статус, змінений у формі на «Скасовано», теж має повернути склад."""
+        becoming_cancelled = (
+            change and obj.status == Order.STATUS_CANCELLED and 'status' in form.changed_data
+        )
+
+        if not becoming_cancelled:
+            super().save_model(request, obj, form, change)
+            return
+
+        # Зберігаємо решту полів зі старим статусом, а сам перехід віддаємо
+        # сервісу — щоб склад повернувся в тій самій транзакції.
+        obj.status = form.initial.get('status', Order.STATUS_PENDING)
+        super().save_model(request, obj, form, change)
+        cancel_order(obj, actor=request.user, note='Скасовано через форму адмінки')
 
     @admin.action(description='Позначити як відправлені')
     def mark_shipped(self, request, queryset):
@@ -62,6 +96,6 @@ class OrderAdmin(admin.ModelAdmin):
     def mark_delivered(self, request, queryset):
         self._change_status(request, queryset, Order.STATUS_DELIVERED, 'Доставлено')
 
-    @admin.action(description='Скасувати замовлення')
+    @admin.action(description='Скасувати замовлення і повернути товар на склад')
     def mark_cancelled(self, request, queryset):
-        self._change_status(request, queryset, Order.STATUS_CANCELLED, 'Скасовано')
+        self._cancel(request, queryset)
