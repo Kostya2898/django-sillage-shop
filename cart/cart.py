@@ -1,7 +1,7 @@
 """Гібридний кошик: session-based для гостей, database-based для користувачів.
 
 Обидва класи мають однаковий інтерфейс (`add`, `remove`, `clear`, `__iter__`,
-`__len__`, `get_total_price`), тому views і шаблони не знають, з яким саме
+`__len__`, `get_total_price`, `get_quantity`), тому views і шаблони не знають, з яким саме
 кошиком працюють. Потрібний тип повертає фабрика `get_cart(request)`.
 """
 
@@ -55,6 +55,10 @@ class SessionCart:
         if product_id in self.cart:
             del self.cart[product_id]
             self.save()
+
+    def get_quantity(self, product):
+        """Скільки одиниць цього товару вже лежить у кошику."""
+        return self.cart.get(str(product.id), {}).get('quantity', 0)
 
     def save(self):
         """Позначити сесію зміненою, щоб Django записав її."""
@@ -124,6 +128,11 @@ class DatabaseCart:
     def remove(self, product):
         """Видалити товар з кошика."""
         CartItem.objects.filter(cart=self.cart, product=product).delete()
+
+    def get_quantity(self, product):
+        """Скільки одиниць цього товару вже лежить у кошику."""
+        item = self.cart.items.filter(product=product).only('quantity').first()
+        return item.quantity if item else 0
 
     def __iter__(self):
         """Пройтися по товарах кошика у тому ж форматі, що й SessionCart."""

@@ -20,16 +20,42 @@ def _parse_quantity(request, default=1):
         return default
 
 
-def _clamp_quantity(request, product, quantity):
-    """Перевірити кількість. Повертає (кількість, помилка_чи_None)."""
+def _headroom_message(product, in_cart, limit, reason):
+    """Повідомлення про відмову, яке одразу каже, що можна зробити далі."""
+    available = max(limit - in_cart, 0)
+
+    if available:
+        return f'{reason} У кошику вже {in_cart} — можна додати ще {available}.'
+    return f'{reason} У кошику вже {in_cart}, більше додати не можна.'
+
+
+def _validate_quantity(cart, product, quantity, absolute=False):
+    """Перевірити кількість. Повертає (кількість, помилка_чи_None).
+
+    Ключове: звіряємо зі складом **підсумок у кошику після дії**, а не число
+    із запиту. Інакше «додати 5» двічі при залишку 6 проходить обидва рази,
+    і брак товару виявляється аж на checkout.
+
+    `absolute=True` — це «встановити кількість» (cart_update), тобто підсумком
+    є саме передане число. `absolute=False` — «додати до наявного».
+    """
     if quantity < 1:
         return None, 'Кількість має бути більшою за 0'
 
-    if quantity > MAX_QUANTITY_PER_PRODUCT:
-        return None, f'Максимальна кількість одного товару — {MAX_QUANTITY_PER_PRODUCT} шт.'
+    in_cart = cart.get_quantity(product)
+    resulting = quantity if absolute else in_cart + quantity
 
-    if quantity > product.stock:
-        return None, f'Доступно тільки {product.stock} од. товару «{product.name}»'
+    if resulting > MAX_QUANTITY_PER_PRODUCT:
+        reason = f'Максимальна кількість одного товару — {MAX_QUANTITY_PER_PRODUCT} шт.'
+        if absolute:
+            return None, reason
+        return None, _headroom_message(product, in_cart, MAX_QUANTITY_PER_PRODUCT, reason)
+
+    if resulting > product.stock:
+        reason = f'На складі лишилось {product.stock} од. товару «{product.name}».'
+        if absolute:
+            return None, reason
+        return None, _headroom_message(product, in_cart, product.stock, reason)
 
     return quantity, None
 
@@ -58,7 +84,7 @@ def cart_add(request, product_id):
         return redirect('shop:product_detail', slug=product.slug)
 
     quantity = _parse_quantity(request)
-    quantity, error = _clamp_quantity(request, product, quantity)
+    quantity, error = _validate_quantity(cart, product, quantity)
     if error:
         messages.error(request, error)
         return redirect('shop:product_detail', slug=product.slug)
@@ -80,7 +106,8 @@ def cart_update(request, product_id):
         messages.success(request, f'Товар «{product.name}» видалено з кошика')
         return redirect('cart:cart_detail')
 
-    quantity, error = _clamp_quantity(request, product, quantity)
+    # Оновлення задає кількість, а не додає до неї.
+    quantity, error = _validate_quantity(cart, product, quantity, absolute=True)
     if error:
         messages.error(request, error)
         return redirect('cart:cart_detail')
