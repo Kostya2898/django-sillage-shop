@@ -100,13 +100,24 @@ def checkout_confirm(request):
                 messages.error(request, f'Не вдалося створити замовлення: {exc}')
                 return redirect('cart:cart_detail')
 
-            send_order_confirmation_email(order)
+            # Обидві функції ковтають власні помилки й повертають булеве —
+            # недоступна пошта не має обвалювати вже оформлену покупку.
+            letter_sent = send_order_confirmation_email(order)
             notify_admins_about_order(order)
 
             cart.clear()
             request.session.pop(SESSION_ADDRESS_KEY, None)
 
-            messages.success(request, f'Замовлення #{order.order_number} успішно створено!')
+            if letter_sent:
+                messages.success(request, f'Замовлення #{order.order_number} успішно створено!')
+            else:
+                # Кажемо, що сталося, і одразу — куди йти далі.
+                messages.warning(
+                    request,
+                    f'Замовлення #{order.order_number} прийнято. Лист із деталями '
+                    f'надішлемо трохи згодом — саме замовлення вже збережено, '
+                    f'воно є в розділі «Мої замовлення».',
+                )
 
             if order.requires_online_payment:
                 return redirect('payments:initiate_payment', order_number=order.order_number)
