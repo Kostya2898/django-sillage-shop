@@ -1,0 +1,21 @@
+# SILLAGE — інструменти розробника.
+# Ставиться ПОВЕРХ requirements.txt:
+#     pip install -r requirements.txt -r requirements-dev.txt
+
+-r requirements.txt
+
+# Інспекція запитів, шаблонів і кешу в браузері.
+django-debug-toolbar==7.1.1
+
+# shell_plus, show_urls, graph_models та інші management-команди.
+django-extensions==4.1
+
+# Лінт і форматування (налаштування — у pyproject.toml, line-length 100).
+ruff==0.16.4
+black==26.5.1
+
+# Транзитивні залежності black.
+click==8.5.0
+packaging==26.3
+pathspec==1.1.1
+platformdirs==4.11.4

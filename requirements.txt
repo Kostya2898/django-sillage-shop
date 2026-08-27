@@ -1,0 +1,17 @@
+# SILLAGE — production-залежності з зафіксованими версіями.
+#
+# Встановлення в чистий venv:
+#     python -m venv .venv
+#     .\.venv\Scripts\Activate.ps1
+#     pip install -r requirements.txt
+#
+# Для розробки додатково: pip install -r requirements-dev.txt
+# Джерело істини — pyproject.toml; цей файл згенеровано з нього.
+
+Django==6.0.7
+django-environ==0.14.0
+pillow==12.3.0
+
+# Транзитивні залежності Django — зафіксовані, щоб збірка була відтворюваною.
+asgiref==3.12.1
+sqlparse==0.5.5

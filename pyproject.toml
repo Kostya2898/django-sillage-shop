@@ -1,8 +1,75 @@
 [project]
 name = "django-project"
 version = "0.1.0"
+description = "SILLAGE — кураторський магазин нішевої парфумерії"
 requires-python = ">=3.12"
 dependencies = [
     "django>=6.0.7",
     "pillow>=12.3.0",
+    "django-environ>=0.14.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "django-debug-toolbar>=7.1.1",
+    "django-extensions>=4.1",
+    "ruff>=0.14.6",
+    "black>=25.11.0",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff — лінтер
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    ".venv",
+    "migrations",
+    "staticfiles",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "DJ",   # flake8-django
+    "C4",   # flake8-comprehensions
+]
+ignore = [
+    "E501",   # довжину рядка контролює formatter
+    # DJ012 вимагає свій порядок членів моделі й конфліктує з конвенцією
+    # проєкту: __str__ → save() → get_absolute_url() → решта.
+    # Приватний хелпер лишається поруч із save(), який його викликає.
+    "DJ012",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Пакет налаштувань живе на зірочкових імпортах — це штатний патерн Django.
+"shop_project/settings/*.py" = ["F403", "F405", "E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "cart", "orders", "payments", "shop", "shop_project"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+# ---------------------------------------------------------------------------
+# Black — форматер
+# ---------------------------------------------------------------------------
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+# У проєкті скрізь одинарні лапки — не перевертаємо їх на подвійні.
+skip-string-normalization = true
+extend-exclude = '''
+/(
+  | \.venv
+  | migrations
+  | staticfiles
+)/
+'''

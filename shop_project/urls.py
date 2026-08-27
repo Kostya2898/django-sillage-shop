@@ -17,3 +17,8 @@ urlpatterns = [
 if settings.DEBUG:
     # У режимі розробки Django сам віддає завантажені зображення товарів.
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+    # Debug Toolbar підключається лише коли він справді в INSTALLED_APPS —
+    # у prod-налаштуваннях застосунку немає, і цей блок мовчки не спрацює.
+    if 'debug_toolbar' in settings.INSTALLED_APPS:
+        urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]

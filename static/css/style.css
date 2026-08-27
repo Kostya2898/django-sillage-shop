@@ -13,3 +13,45 @@
 main {
     min-height: 60vh;
 }
+
+/* ---------------------------------------------------------------------------
+   Повідомлення (django.contrib.messages)
+
+   Класи задає MESSAGE_TAGS у shop_project/settings/base.py: рівень ERROR
+   тепер дає `toast--error`, а не `error`, під який стилю не існувало взагалі.
+   Кольори — світлі відтінки палітри SILLAGE (PROJECT_VISION.md), щоб текст
+   читався на поточному світлому Bootstrap-макеті.
+
+   Це тимчасово: на етапі F0 (ROADMAP.md) Bootstrap прибирається, і ці самі
+   класи отримають темні токени бренду. Імена класів при цьому не змінюються.
+   --------------------------------------------------------------------------- */
+
+.toast--success {
+    color: #3d3213;
+    background-color: #f6efdf;
+    border-color: #c8a45c;
+}
+
+.toast--info {
+    color: #2b2733;
+    background-color: #efedf2;
+    border-color: #9c93a6;
+}
+
+.toast--warning {
+    color: #4a3a12;
+    background-color: #faf3e3;
+    border-color: #c8a45c;
+}
+
+.toast--error {
+    color: #5c2420;
+    background-color: #f8ebea;
+    border-color: #b8615a;
+}
+
+.toast--debug {
+    color: #2b2733;
+    background-color: #efedf2;
+    border-color: #9c93a6;
+}

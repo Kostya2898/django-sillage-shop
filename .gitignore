@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+.ruff_cache/
 
 # Віртуальне середовище
 .venv/
@@ -12,7 +13,9 @@ venv/
 db.sqlite3
 db.sqlite3-journal
 /media/
+!/media/.gitkeep
 /staticfiles/
+/logs/
 *.log
 
 # Секрети
