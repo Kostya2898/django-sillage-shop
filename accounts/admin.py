@@ -14,8 +14,6 @@ class UserProfileInline(admin.StackedInline):
     verbose_name = 'Профіль'
     verbose_name_plural = 'Профіль'
     fk_name = 'user'
-    # Адрес може бути багато — випадаючий список тут швидко стане непридатним.
-    raw_id_fields = ['default_shipping_address']
     readonly_fields = ['created_at', 'updated_at']
 
 
@@ -84,5 +82,5 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'favourite_family', 'date_of_birth', 'updated_at']
     list_filter = ['favourite_family']
     search_fields = ['user__username', 'user__email', 'user__phone']
-    raw_id_fields = ['user', 'default_shipping_address']
+    raw_id_fields = ['user']
     readonly_fields = ['created_at', 'updated_at']

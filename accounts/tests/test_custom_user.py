@@ -140,7 +140,6 @@ class ProfilePageTests(ShopTestCase):
                 'is_subscribed': 'on',
                 'date_of_birth': '1994-05-17',
                 'favourite_family': UserProfile.FAMILY_WOODY,
-                'default_shipping_address': '',
             },
             follow=True,
         )
@@ -167,23 +166,21 @@ class ProfilePageTests(ShopTestCase):
                 'phone': '',
                 'date_of_birth': '',
                 'favourite_family': '',
-                'default_shipping_address': '',
             },
         )
 
         self.user.refresh_from_db()
         self.assertNotEqual(self.user.email, 'occupied@example.com')
 
-    def test_address_choices_are_limited_to_own_addresses(self):
-        """Чужа адреса не має потрапити у випадаючий список — це був би IDOR."""
-        mine = self.create_address(self.user)
-        stranger = self.create_address(UserFactory())
+    def test_profile_does_not_duplicate_the_default_address(self):
+        """Єдине джерело істини — ShippingAddress.is_default, не поле профілю.
 
-        response = self.client.get(reverse('accounts:profile'))
-        queryset = response.context['profile_form'].fields['default_shipping_address'].queryset
+        Два поля про один факт неминуче розходяться, і найдорожче це
+        коштує саме на checkout.
+        """
+        profile_fields = {field.name for field in UserProfile._meta.get_fields()}
 
-        self.assertIn(mine, queryset)
-        self.assertNotIn(stranger, queryset)
+        self.assertNotIn('default_shipping_address', profile_fields)
 
 
 class LoginStillWorksTests(ShopTestCase):

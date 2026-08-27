@@ -5,8 +5,13 @@
 * `CustomUser` — те, без чого не працює сам магазин: логін, email для листів,
   телефон для кур'єра, згода на розсилку. Ці поля читає бекенд.
 * `UserProfile` — те, що наповнює кабінет: дата народження, аватар, улюблена
-  ольфакторна родина, адреса за замовчуванням. Створюється сигналом
-  `post_save` (`accounts/signals.py`), тож існує для кожного користувача.
+  ольфакторна родина. Створюється сигналом `post_save`
+  (`accounts/signals.py`), тож існує для кожного користувача.
+
+Адреси за замовчуванням тут немає навмисно: єдине джерело істини —
+`ShippingAddress.is_default`, чий `save()` уже гарантує одну дефолтну адресу
+на користувача. Два поля про один факт розійшлися б — і найдорожче це
+коштувало б саме на checkout.
 
 `USERNAME_FIELD` лишається `username` — на email-логін навмисно не переходимо,
 щоб не переписувати наявні форми й шаблони.
@@ -83,14 +88,6 @@ class UserProfile(models.Model):
         choices=FAMILY_CHOICES,
         blank=True,
         help_text='За нею кабінет підбирає рекомендації',
-    )
-    default_shipping_address = models.ForeignKey(
-        'orders.ShippingAddress',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='+',
-        verbose_name='Адреса за замовчуванням',
     )
     created_at = models.DateTimeField('Створено', auto_now_add=True)
     updated_at = models.DateTimeField('Змінено', auto_now=True)

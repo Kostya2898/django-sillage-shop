@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from cart.models import Cart, CartItem
 from orders.models import Order, OrderItem, OrderStatusHistory, ShippingAddress
 from payments.models import Transaction
-from shop.models import Category, Product
+from shop.models import Brand, Category, Note, Product, ProductNote
 
 User = get_user_model()
 
@@ -47,19 +47,56 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     is_active = True
 
 
+class BrandFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Brand
+
+    name = factory.Sequence(lambda n: f'Дім {n}')
+    slug = factory.Sequence(lambda n: f'brand-{n}')
+    country = 'Франція'
+    is_active = True
+
+
+class NoteFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Note
+
+    name = factory.Sequence(lambda n: f'Нота {n}')
+    slug = factory.Sequence(lambda n: f'note-{n}')
+    family = Note.FAMILY_WOODY
+
+
 class ProductFactory(factory.django.DjangoModelFactory):
-    """Товар у наявності. Кількість на складі задається в тесті явно."""
+    """Товар у наявності. Кількість на складі задається в тесті явно.
+
+    `slug` і `sku` задані послідовністю, щоб тести, яким вони байдужі,
+    не залежали від автогенерації. Тести самої автогенерації передають
+    порожній рядок явно.
+    """
 
     class Meta:
         model = Product
 
     category = factory.SubFactory(CategoryFactory)
+    brand = factory.SubFactory(BrandFactory)
     name = factory.Sequence(lambda n: f'Аромат {n}')
     slug = factory.Sequence(lambda n: f'product-{n}')
+    sku = factory.Sequence(lambda n: f'SKU-{n:05d}')
+    short_description = 'Короткий опис для картки.'
     description = 'Опис для тесту.'
     price = Decimal('1000.00')
     stock = 10
     is_available = True
+
+
+class ProductNoteFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProductNote
+
+    product = factory.SubFactory(ProductFactory)
+    note = factory.SubFactory(NoteFactory)
+    layer = ProductNote.LAYER_HEART
+    position = 0
 
 
 class CartFactory(factory.django.DjangoModelFactory):

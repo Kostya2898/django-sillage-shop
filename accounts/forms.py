@@ -4,8 +4,6 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 
-from orders.models import ShippingAddress
-
 from .models import UserProfile
 
 User = get_user_model()
@@ -90,23 +88,17 @@ class UserAccountForm(forms.ModelForm):
 
 
 class UserProfileForm(forms.ModelForm):
-    """Те, що наповнює кабінет: дата народження, аватар, смаки, адреса."""
+    """Те, що наповнює кабінет: дата народження, аватар, смаки.
+
+    Адреси тут немає: дефолтну задає сам `ShippingAddress.is_default`,
+    і дублювати цей факт у профілі означало б рано чи пізно їх розсинхронити.
+    """
 
     class Meta:
         model = UserProfile
-        fields = ['date_of_birth', 'avatar', 'favourite_family', 'default_shipping_address']
+        fields = ['date_of_birth', 'avatar', 'favourite_family']
         widgets = {
             'date_of_birth': forms.DateInput(attrs={**BOOTSTRAP_INPUT, 'type': 'date'}),
             'avatar': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'favourite_family': forms.Select(attrs={'class': 'form-select'}),
-            'default_shipping_address': forms.Select(attrs={'class': 'form-select'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Показуємо тільки власні адреси користувача — інакше у випадаючому
-        # списку були б чужі, і це IDOR через форму.
-        self.fields['default_shipping_address'].queryset = ShippingAddress.objects.filter(
-            user=self.instance.user_id
-        )
-        self.fields['default_shipping_address'].empty_label = 'Не обрано'
