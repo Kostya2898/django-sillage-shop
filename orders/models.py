@@ -42,9 +42,9 @@ class ShippingAddress(models.Model):
     def save(self, *args, **kwargs):
         """Адреса за замовчуванням може бути тільки одна на користувача."""
         if self.is_default:
-            ShippingAddress.objects.filter(
-                user=self.user, is_default=True
-            ).exclude(pk=self.pk).update(is_default=False)
+            ShippingAddress.objects.filter(user=self.user, is_default=True).exclude(
+                pk=self.pk
+            ).update(is_default=False)
         super().save(*args, **kwargs)
 
 

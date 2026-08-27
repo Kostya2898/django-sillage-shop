@@ -37,10 +37,14 @@ def _clamp_quantity(request, product, quantity):
 def cart_detail(request):
     """Сторінка кошика."""
     cart = get_cart(request)
-    return render(request, 'cart/detail.html', {
-        'cart': cart,
-        'max_quantity': MAX_QUANTITY_PER_PRODUCT,
-    })
+    return render(
+        request,
+        'cart/detail.html',
+        {
+            'cart': cart,
+            'max_quantity': MAX_QUANTITY_PER_PRODUCT,
+        },
+    )
 
 
 @require_POST

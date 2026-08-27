@@ -51,8 +51,12 @@ def profile(request):
         .order_by('-created_at')[:10]
     )
 
-    return render(request, 'accounts/profile.html', {
-        'form': form,
-        'profile': user_profile,
-        'orders': orders,
-    })
+    return render(
+        request,
+        'accounts/profile.html',
+        {
+            'form': form,
+            'profile': user_profile,
+            'orders': orders,
+        },
+    )

@@ -11,36 +11,53 @@ class ShippingAddressForm(forms.ModelForm):
     class Meta:
         model = ShippingAddress
         fields = [
-            'full_name', 'phone', 'country', 'city',
-            'postal_code', 'address_line1', 'address_line2',
+            'full_name',
+            'phone',
+            'country',
+            'city',
+            'postal_code',
+            'address_line1',
+            'address_line2',
             'is_default',
         ]
         widgets = {
-            'full_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Прізвище Ім\'я По батькові',
-            }),
-            'phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '+380...',
-            }),
+            'full_name': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Прізвище Ім\'я По батькові',
+                }
+            ),
+            'phone': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': '+380...',
+                }
+            ),
             'country': forms.TextInput(attrs={'class': 'form-control'}),
-            'city': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Місто',
-            }),
-            'postal_code': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '01001',
-            }),
-            'address_line1': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Вулиця, будинок, квартира',
-            }),
-            'address_line2': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Додаткова інформація (необов\'язково)',
-            }),
+            'city': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Місто',
+                }
+            ),
+            'postal_code': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': '01001',
+                }
+            ),
+            'address_line1': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Вулиця, будинок, квартира',
+                }
+            ),
+            'address_line2': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Додаткова інформація (необов\'язково)',
+                }
+            ),
             'is_default': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
@@ -65,11 +82,13 @@ class OrderCheckoutForm(forms.Form):
     notes = forms.CharField(
         label='Коментар до замовлення',
         required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 3,
-            'placeholder': 'Додаткова інформація для кур\'єра...',
-        }),
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Додаткова інформація для кур\'єра...',
+            }
+        ),
     )
 
     agree_terms = forms.BooleanField(

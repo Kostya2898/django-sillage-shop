@@ -18,26 +18,26 @@ def product_list(request, category_slug=None):
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug, is_active=True)
         # Показуємо товари самої категорії та її підкатегорій.
-        products = products.filter(
-            Q(category=category) | Q(category__parent=category)
-        )
+        products = products.filter(Q(category=category) | Q(category__parent=category))
 
     query = request.GET.get('q', '').strip()
     if query:
-        products = products.filter(
-            Q(name__icontains=query) | Q(description__icontains=query)
-        )
+        products = products.filter(Q(name__icontains=query) | Q(description__icontains=query))
 
     paginator = Paginator(products, PRODUCTS_PER_PAGE)
     page = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'shop/product_list.html', {
-        'categories': categories,
-        'category': category,
-        'page': page,
-        'products': page.object_list,
-        'query': query,
-    })
+    return render(
+        request,
+        'shop/product_list.html',
+        {
+            'categories': categories,
+            'category': category,
+            'page': page,
+            'products': page.object_list,
+            'query': query,
+        },
+    )
 
 
 def product_detail(request, slug):
@@ -48,11 +48,15 @@ def product_detail(request, slug):
         is_available=True,
     )
 
-    related = Product.objects.filter(
-        category=product.category, is_available=True
-    ).exclude(pk=product.pk)[:4]
+    related = Product.objects.filter(category=product.category, is_available=True).exclude(
+        pk=product.pk
+    )[:4]
 
-    return render(request, 'shop/product_detail.html', {
-        'product': product,
-        'related_products': related,
-    })
+    return render(
+        request,
+        'shop/product_detail.html',
+        {
+            'product': product,
+            'related_products': related,
+        },
+    )

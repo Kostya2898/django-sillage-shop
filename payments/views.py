@@ -75,12 +75,16 @@ def initiate_payment(request, order_number):
     # Замість мережевого виклику ведемо користувача на власну сторінку-імітацію.
     hosted_link = reverse('payments:mock_gateway', args=[tx_ref])
 
-    return render(request, 'payments/initiate.html', {
-        'order': order,
-        'transaction': transaction,
-        'hosted_link': hosted_link,
-        'redirect_url': redirect_url,
-    })
+    return render(
+        request,
+        'payments/initiate.html',
+        {
+            'order': order,
+            'transaction': transaction,
+            'hosted_link': hosted_link,
+            'redirect_url': redirect_url,
+        },
+    )
 
 
 @login_required

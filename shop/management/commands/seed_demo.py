@@ -10,10 +10,14 @@ from django.core.management.base import BaseCommand
 from shop.models import Category, Product
 
 CATEGORIES = [
-    ('Електроніка', 'electronics', [
-        ('Ноутбуки', 'laptops'),
-        ('Смартфони', 'smartphones'),
-    ]),
+    (
+        'Електроніка',
+        'electronics',
+        [
+            ('Ноутбуки', 'laptops'),
+            ('Смартфони', 'smartphones'),
+        ],
+    ),
     ('Книги', 'books', []),
 ]
 
@@ -61,6 +65,8 @@ class Command(BaseCommand):
                 },
             )
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Готово: {Category.objects.count()} категорій, {Product.objects.count()} товарів.'
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f'Готово: {Category.objects.count()} категорій, {Product.objects.count()} товарів.'
+            )
+        )

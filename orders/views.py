@@ -56,11 +56,15 @@ def checkout(request):
 
         messages.error(request, 'Перевірте, будь ласка, поля форми')
 
-    return render(request, 'orders/checkout.html', {
-        'cart': cart,
-        'addresses': addresses,
-        'form': form,
-    })
+    return render(
+        request,
+        'orders/checkout.html',
+        {
+            'cart': cart,
+            'addresses': addresses,
+            'form': form,
+        },
+    )
 
 
 @login_required
@@ -108,11 +112,15 @@ def checkout_confirm(request):
                 return redirect('payments:initiate_payment', order_number=order.order_number)
             return redirect('orders:order_success', order_number=order.order_number)
 
-    return render(request, 'orders/checkout_confirm.html', {
-        'cart': cart,
-        'address': address,
-        'form': form,
-    })
+    return render(
+        request,
+        'orders/checkout_confirm.html',
+        {
+            'cart': cart,
+            'address': address,
+            'form': form,
+        },
+    )
 
 
 @transaction.atomic
@@ -182,9 +190,7 @@ def order_success(request, order_number):
 def order_list(request):
     """Історія замовлень користувача."""
     orders = (
-        Order.objects.filter(user=request.user)
-        .prefetch_related('items')
-        .order_by('-created_at')
+        Order.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')
     )
     return render(request, 'orders/order_list.html', {'orders': orders})
 
