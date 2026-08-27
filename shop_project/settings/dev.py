@@ -8,6 +8,7 @@
 """
 
 import importlib.util
+import sys
 
 from .base import *  # noqa: F403
 from .base import INSTALLED_APPS, MIDDLEWARE, env
@@ -41,10 +42,15 @@ def _installed(module_name):
     return importlib.util.find_spec(module_name) is not None
 
 
+# Django під час тестів примусово ставить DEBUG=False, і Debug Toolbar на це
+# лається помилкою E001. Панель у тестах усе одно ні до чого — просто не
+# підключаємо її, заразом трохи швидший прогін.
+RUNNING_TESTS = 'test' in sys.argv
+
 INSTALLED_APPS = INSTALLED_APPS.copy()
 MIDDLEWARE = MIDDLEWARE.copy()
 
-if _installed('debug_toolbar'):
+if _installed('debug_toolbar') and not RUNNING_TESTS:
     INSTALLED_APPS.append('debug_toolbar')
     # Debug Toolbar має стояти якомога вище, але після SecurityMiddleware —
     # інакше він не побачить редіректів, які той робить.
