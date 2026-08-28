@@ -41,16 +41,22 @@ def product_list(request, category_slug=None):
 
 
 def product_detail(request, slug):
-    """Детальна сторінка товару."""
+    """Детальна сторінка товару: піраміда нот, опис і схвалені відгуки."""
     product = get_object_or_404(
-        Product.objects.select_related('category').prefetch_related('images'),
+        Product.objects.with_relations().with_notes().with_rating().prefetch_related('images'),
         slug=slug,
         is_available=True,
     )
 
-    related = Product.objects.filter(category=product.category, is_available=True).exclude(
-        pk=product.pk
-    )[:4]
+    related = (
+        Product.objects.available()
+        .with_relations()
+        .exclude(pk=product.pk)
+        .filter(category=product.category)[:4]
+    )
+
+    # На сайт потрапляють лише відгуки, які пройшли модерацію в адмінці.
+    reviews = product.reviews.filter(is_approved=True).select_related('user')
 
     return render(
         request,
@@ -58,5 +64,6 @@ def product_detail(request, slug):
         {
             'product': product,
             'related_products': related,
+            'reviews': reviews,
         },
     )

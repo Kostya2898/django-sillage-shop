@@ -31,15 +31,38 @@ class OrderAdmin(admin.ModelAdmin):
         'order_number',
         'user',
         'total_amount',
+        'items_total',
         'payment_method',
         'status',
         'created_at',
     ]
     list_filter = ['status', 'payment_method', 'created_at']
-    search_fields = ['order_number', 'user__username', 'shipping_full_name', 'shipping_phone']
+    search_fields = [
+        'order_number',
+        'user__username',
+        'user__email',
+        'shipping_full_name',
+        'shipping_phone',
+    ]
     readonly_fields = ['order_number', 'created_at', 'updated_at']
     inlines = [OrderItemInline, OrderStatusHistoryInline]
     actions = ['mark_shipped', 'mark_delivered', 'mark_cancelled']
+    date_hierarchy = 'created_at'
+
+    def get_queryset(self, request):
+        """Користувач і кошик — одним запитом, а позиції — префетчем.
+
+        Без цього список замовлень робив би по запиту на кожен рядок:
+        один на користувача і ще один на підрахунок позицій.
+        """
+        return (
+            super().get_queryset(request).select_related('user', 'cart').prefetch_related('items')
+        )
+
+    @admin.display(description='Позицій')
+    def items_total(self, obj):
+        # items уже в префетчі, тож len() не ходить у базу.
+        return len(obj.items.all())
 
     def _change_status(self, request, queryset, status, label):
         changed = 0

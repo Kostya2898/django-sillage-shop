@@ -50,6 +50,41 @@
     </div>
 </div>
 
+<section class="mt-5">
+    <h2 class="h5">
+        Відгуки
+        {% if product.reviews_count %}
+            <span class="text-muted">
+                — {{ product.average_rating|floatformat:1 }} з 5, {{ product.reviews_count }}
+            </span>
+        {% endif %}
+    </h2>
+
+    <ul class="list-group list-group-flush">
+        {% for review in reviews %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>{{ review.title|default:'Без заголовка' }}</strong>
+                        <div class="text-muted small">
+                            {{ review.user.get_display_name }} · {{ review.created_at|date:'d.m.Y' }}
+                            {% if review.is_verified_purchase %}
+                                · <span class="text-success">підтверджена покупка</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <span class="fw-bold">{{ review.rating }}/5</span>
+                </div>
+                <p class="mb-0 mt-2">{{ review.text }}</p>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">
+                Про цей аромат ще ніхто не написав. Станьте першим.
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+
 {% if related_products %}
     <h2 class="h5 mt-5">Схожі товари</h2>
     <div class="row row-cols-2 row-cols-md-4 g-3">

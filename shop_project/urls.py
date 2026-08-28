@@ -5,6 +5,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+# Брендування панелі керування. Стандартна адмінка Django з нормальними
+# заголовками виглядає гідно — сторонні теми (jazzmin, grappelli) додали б
+# ризик і залежність без реального виграшу.
+admin.site.site_header = 'SILLAGE · панель керування'
+admin.site.site_title = 'SILLAGE'
+admin.site.index_title = 'Каталог, замовлення та клієнти'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),

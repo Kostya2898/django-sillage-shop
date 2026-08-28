@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from cart.models import Cart, CartItem
 from orders.models import Order, OrderItem, OrderStatusHistory, ShippingAddress
 from payments.models import Transaction
-from shop.models import Brand, Category, Note, Product, ProductNote
+from shop.models import Brand, Category, Note, Product, ProductNote, Review
 
 User = get_user_model()
 
@@ -177,3 +177,18 @@ class TransactionFactory(factory.django.DjangoModelFactory):
     amount = factory.LazyAttribute(lambda obj: obj.order.total_amount)
     currency = 'UAH'
     status = Transaction.STATUS_SPENDING
+
+
+class ReviewFactory(factory.django.DjangoModelFactory):
+    """Відгук. За замовчуванням НЕ схвалений — саме так його створює покупець."""
+
+    class Meta:
+        model = Review
+
+    user = factory.SubFactory(UserFactory)
+    product = factory.SubFactory(ProductFactory)
+    rating = 5
+    title = factory.Sequence(lambda n: f'Відгук {n}')
+    text = 'Тестовий текст відгуку.'
+    is_verified_purchase = False
+    is_approved = False
