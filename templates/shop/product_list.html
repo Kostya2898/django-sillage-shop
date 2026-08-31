@@ -1,98 +1,241 @@
 {% extends 'base.html' %}
+{% load catalogue %}
 
-{% block title %}{% if category %}{{ category.name }}{% else %}Каталог{% endif %}{% endblock %}
+{% block title %}{% if category %}{{ category.name }}{% else %}Каталог{% endif %} — SILLAGE{% endblock %}
 
 {% block content %}
+{% if ancestors %}
+    <nav aria-label="Хлібні крихти">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Каталог</a></li>
+            {% for node in ancestors %}
+                <li class="breadcrumb-item">
+                    <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                </li>
+            {% endfor %}
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+{% endif %}
+
+<header class="mb-4">
+    <h1 class="h3 mb-1">{% if category %}{{ category.name }}{% else %}Каталог{% endif %}</h1>
+    {% if category.description %}
+        <p class="text-muted mb-0">{{ category.description }}</p>
+    {% elif not category %}
+        <p class="text-muted mb-0">Тридцять ароматів. Кожен обраний за те, що він розповідає.</p>
+    {% endif %}
+</header>
+
 <div class="row">
     <aside class="col-lg-3 mb-4">
-        <div class="list-group">
-            <a href="{% url 'shop:product_list' %}"
-               class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
-                Усі товари
-            </a>
-            {% for c in categories %}
-                <a href="{{ c.get_absolute_url }}"
-                   class="list-group-item list-group-item-action {% if category.id == c.id %}active{% endif %}">
-                    {{ c.name }}
-                </a>
-                {% for child in c.children.all %}
-                    <a href="{{ child.get_absolute_url }}"
-                       class="list-group-item list-group-item-action ps-4 small {% if category.id == child.id %}active{% endif %}">
-                        └ {{ child.name }}
-                    </a>
+        <form id="catalogue-filters" method="get" action="{% url 'shop:product_list' %}">
+            {# Пошуковий запит їде разом із фільтрами, інакше він губиться. #}
+            {% if state.q %}<input type="hidden" name="q" value="{{ state.q }}">{% endif %}
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Фільтри{% if catalogue.active_count %} ({{ catalogue.active_count }}){% endif %}</strong>
+                {% if catalogue.is_filtered %}
+                    <a href="{% url 'shop:product_list' %}" class="small">Скинути</a>
+                {% endif %}
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Категорії</h2>
+                <ul class="filter-group__list">
+                    {% for root in facets.categories %}
+                        <li>
+                            <a href="{% url 'shop:product_list_by_category' root.slug %}"
+                               class="{% if category.slug == root.slug %}is-active{% endif %}">{{ root.name }}</a>
+                            {% if root.children %}
+                                <ul class="filter-group__list filter-group__list--nested">
+                                    {% for child in root.children %}
+                                        <li>
+                                            <a href="{% url 'shop:product_list_by_category' child.slug %}"
+                                               class="{% if category.slug == child.slug %}is-active{% endif %}">{{ child.name }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li class="text-muted">Категорій ще немає</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Бренд</h2>
+                {% for brand in facets.brands %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="brand" value="{{ brand.slug }}"
+                               id="brand-{{ brand.slug }}"
+                               {% if brand.slug in state.brands %}checked{% endif %}>
+                        <label class="form-check-label" for="brand-{{ brand.slug }}">
+                            {{ brand.name }} <span class="filter-count">{{ brand.product_count }}</span>
+                        </label>
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">Брендів ще немає</p>
                 {% endfor %}
-            {% endfor %}
-        </div>
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Концентрація</h2>
+                {% for value, label in facets.concentrations %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="concentration" value="{{ value }}"
+                               id="conc-{{ value }}"
+                               {% if value in state.concentrations %}checked{% endif %}>
+                        <label class="form-check-label" for="conc-{{ value }}">{{ label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Для кого</h2>
+                {% for value, label in facets.genders %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="gender" value="{{ value }}"
+                               id="gender-{{ value }}"
+                               {% if value in state.genders %}checked{% endif %}>
+                        <label class="form-check-label" for="gender-{{ value }}">{{ label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Ціна, ₴</h2>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control form-control-sm" name="price_min" min="0"
+                           placeholder="від" value="{{ state.price_min|default_if_none:'' }}"
+                           aria-label="Ціна від">
+                    <input type="number" class="form-control form-control-sm" name="price_max" min="0"
+                           placeholder="до" value="{{ state.price_max|default_if_none:'' }}"
+                           aria-label="Ціна до">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="in_stock" value="1"
+                           id="in-stock" {% if state.in_stock %}checked{% endif %}>
+                    <label class="form-check-label" for="in-stock">Тільки в наявності</label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h2 class="filter-group__title">Ноти</h2>
+                <div class="filter-group__scroll">
+                    {% for note in facets.notes %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="note" value="{{ note.slug }}"
+                                   id="note-{{ note.slug }}"
+                                   {% if note.slug in state.notes %}checked{% endif %}>
+                            <label class="form-check-label" for="note-{{ note.slug }}">
+                                {{ note.name }} <span class="filter-count">{{ note.product_count }}</span>
+                            </label>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted small mb-0">Нот ще немає</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Без JS фільтри лишаються звичайною формою і працюють сабмітом. #}
+            <noscript>
+                <button type="submit" class="btn btn-primary w-100">Застосувати</button>
+            </noscript>
+        </form>
     </aside>
 
     <div class="col-lg-9">
-        <h1 class="h3 mb-4">
-            {% if category %}{{ category.name }}{% else %}Каталог товарів{% endif %}
-            {% if query %}<small class="text-muted">— пошук «{{ query }}»</small>{% endif %}
-        </h1>
-
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            {% for product in products %}
-                <div class="col">
-                    <div class="card h-100">
-                        {% if product.images.first %}
-                            <img src="{{ product.images.first.image.url }}" class="card-img-top"
-                                 alt="{{ product.images.first.alt_text|default:product.name }}">
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="text-muted small mb-2">{{ product.category }}</p>
-                            <p class="fw-bold fs-5">{{ product.price }} грн</p>
-
-                            {% if product.is_in_stock %}
-                                <span class="badge bg-success mb-2 align-self-start">В наявності: {{ product.stock }}</span>
-                            {% else %}
-                                <span class="badge bg-secondary mb-2 align-self-start">Немає в наявності</span>
-                            {% endif %}
-
-                            <div class="mt-auto d-grid gap-2">
-                                <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
-                                    Детальніше
-                                </a>
-                                {% if product.is_in_stock %}
-                                    <form method="post" action="{% url 'cart:cart_add' product.id %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-primary btn-sm w-100">
-                                            Додати в кошик
-                                        </button>
-                                    </form>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-info">Товарів не знайдено.</div>
-                </div>
-            {% endfor %}
+        <div class="d-flex justify-content-end mb-3">
+            <label class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Сортувати</span>
+                <select id="catalogue-sort" name="sort" class="form-select form-select-sm w-auto"
+                        form="catalogue-filters">
+                    {% for value, label in facets.sorts %}
+                        <option value="{{ value }}" {% if state.sort == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
         </div>
 
-        {% if page.paginator.num_pages > 1 %}
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if page.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">←</a>
-                        </li>
-                    {% endif %}
-                    <li class="page-item disabled">
-                        <span class="page-link">{{ page.number }} з {{ page.paginator.num_pages }}</span>
-                    </li>
-                    {% if page.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page.next_page_number }}{% if query %}&q={{ query }}{% endif %}">→</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
+        {% include 'shop/_product_grid.html' %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Фільтри без перезавантаження. Сторінка лишається робочою і без цього
+// скрипта: форма звичайна, кнопка «Застосувати» є в <noscript>.
+(function () {
+    const form = document.getElementById('catalogue-filters');
+    const sort = document.getElementById('catalogue-sort');
+    let grid = document.getElementById('catalogue-grid');
+    if (!form || !grid) return;
+
+    let pending = null;
+
+    function currentUrl() {
+        const data = new FormData(form);
+        if (sort && sort.value) data.set('sort', sort.value);
+        const params = new URLSearchParams();
+        for (const [key, value] of data.entries()) {
+            if (value !== '') params.append(key, value);
+        }
+        return params;
+    }
+
+    async function refresh() {
+        const params = currentUrl();
+        const base = form.getAttribute('action');
+
+        // Адресу міняємо теж — щоб фільтр можна було кинути посиланням
+        // і відкрити в новій вкладці.
+        const pretty = params.toString() ? `${base}?${params}` : base;
+        history.pushState(null, '', pretty);
+
+        params.set('format', 'json');
+        grid.setAttribute('aria-busy', 'true');
+
+        try {
+            const response = await fetch(`${base}?${params}`, {
+                headers: {'X-Requested-With': 'fetch'},
+            });
+            if (!response.ok) throw new Error(response.status);
+            const html = await response.text();
+            const holder = document.createElement('div');
+            holder.innerHTML = html;
+            const fresh = holder.querySelector('#catalogue-grid');
+            if (fresh) {
+                grid.replaceWith(fresh);
+                grid = fresh;
+            }
+        } catch (error) {
+            // Якщо запит не вдався — просто лишаємо сторінку як є і даємо
+            // формі відпрацювати звичайним сабмітом.
+            grid.removeAttribute('aria-busy');
+            form.submit();
+        }
+    }
+
+    function schedule() {
+        clearTimeout(pending);
+        pending = setTimeout(refresh, 250);
+    }
+
+    form.addEventListener('change', schedule);
+    form.addEventListener('input', function (event) {
+        if (event.target.type === 'number') schedule();
+    });
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        refresh();
+    });
+    if (sort) sort.addEventListener('change', schedule);
+})();
+</script>
 {% endblock %}

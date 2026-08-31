@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load catalogue %}
+
+{% block title %}SILLAGE — кураторський магазин нішевої парфумерії{% endblock %}
+
+{% block content %}
+<section class="hero mb-5">
+    <p class="hero__label">Sillage · фр. «слід»</p>
+    <h1 class="hero__title">Те, що лишається<br>після вас у коридорі</h1>
+    <p class="hero__lead">
+        Тридцять ароматів. Не тридцять тисяч. Кожен обраний за те, що він
+        розповідає, а не за те, скільки він коштує.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'shop:product_list' %}" class="btn btn-primary">Дивитись каталог</a>
+        <a href="{% url 'shop:product_list_by_category' 'discovery-sety' %}" class="btn btn-outline-secondary">
+            Почати з discovery-сета
+        </a>
+    </div>
+</section>
+
+{% if featured_products %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div>
+                <h2 class="h4 mb-1">Кураторський вибір</h2>
+                <p class="text-muted mb-0 small">Те, що ми радимо самі, а не те, що краще продається</p>
+            </div>
+            <a href="{% url 'shop:product_list' %}?sort=featured" class="small">Усі →</a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+            {% for product in featured_products %}
+                <div class="col">{% include 'shop/_product_card.html' %}</div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+<section class="mb-5">
+    <h2 class="h4 mb-3">Обрати за настроєм</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-3">
+        {% for root in facets.categories %}
+            <div class="col">
+                <div class="category-tile">
+                    <h3 class="h6 mb-2">
+                        <a href="{% url 'shop:product_list_by_category' root.slug %}"
+                           class="text-decoration-none text-reset stretched-link">{{ root.name }}</a>
+                    </h3>
+                    <p class="category-tile__children mb-0">
+                        {% for child in root.children %}{{ child.name }}{% if not forloop.last %} · {% endif %}{% endfor %}
+                    </p>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col"><p class="text-muted">Категорії ще не наповнені.</p></div>
+        {% endfor %}
+    </div>
+</section>
+
+{% if new_products %}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <h2 class="h4 mb-0">Нове</h2>
+            <a href="{% url 'shop:product_list' %}?sort=new" class="small">Усі новинки →</a>
+        </div>
+
+        <div class="row row-cols-2 row-cols-lg-4 g-3">
+            {% for product in new_products %}
+                <div class="col">{% include 'shop/_product_card.html' %}</div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

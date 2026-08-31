@@ -1,0 +1,59 @@
+{% load catalogue %}
+{# Картка товару. Один файл на всі сітки: головна, каталог, «схожі за нотами». #}
+<article class="card h-100 product-card">
+    <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+        {% if product.main_image %}
+            <img src="{{ product.main_image.url }}" class="card-img-top" loading="lazy"
+                 width="600" height="750"
+                 alt="{{ product.main_image_alt }}">
+        {% else %}
+            <div class="card-img-top product-card__placeholder"></div>
+        {% endif %}
+    </a>
+
+    <div class="card-body d-flex flex-column">
+        <div class="d-flex gap-1 mb-2">
+            {% if product.is_new %}<span class="badge product-badge">Новинка</span>{% endif %}
+            {% if product.is_featured %}<span class="badge product-badge">Вибір SILLAGE</span>{% endif %}
+            {% if product.has_discount %}
+                <span class="badge product-badge product-badge--sale">−{{ product.discount_percent }}%</span>
+            {% endif %}
+        </div>
+
+        <p class="product-card__brand mb-1">{{ product.brand.name }}</p>
+        <h3 class="h6 mb-2">
+            <a href="{{ product.get_absolute_url }}" class="stretched-link text-decoration-none text-reset">
+                {{ product.name }}
+            </a>
+        </h3>
+
+        {% if product.volume_ml or product.concentration %}
+            <p class="product-card__meta mb-2">
+                {% if product.volume_ml %}{{ product.volume_ml }} мл{% endif %}
+                {% if product.volume_ml and product.concentration %} · {% endif %}
+                {{ product.get_concentration_display }}
+            </p>
+        {% endif %}
+
+        <p class="product-card__price mb-2">
+            {{ product.price|money }} ₴
+            {% if product.has_discount %}
+                <span class="product-card__old">{{ product.old_price|money }} ₴</span>
+            {% endif %}
+        </p>
+
+        <div class="mt-auto">
+            {% if product.is_in_stock %}
+                {% if product.stock < 5 %}
+                    <span class="product-card__stock product-card__stock--low">
+                        Залишилось {{ product.stock }}
+                    </span>
+                {% else %}
+                    <span class="product-card__stock">В наявності</span>
+                {% endif %}
+            {% else %}
+                <span class="product-card__stock product-card__stock--out">Немає в наявності</span>
+            {% endif %}
+        </div>
+    </div>
+</article>

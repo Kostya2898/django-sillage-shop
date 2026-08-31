@@ -49,3 +49,46 @@ class SessionCartClearTests(ShopTestCase):
 
         response = self.client.get(reverse('cart:cart_detail'))
         self.assertEqual(len(response.context['cart']), 3)
+
+
+class AnonymousVisitorCostsNothingTests(ShopTestCase):
+    """AUDIT #1: перегляд сторінки не має створювати сесію анонімові.
+
+    Раніше `SessionCart.__init__` писав ключ у сесію, а конструктор викликає
+    context processor на кожному рендері. Наслідок: кожен випадковий
+    відвідувач отримував cookie і рядок у django_session уже на головній —
+    чотири зайві запити на показ і неможливість кешувати сторінку.
+    """
+
+    def test_browsing_does_not_create_a_session(self):
+        from django.contrib.sessions.models import Session
+
+        ProductFactory()
+
+        self.client.get(reverse('shop:home'))
+        self.client.get(reverse('shop:product_list'))
+
+        self.assertEqual(Session.objects.count(), 0)
+
+    def test_browsing_sets_no_cookie(self):
+        response = self.client.get(reverse('shop:product_list'))
+
+        self.assertNotIn('sessionid', response.cookies)
+
+    def test_adding_to_cart_does_create_a_session(self):
+        """А от коли щось поклали — сесія має зʼявитись."""
+        from django.contrib.sessions.models import Session
+
+        product = ProductFactory(stock=5)
+
+        self.client.post(reverse('cart:cart_add', args=[product.id]), {'quantity': 1})
+
+        self.assertEqual(Session.objects.count(), 1)
+
+    def test_cart_survives_between_requests(self):
+        product = ProductFactory(stock=5)
+
+        self.client.post(reverse('cart:cart_add', args=[product.id]), {'quantity': 2})
+        response = self.client.get(reverse('cart:cart_detail'))
+
+        self.assertEqual(len(response.context['cart']), 2)

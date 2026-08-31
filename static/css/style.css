@@ -55,3 +55,243 @@ main {
     background-color: #efedf2;
     border-color: #9c93a6;
 }
+
+/* ---------------------------------------------------------------------------
+   Каталог (етап B6)
+
+   Кольори — з палітри SILLAGE (PROJECT_VISION.md). Це ще накладка поверх
+   Bootstrap: власна дизайн-система приходить на етапі F0, і саме тому тут
+   лише те, без чого нові класи виглядали б неоформленими.
+   --------------------------------------------------------------------------- */
+
+.hero {
+    background: linear-gradient(160deg, #16131b 0%, #0a090c 100%);
+    color: #efe9e1;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+}
+
+.hero__label {
+    color: #c8a45c;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.hero__title {
+    font-size: clamp(1.9rem, 4vw, 3rem);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+
+.hero__lead {
+    color: #9c93a6;
+    max-width: 34rem;
+    margin-bottom: 1.5rem;
+}
+
+.category-tile {
+    position: relative;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 1rem;
+    height: 100%;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.category-tile:hover {
+    border-color: #c8a45c;
+    background-color: #faf7f1;
+}
+
+.category-tile__children {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* --- картка товару --- */
+
+.product-card {
+    border-color: #e9ecef;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.product-card:hover {
+    border-color: #c8a45c;
+    transform: translateY(-2px);
+}
+
+.product-card__placeholder {
+    height: 200px;
+    background: linear-gradient(160deg, #16131b, #0a090c);
+}
+
+.product-card__brand {
+    color: #9c93a6;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.product-card__meta {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.product-card__price {
+    font-weight: 600;
+    color: #8a6d2f;
+}
+
+.product-card__old {
+    color: #9c93a6;
+    font-weight: 400;
+    text-decoration: line-through;
+    margin-left: 0.4rem;
+}
+
+.product-card__stock {
+    font-size: 0.78rem;
+    color: #6c757d;
+}
+
+.product-card__stock--low {
+    color: #a8842f;
+}
+
+.product-card__stock--out {
+    color: #b8615a;
+}
+
+.product-badge {
+    background-color: #16131b;
+    color: #efe9e1;
+    font-weight: 500;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+}
+
+.product-badge--sale {
+    background-color: #b8615a;
+}
+
+/* --- панель фільтрів --- */
+
+.filter-group {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.filter-group__title {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 0.6rem;
+}
+
+.filter-group__list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.filter-group__list a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.filter-group__list a:hover,
+.filter-group__list a.is-active {
+    color: #8a6d2f;
+}
+
+.filter-group__list--nested {
+    padding-left: 0.9rem;
+    font-size: 0.9rem;
+}
+
+.filter-group__scroll {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.filter-count {
+    color: #adb5bd;
+    font-size: 0.78rem;
+}
+
+.catalogue__count {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.catalogue__empty {
+    border: 1px dashed #dee2e6;
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+}
+
+#catalogue-grid[aria-busy='true'] {
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
+}
+
+/* --- живий пошук у шапці --- */
+
+.site-search__field {
+    position: relative;
+}
+
+.site-search__results {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    right: 0;
+    min-width: 20rem;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 12px 28px rgba(10, 9, 12, 0.18);
+    z-index: 1050;
+    overflow: hidden;
+}
+
+.site-search__item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.55rem 0.75rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.site-search__item:hover {
+    background: #f8f5f0;
+}
+
+.site-search__item img,
+.site-search__thumb {
+    width: 38px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 3px;
+    background: #16131b;
+    flex: none;
+}
+
+.site-search__item small {
+    display: block;
+    color: #6c757d;
+    font-size: 0.78rem;
+}
+
+.site-search__empty {
+    margin: 0;
+    padding: 0.75rem;
+    color: #6c757d;
+    font-size: 0.88rem;
+}

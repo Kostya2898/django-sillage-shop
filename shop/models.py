@@ -522,6 +522,20 @@ class Product(models.Model):
         return self.is_available and self.stock > 0
 
     @property
+    def main_image_alt(self):
+        """Alt головного фото: з `ProductImage.alt_text`, а не з назви товару.
+
+        Поле alt_text існує саме для цього; підставляти назву — гірша
+        доступність (AUDIT.md, борг #20). Назва лишається запасним варіантом.
+        """
+        prefetched = getattr(self, 'main_images', None)
+        if prefetched is not None:
+            return (prefetched[0].alt_text if prefetched else '') or self.name
+
+        image = self.images.filter(is_main=True).only('alt_text').first()
+        return (image.alt_text if image else '') or self.name
+
+    @property
     def main_image(self):
         """Головне фото: спершу `cover`, далі — позначене `is_main`.
 

@@ -1,0 +1,66 @@
+{% load catalogue %}
+{# Сітка товарів разом із пагінацією. Саме цей фрагмент підміняє fetch,
+   коли користувач міняє фільтр — тому пагінація має бути всередині. #}
+<div id="catalogue-grid" data-total="{{ total }}">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="catalogue__count mb-0" aria-live="polite">
+            {% if total %}
+                Знайдено {{ total }} {{ total|pluralize:"аромат,аромати,ароматів" }}
+            {% else %}
+                Нічого не знайшлося
+            {% endif %}
+        </p>
+    </div>
+
+    {% if products %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+            {% for product in products %}
+                <div class="col">{% include 'shop/_product_card.html' %}</div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {# Не глухий кут: показуємо, що робити далі, і даємо куди клікнути. #}
+        <div class="catalogue__empty">
+            <h2 class="h5">За цими фільтрами нічого немає</h2>
+            <p class="text-muted mb-3">
+                Спробуйте прибрати частину фільтрів або подивіться те, що ми радимо самі.
+            </p>
+            <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary btn-sm mb-4">
+                Скинути всі фільтри
+            </a>
+
+            {% if fallback_products %}
+                <div class="row row-cols-2 row-cols-lg-4 g-3">
+                    {% for product in fallback_products %}
+                        <div class="col">{% include 'shop/_product_card.html' %}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if page.paginator.num_pages > 1 %}
+        <nav class="mt-4" aria-label="Сторінки каталогу">
+            <ul class="pagination justify-content-center">
+                {% if page.has_previous %}
+                    <li class="page-item">
+                        {# query_string зберігає активні фільтри — інакше перехід
+                           на другу сторінку скидав би вибраний бренд. #}
+                        <a class="page-link" href="{% query_string page=page.previous_page_number %}">←</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">{{ page.number }} з {{ page.paginator.num_pages }}</span>
+                </li>
+
+                {% if page.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{% query_string page=page.next_page_number %}">→</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>

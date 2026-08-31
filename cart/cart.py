@@ -26,12 +26,13 @@ class SessionCart:
 
     def __init__(self, request):
         self.session = request.session
-        cart = self.session.get(settings.CART_SESSION_ID)
-
-        if cart is None:
-            cart = self.session[settings.CART_SESSION_ID] = {}
-
-        self.cart = cart
+        # Ключ у сесії створюється лише тоді, коли в кошик щось поклали.
+        # Раніше він писався просто в конструкторі, а конструктор викликає
+        # context processor на КОЖНОМУ рендері — тож кожен анонімний
+        # відвідувач отримував cookie і рядок у django_session уже на
+        # головній сторінці. Це чотири зайві запити на кожен показ каталогу
+        # і неможливість кешувати сторінки анонімів (AUDIT.md, борг #1).
+        self.cart = self.session.get(settings.CART_SESSION_ID) or {}
 
     def add(self, product, quantity=1, update_quantity=False):
         """Додати товар у кошик або змінити його кількість."""
@@ -61,7 +62,12 @@ class SessionCart:
         return self.cart.get(str(product.id), {}).get('quantity', 0)
 
     def save(self):
-        """Позначити сесію зміненою, щоб Django записав її."""
+        """Записати кошик у сесію.
+
+        Саме тут — і тільки тут — у сесії зʼявляється ключ кошика. Доти
+        анонімний відвідувач не має ані cookie, ані рядка в django_session.
+        """
+        self.session[settings.CART_SESSION_ID] = self.cart
         self.session.modified = True
 
     def __iter__(self):
