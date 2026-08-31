@@ -1,14 +1,19 @@
 """Гібридний кошик: session-based для гостей, database-based для користувачів.
 
 Обидва класи мають однаковий інтерфейс (`add`, `remove`, `clear`, `__iter__`,
-`__len__`, `get_total_price`, `get_quantity`), тому views і шаблони не знають, з яким саме
-кошиком працюють. Потрібний тип повертає фабрика `get_cart(request)`.
+`__len__`, `count`, `get_total_price`, `get_quantity`), тому views і шаблони не
+знають, з яким саме кошиком працюють. Потрібний тип повертає фабрика
+`get_cart(request)`.
+
+Обидва створюються ліниво: ані рядка в `django_session`, ані рядка в `cart_cart`
+не зʼявляється, доки в кошик справді щось не поклали.
 """
 
 from decimal import Decimal
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Sum
 
 from shop.models import Product
 
@@ -87,9 +92,13 @@ class SessionCart:
             item['total_price'] = item['price'] * item['quantity']
             yield item
 
+    def count(self):
+        """Кількість одиниць для лічильника в шапці. Для гостя — без запитів."""
+        return sum(item['quantity'] for item in self.cart.values())
+
     def __len__(self):
         """Загальна кількість одиниць товару в кошику."""
-        return sum(item['quantity'] for item in self.cart.values())
+        return self.count()
 
     def get_total_price(self):
         """Загальна сума кошика."""
@@ -118,13 +127,36 @@ class DatabaseCart:
         # наприклад, з обробника сигналу user_logged_in.
         self.request = request
         self.user = user or request.user
-        # Беремо саме неоплачений кошик: оплачені лишаються в базі як історія.
-        self.cart, _ = Cart.objects.get_or_create(user=self.user, paid_status=False)
+        self._row = None
+        self._loaded = False
+
+    @property
+    def cart(self):
+        """Наявний кошик або None. Читання НЕ створює рядок у базі.
+
+        Раніше конструктор робив get_or_create, а конструктор викликає
+        context processor на кожному запиті — тож кожен показ будь-якої
+        сторінки, включно з адмінкою і 404, робив SELECT, а першого разу
+        ще й INSERT. Тепер порожній кошик просто не існує в базі, доки
+        в нього нічого не поклали.
+        """
+        if not self._loaded:
+            # Беремо саме неоплачений кошик: оплачені лишаються як історія.
+            self._row = Cart.objects.filter(user=self.user, paid_status=False).first()
+            self._loaded = True
+        return self._row
+
+    def _writable_cart(self):
+        """Кошик для запису. Рядок у базі зʼявляється тільки тут."""
+        if self.cart is None:
+            self._row, _ = Cart.objects.get_or_create(user=self.user, paid_status=False)
+            self._loaded = True
+        return self._row
 
     def add(self, product, quantity=1, update_quantity=False):
         """Додати товар у кошик або змінити його кількість."""
         cart_item, created = CartItem.objects.get_or_create(
-            cart=self.cart,
+            cart=self._writable_cart(),
             product=product,
             defaults={'quantity': quantity},
         )
@@ -138,16 +170,32 @@ class DatabaseCart:
 
     def remove(self, product):
         """Видалити товар з кошика."""
+        if self.cart is None:
+            return
         CartItem.objects.filter(cart=self.cart, product=product).delete()
 
     def get_quantity(self, product):
         """Скільки одиниць цього товару вже лежить у кошику."""
+        if self.cart is None:
+            return 0
         item = self.cart.items.filter(product=product).only('quantity').first()
         return item.quantity if item else 0
 
+    def count(self):
+        """Кількість одиниць одним агрегатом — для лічильника в шапці.
+
+        Лічильник рендериться на кожній сторінці, тож тягнути заради нього
+        всі позиції в память було б марно.
+        """
+        if self.cart is None:
+            return 0
+        return self.cart.items.aggregate(total=Sum('quantity'))['total'] or 0
+
     def __iter__(self):
         """Пройтися по товарах кошика у тому ж форматі, що й SessionCart."""
-        for item in self.cart.items.select_related('product'):
+        if self.cart is None:
+            return
+        for item in self.cart.items.select_related('product', 'product__brand'):
             yield {
                 'product': item.product,
                 'quantity': item.quantity,
@@ -156,13 +204,17 @@ class DatabaseCart:
             }
 
     def __len__(self):
-        return self.cart.get_total_items()
+        return self.count()
 
     def get_total_price(self):
+        if self.cart is None:
+            return Decimal('0.00')
         return self.cart.get_total_price()
 
     def clear(self):
         """Очистити кошик."""
+        if self.cart is None:
+            return
         self.cart.items.all().delete()
 
 

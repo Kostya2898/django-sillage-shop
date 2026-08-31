@@ -112,8 +112,10 @@ class CheckoutSurvivesMailOutageTests(ShopTestCase):
         with broken_mail():
             self._checkout(product)
 
+        # Перевіряємо стан кошика, а не текст на сторінці: копія змінюється,
+        # а вимога «після замовлення кошик порожній» — ні.
         response = self.client.get(reverse('cart:cart_detail'))
-        self.assertContains(response, 'Ваш кошик порожній')
+        self.assertEqual(len(response.context['cart']), 0)
 
     def test_success_page_opens_when_mail_is_down(self):
         product = ProductFactory(stock=10)

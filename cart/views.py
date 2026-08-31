@@ -1,15 +1,30 @@
-"""Views кошика: перегляд, додавання, оновлення кількості та видалення."""
+"""Views кошика: перегляд, додавання, оновлення кількості та видалення.
+
+Кожен ендпоінт працює у двох режимах. Звичайний POST з форми — як і раніше:
+дія, повідомлення, редірект. POST із `X-Requested-With: XMLHttpRequest` або
+`Accept: application/json` — той самий результат у JSON.
+
+Це прогресивне покращення, а не два різні API: без JavaScript магазин
+лишається повністю робочим, включно з оформленням замовлення.
+"""
 
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from shop.models import Product
 
 from .cart import get_cart
-
-# Максимальна кількість одного товару в кошику (вимога практичного завдання).
-MAX_QUANTITY_PER_PRODUCT = 99
+from .services import (
+    MAX_QUANTITY_PER_PRODUCT,
+    cart_payload,
+    error_payload,
+    item_payload,
+    quoted,
+    validate_quantity,
+    wants_json,
+)
 
 
 def _parse_quantity(request, default=1):
@@ -20,44 +35,22 @@ def _parse_quantity(request, default=1):
         return default
 
 
-def _headroom_message(product, in_cart, limit, reason):
-    """Повідомлення про відмову, яке одразу каже, що можна зробити далі."""
-    available = max(limit - in_cart, 0)
+def _respond(request, cart, message, item=None, redirect_to='cart:cart_detail', **kwargs):
+    """Успішна відповідь у форматі, якого чекає клієнт."""
+    if wants_json(request):
+        return JsonResponse(cart_payload(request, cart, message=message, item=item))
 
-    if available:
-        return f'{reason} У кошику вже {in_cart} — можна додати ще {available}.'
-    return f'{reason} У кошику вже {in_cart}, більше додати не можна.'
+    messages.success(request, message)
+    return redirect(redirect_to, **kwargs)
 
 
-def _validate_quantity(cart, product, quantity, absolute=False):
-    """Перевірити кількість. Повертає (кількість, помилка_чи_None).
+def _reject(request, cart, error, redirect_to='cart:cart_detail', **kwargs):
+    """Відмова: для JSON — ok=false зі статусом 200, для форми — повідомлення."""
+    if wants_json(request):
+        return JsonResponse(error_payload(error))
 
-    Ключове: звіряємо зі складом **підсумок у кошику після дії**, а не число
-    із запиту. Інакше «додати 5» двічі при залишку 6 проходить обидва рази,
-    і брак товару виявляється аж на checkout.
-
-    `absolute=True` — це «встановити кількість» (cart_update), тобто підсумком
-    є саме передане число. `absolute=False` — «додати до наявного».
-    """
-    if quantity < 1:
-        return None, 'Кількість має бути більшою за 0'
-
-    in_cart = cart.get_quantity(product)
-    resulting = quantity if absolute else in_cart + quantity
-
-    if resulting > MAX_QUANTITY_PER_PRODUCT:
-        reason = f'Максимальна кількість одного товару — {MAX_QUANTITY_PER_PRODUCT} шт.'
-        if absolute:
-            return None, reason
-        return None, _headroom_message(product, in_cart, MAX_QUANTITY_PER_PRODUCT, reason)
-
-    if resulting > product.stock:
-        reason = f'На складі лишилось {product.stock} од. товару «{product.name}».'
-        if absolute:
-            return None, reason
-        return None, _headroom_message(product, in_cart, product.stock, reason)
-
-    return quantity, None
+    messages.error(request, error)
+    return redirect(redirect_to, **kwargs)
 
 
 def cart_detail(request):
@@ -66,10 +59,7 @@ def cart_detail(request):
     return render(
         request,
         'cart/detail.html',
-        {
-            'cart': cart,
-            'max_quantity': MAX_QUANTITY_PER_PRODUCT,
-        },
+        {'cart': cart, 'max_quantity': MAX_QUANTITY_PER_PRODUCT},
     )
 
 
@@ -80,18 +70,26 @@ def cart_add(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
     if not product.is_in_stock:
-        messages.error(request, f'Товару «{product.name}» немає в наявності')
-        return redirect('shop:product_detail', slug=product.slug)
+        return _reject(
+            request,
+            cart,
+            f'Товару {quoted(product.name)} немає в наявності',
+            redirect_to='shop:product_detail',
+            slug=product.slug,
+        )
 
-    quantity = _parse_quantity(request)
-    quantity, error = _validate_quantity(cart, product, quantity)
+    quantity, error = validate_quantity(cart, product, _parse_quantity(request))
     if error:
-        messages.error(request, error)
-        return redirect('shop:product_detail', slug=product.slug)
+        return _reject(request, cart, error, redirect_to='shop:product_detail', slug=product.slug)
 
     cart.add(product=product, quantity=quantity)
-    messages.success(request, f'Товар «{product.name}» додано до кошика')
-    return redirect('cart:cart_detail')
+
+    return _respond(
+        request,
+        cart,
+        f'Товар {quoted(product.name)} додано до кошика',
+        item=item_payload(cart, product),
+    )
 
 
 @require_POST
@@ -103,18 +101,15 @@ def cart_update(request, product_id):
 
     if quantity <= 0:
         cart.remove(product)
-        messages.success(request, f'Товар «{product.name}» видалено з кошика')
-        return redirect('cart:cart_detail')
+        return _respond(request, cart, f'Товар {quoted(product.name)} видалено з кошика')
 
     # Оновлення задає кількість, а не додає до неї.
-    quantity, error = _validate_quantity(cart, product, quantity, absolute=True)
+    quantity, error = validate_quantity(cart, product, quantity, absolute=True)
     if error:
-        messages.error(request, error)
-        return redirect('cart:cart_detail')
+        return _reject(request, cart, error)
 
     cart.add(product=product, quantity=quantity, update_quantity=True)
-    messages.success(request, 'Кошик оновлено')
-    return redirect('cart:cart_detail')
+    return _respond(request, cart, 'Кошик оновлено', item=item_payload(cart, product))
 
 
 @require_POST
@@ -124,13 +119,13 @@ def cart_remove(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart.remove(product)
 
-    messages.success(request, f'Товар «{product.name}» видалено з кошика')
-    return redirect('cart:cart_detail')
+    return _respond(request, cart, f'Товар {quoted(product.name)} видалено з кошика')
 
 
 @require_POST
 def cart_clear(request):
     """Повністю очистити кошик."""
-    get_cart(request).clear()
-    messages.success(request, 'Кошик очищено')
-    return redirect('cart:cart_detail')
+    cart = get_cart(request)
+    cart.clear()
+
+    return _respond(request, cart, 'Кошик очищено')

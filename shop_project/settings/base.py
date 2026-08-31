@@ -182,6 +182,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # Ключ, під яким session-based кошик зберігається у сесії користувача.
 CART_SESSION_ID = 'cart'
 
+# Максимальна кількість одного товару в кошику. У налаштуваннях, а не в коді,
+# щоб магазин міг змінити ліміт без правки views.
+CART_MAX_QUANTITY_PER_PRODUCT = env.int('CART_MAX_QUANTITY_PER_PRODUCT', default=99)
+
 
 # ---------------------------------------------------------------------------
 # Автентифікація

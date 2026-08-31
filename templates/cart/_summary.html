@@ -1,0 +1,12 @@
+{% load catalogue %}
+{# Підсумок кошика. Спільний для сторінки кошика, drawer і checkout. #}
+<div class="cart-summary">
+    <div class="cart-summary__line">
+        <span>Позицій</span>
+        <span>{{ cart|length }}</span>
+    </div>
+    <div class="cart-summary__line cart-summary__line--total">
+        <span>Разом</span>
+        <span data-cart-total>{{ cart.get_total_price|money }} ₴</span>
+    </div>
+</div>

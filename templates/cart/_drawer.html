@@ -1,0 +1,34 @@
+{# Висувна панель кошика. Саме цей фрагмент повертає JSON у полі cart_html,
+   тож фронтенду достатньо підмінити розмітку одним присвоєнням. #}
+<div class="cart-drawer" id="cart-drawer" data-count="{{ cart|length }}">
+    <header class="cart-drawer__header">
+        <h2 class="cart-drawer__title">Кошик</h2>
+        <button type="button" class="cart-drawer__close" data-cart-close aria-label="Закрити кошик">×</button>
+    </header>
+
+    {% if cart|length %}
+        <ul class="cart-drawer__items">
+            {% for item in cart %}
+                {% include 'cart/_row.html' %}
+            {% endfor %}
+        </ul>
+
+        {% include 'cart/_summary.html' %}
+
+        <div class="cart-drawer__actions">
+            <a href="{% url 'orders:checkout' %}" class="btn btn-primary w-100">Оформити замовлення</a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn btn-link w-100">Перейти в кошик</a>
+        </div>
+    {% else %}
+        {# Порожній кошик — не глухий кут: даємо куди піти. #}
+        <div class="cart-drawer__empty">
+            <p>У кошику поки порожньо.</p>
+            <p class="text-muted small">
+                Почніть з discovery-сета — вісім слідів по 2 мл.
+            </p>
+            <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary btn-sm">
+                До каталогу
+            </a>
+        </div>
+    {% endif %}
+</div>

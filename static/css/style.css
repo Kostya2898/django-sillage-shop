@@ -295,3 +295,175 @@ main {
     color: #6c757d;
     font-size: 0.88rem;
 }
+
+/* ---------------------------------------------------------------------------
+   Кошик: позиція, підсумок, висувна панель
+
+   Розмітка спільна для сторінки кошика і drawer (templates/cart/_row.html,
+   _summary.html, _drawer.html), тож і стилі спільні — інакше вони розʼїдуться.
+   --------------------------------------------------------------------------- */
+
+.cart-list,
+.cart-drawer__items {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.cart-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.cart-row__image,
+.cart-row__image--empty {
+    width: 56px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: linear-gradient(160deg, #16131b, #0a090c);
+    flex: none;
+}
+
+.cart-row__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.cart-row__name {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.cart-row__name:hover {
+    color: #8a6d2f;
+}
+
+.cart-row__brand {
+    color: #9c93a6;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0.1rem 0 0.5rem;
+}
+
+.cart-row__qty {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.cart-row__qty input {
+    width: 4.2rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.cart-row__side {
+    text-align: right;
+    flex: none;
+}
+
+.cart-row__total {
+    display: block;
+    font-weight: 600;
+    color: #8a6d2f;
+    margin-bottom: 0.35rem;
+    white-space: nowrap;
+}
+
+.cart-row__remove {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #b8615a;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.cart-row__remove:hover {
+    text-decoration: underline;
+}
+
+.cart-summary {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    background: #faf9f7;
+}
+
+.cart-summary__line {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.cart-summary__line--total {
+    border-top: 1px solid #e9ecef;
+    margin-top: 0.4rem;
+    padding-top: 0.7rem;
+    color: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.cart-empty,
+.cart-drawer__empty {
+    border: 1px dashed #dee2e6;
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* --- висувна панель --- */
+
+.cart-drawer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: #fff;
+    height: 100%;
+}
+
+.cart-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cart-drawer__title {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.cart-drawer__close {
+    background: none;
+    border: 0;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #9c93a6;
+    cursor: pointer;
+}
+
+.cart-drawer__close:hover {
+    color: #16131b;
+}
+
+.cart-drawer__items {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.cart-drawer__actions {
+    display: grid;
+    gap: 0.4rem;
+}
