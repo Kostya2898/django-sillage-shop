@@ -7,7 +7,8 @@
     Сам знаходить python у .venv — активувати середовище не обовʼязково.
 
 .PARAMETER Command
-    run | migrate | makemigrations | seed | test | lint | format | superuser
+    run | migrate | makemigrations | seed | seed-fast | render | test | lint
+    | format | superuser
     | check | check-prod | collectstatic | shell | urls | install | help
 
 .EXAMPLE
@@ -55,8 +56,24 @@ try {
         }
 
         'seed' {
-            Write-Host '→ наповнення демо-даними' -ForegroundColor Cyan
-            & $Python $Manage seed_demo @Args
+            # Повний цикл: схема -> каталог -> зображення. Саме в такому
+            # порядку, бо рендерер бере товари з бази.
+            Write-Host '→ migrate' -ForegroundColor Cyan
+            & $Python $Manage migrate
+            Write-Host '→ наповнення каталогу SILLAGE' -ForegroundColor Cyan
+            & $Python $Manage seed_shop --flush @Args
+            Write-Host '→ рендер зображень (це надовго)' -ForegroundColor Cyan
+            & $Python $Manage render_product_images --force
+        }
+
+        'seed-fast' {
+            Write-Host '→ каталог без зображень' -ForegroundColor Cyan
+            & $Python $Manage migrate
+            & $Python $Manage seed_shop --flush --no-images @Args
+        }
+
+        'render' {
+            & $Python $Manage render_product_images @Args
         }
 
         'test' {
@@ -117,7 +134,9 @@ try {
             Write-Host '  run             runserver на 127.0.0.1:8000'
             Write-Host '  migrate         застосувати міграції'
             Write-Host '  makemigrations  створити міграції'
-            Write-Host '  seed            наповнити демо-даними'
+            Write-Host '  seed            migrate + каталог + рендер зображень'
+            Write-Host '  seed-fast       каталог без рендеру зображень'
+            Write-Host '  render          лише рендер (--only=slug, --force)'
             Write-Host '  test            прогнати тести'
             Write-Host '  lint            ruff check + black --check'
             Write-Host '  format          ruff --fix + black'

@@ -10,7 +10,7 @@ endif
 MANAGE := $(PYTHON) manage.py
 
 .DEFAULT_GOAL := help
-.PHONY: help run migrate makemigrations seed test lint format superuser \
+.PHONY: help run migrate makemigrations seed seed-fast render test lint format superuser \
         check check-prod collectstatic shell urls install
 
 help:  ## показати цей список
@@ -30,8 +30,17 @@ migrate:  ## застосувати міграції
 makemigrations:  ## створити міграції
 	$(MANAGE) makemigrations
 
-seed:  ## наповнити демо-даними
-	$(MANAGE) seed_demo
+seed:  ## migrate + каталог SILLAGE + рендер зображень
+	$(MANAGE) migrate
+	$(MANAGE) seed_shop --flush
+	$(MANAGE) render_product_images --force
+
+seed-fast:  ## каталог без рендеру зображень
+	$(MANAGE) migrate
+	$(MANAGE) seed_shop --flush --no-images
+
+render:  ## лише рендер зображень (ARGS="--only=slug --force")
+	$(MANAGE) render_product_images $(ARGS)
 
 test:  ## прогнати тести
 	$(MANAGE) test
