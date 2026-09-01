@@ -467,3 +467,342 @@ main {
     display: grid;
     gap: 0.4rem;
 }
+
+/* ---------------------------------------------------------------------------
+   Checkout: кроки, роздоріжжя, доставка, промокод, підсумок
+
+   Той самий статус, що й у решти файлу: накладка поверх Bootstrap до етапу F0
+   (ROADMAP.md), коли зʼявиться власна дизайн-система. Кольори — з палітри
+   PROJECT_VISION.md, акцент один — латунь #C8A45C.
+   --------------------------------------------------------------------------- */
+
+/* --- індикатор кроків --- */
+
+.checkout-steps {
+    margin-bottom: 2rem;
+}
+
+.checkout-steps__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.75rem;
+    list-style: none;
+    padding: 0 0 1rem;
+    margin: 0;
+    border-bottom: 1px solid #e9ecef;
+    counter-reset: step;
+}
+
+.checkout-steps__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: #9c93a6;
+    font-size: 0.9rem;
+}
+
+.checkout-steps__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.78rem;
+    flex: none;
+}
+
+.checkout-steps__item.is-current {
+    color: #16131b;
+    font-weight: 600;
+}
+
+.checkout-steps__item.is-current .checkout-steps__num {
+    background: #16131b;
+    border-color: #16131b;
+    color: #efe9e1;
+}
+
+.checkout-steps__item.is-done {
+    color: #8a6d2f;
+}
+
+.checkout-steps__item.is-done .checkout-steps__num {
+    border-color: #c8a45c;
+    background: #c8a45c;
+    color: #16131b;
+}
+
+/* --- роздоріжжя «хто ви» --- */
+
+.identity-option {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1rem;
+}
+
+.identity-option--primary {
+    border-color: #c8a45c;
+    background: #faf7f1;
+}
+
+.identity-option__body {
+    flex: 1 1 18rem;
+}
+
+.identity-option__title {
+    font-size: 1.05rem;
+    margin: 0 0 0.3rem;
+}
+
+.identity-option__text {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* --- форма гостя --- */
+
+.checkout-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+}
+
+.checkout-form__field--wide {
+    grid-column: 1 / -1;
+}
+
+.checkout-form__field {
+    margin-bottom: 0.25rem;
+}
+
+.form-label__optional {
+    color: #adb5bd;
+    font-size: 0.75rem;
+    font-weight: 400;
+    margin-left: 0.35rem;
+}
+
+.form-hint {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin: 0.3rem 0 0;
+}
+
+.form-error {
+    color: #b8615a;
+    font-size: 0.82rem;
+    margin: 0.3rem 0 0;
+}
+
+.checkout-form__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+}
+
+/* --- вибір доставки --- */
+
+.delivery-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #f1f3f5;
+    cursor: pointer;
+}
+
+.delivery-option:last-child {
+    border-bottom: 0;
+}
+
+.delivery-option input {
+    margin-top: 0.25rem;
+    flex: none;
+}
+
+.delivery-option__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.delivery-option__name {
+    display: block;
+    font-weight: 500;
+}
+
+.delivery-option__desc,
+.delivery-option__days {
+    display: block;
+    color: #6c757d;
+    font-size: 0.82rem;
+}
+
+.delivery-option__price {
+    text-align: right;
+    flex: none;
+    font-weight: 600;
+    color: #8a6d2f;
+    white-space: nowrap;
+}
+
+.delivery-option__free {
+    display: block;
+    font-weight: 400;
+    font-size: 0.74rem;
+    color: #6c757d;
+}
+
+/* --- підсумок замовлення --- */
+
+.order-summary {
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.order-summary__head {
+    padding: 0.85rem 1.1rem;
+    background: #16131b;
+    color: #efe9e1;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.order-summary__items {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 1.1rem;
+}
+
+.order-summary__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.45rem 0;
+    font-size: 0.9rem;
+}
+
+.order-summary__qty {
+    color: #9c93a6;
+}
+
+.order-summary__sum {
+    white-space: nowrap;
+}
+
+.order-summary__coupon {
+    padding: 0.9rem 1.1rem;
+    border-top: 1px solid #f1f3f5;
+    border-bottom: 1px solid #f1f3f5;
+    background: #faf9f7;
+}
+
+.coupon-form__label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.4rem;
+}
+
+.coupon-form__row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.coupon-form__row input {
+    text-transform: uppercase;
+}
+
+.coupon-applied {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.coupon-applied__code {
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.coupon-applied__value {
+    color: #8a6d2f;
+    margin-left: 0.4rem;
+}
+
+.coupon-applied__remove {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: #b8615a;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.coupon-applied__remove:hover {
+    text-decoration: underline;
+}
+
+.order-summary__totals {
+    padding: 0.9rem 1.1rem;
+}
+
+.order-summary__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.28rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.order-summary__line--discount {
+    color: #b8615a;
+}
+
+.order-summary__line--total {
+    border-top: 1px solid #e9ecef;
+    margin-top: 0.45rem;
+    padding-top: 0.7rem;
+    color: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.order-summary__foot {
+    padding: 0.75rem 1.1rem;
+    border-top: 1px solid #f1f3f5;
+    font-size: 0.85rem;
+}
+
+.order-summary__foot a {
+    color: #6c757d;
+}
+
+/* --- деталі замовлення --- */
+
+.order-discount {
+    color: #b8615a;
+}
+
+.guest-upsell {
+    max-width: 32rem;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #c8a45c;
+    border-radius: 6px;
+    background: #faf7f1;
+    padding: 1.5rem;
+}

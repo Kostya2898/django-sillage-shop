@@ -85,7 +85,7 @@ class CheckoutSurvivesMailOutageTests(ShopTestCase):
 
         return self.client.post(
             reverse('orders:checkout_confirm'),
-            {'payment_method': 'cash', 'notes': '', 'agree_terms': 'on'},
+            self.confirm_payload(),
             follow=True,
         )
 

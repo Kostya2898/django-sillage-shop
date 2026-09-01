@@ -1,0 +1,88 @@
+{% load catalogue %}{% comment %}
+Таблиця позицій і підсумок. Спільна для всіх листів, тому суми в різних
+листах не можуть розійтися.
+
+Ширини колонок задані атрибутами width, а не CSS: частина клієнтів
+ігнорує table-layout, і без атрибутів таблиця розповзається.
+{% endcomment %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="width:100%; border-collapse:collapse;">
+    <tr>
+        <td colspan="2" style="padding:0 0 10px 0; font-family:Arial,Helvetica,sans-serif; font-size:11px; line-height:16px; letter-spacing:1.5px; text-transform:uppercase; color:#9C93A6; border-bottom:1px solid #E4DFD7;">
+            Замовлення {{ order.order_number }}
+        </td>
+    </tr>
+
+    {% for item in items %}
+        <tr>
+            <td style="padding:14px 12px 14px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:20px; color:#16131B; border-bottom:1px solid #F0EDE7;">
+                {{ item.product_name }}<br>
+                <span style="font-size:12px; color:#6E6878;">{{ item.quantity }} × {{ item.price|money }} ₴</span>
+            </td>
+            <td align="right" valign="top" style="padding:14px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:20px; color:#16131B; white-space:nowrap; border-bottom:1px solid #F0EDE7;">
+                {{ item.get_total_price|money }} ₴
+            </td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="2" style="padding:14px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:#6E6878;">
+                У цьому замовленні немає позицій.
+            </td>
+        </tr>
+    {% endfor %}
+
+    <tr>
+        <td style="padding:12px 12px 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878;">Товари</td>
+        <td align="right" style="padding:12px 0 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878; white-space:nowrap;">{{ order.items_total|money }} ₴</td>
+    </tr>
+
+    {% if order.has_discount %}
+        <tr>
+            <td style="padding:4px 12px 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#B8615A;">
+                Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
+            </td>
+            <td align="right" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#B8615A; white-space:nowrap;">−{{ order.discount_amount|money }} ₴</td>
+        </tr>
+    {% endif %}
+
+    <tr>
+        <td style="padding:4px 12px 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878;">
+            Доставка{% if order.delivery_name %} — {{ order.delivery_name }}{% endif %}
+        </td>
+        <td align="right" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878; white-space:nowrap;">
+            {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <td style="padding:14px 12px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:16px; line-height:22px; color:#16131B; border-top:2px solid #0A090C;">
+            <strong>До сплати</strong>
+        </td>
+        <td align="right" style="padding:14px 0 0 0; font-family:Arial,Helvetica,sans-serif; font-size:18px; line-height:22px; color:#16131B; white-space:nowrap; border-top:2px solid #0A090C;">
+            <strong>{{ order.total_amount|money }} ₴</strong>
+        </td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;">
+    <tr>
+        <td width="50%" valign="top" style="padding-right:12px; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#4A4553;">
+            <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#9C93A6; padding-bottom:6px;">Доставка</div>
+            {{ order.get_shipping_address_display|linebreaksbr }}
+            {% if order.estimated_delivery_date %}
+                <div style="padding-top:8px; color:#6E6878;">Очікуємо доставку {{ order.estimated_delivery_date|date:"j E" }}</div>
+            {% endif %}
+        </td>
+        <td width="50%" valign="top" style="font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#4A4553;">
+            <div style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#9C93A6; padding-bottom:6px;">Оплата</div>
+            {{ order.get_payment_method_display }}<br>
+            <span style="color:#6E6878;">Статус: {{ order.get_status_display|lower }}</span>
+        </td>
+    </tr>
+</table>
+
+{% if order.notes %}
+    <div style="margin-top:22px; padding:14px 16px; background-color:#F7F4EE; border-left:3px solid #C8A45C; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:20px; color:#4A4553;">
+        <strong style="color:#16131B;">Ваш коментар:</strong> {{ order.notes }}
+    </div>
+{% endif %}

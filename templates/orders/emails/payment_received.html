@@ -1,23 +1,18 @@
-<!DOCTYPE html>
-<html lang="uk">
-<body style="font-family: Arial, sans-serif; color: #212529;">
-    <h2>Оплату отримано</h2>
+{% extends 'orders/emails/_base.html' %}
 
-    <p>
-        Номер замовлення: <strong>{{ order.order_number }}</strong><br>
-        Сплачена сума: <strong>{{ order.total_amount }} грн</strong><br>
-        Статус: {{ order.get_status_display }}
-    </p>
+{% block subject %}Оплату за {{ order.order_number }} отримано{% endblock %}
 
-    <ul>
-        {% for item in items %}
-            <li>{{ item.product_name }} × {{ item.quantity }} — {{ item.get_total_price }} грн</li>
-        {% endfor %}
-    </ul>
+{% block preheader %}Гроші дійшли. Замовлення {{ order.order_number }} збираємо.{% endblock %}
 
-    <h3>Адреса доставки</h3>
-    <p>{{ order.get_shipping_address_display|linebreaksbr }}</p>
+{% block heading %}Оплату отримано.{% endblock %}
 
-    <p>Ми починаємо збирати ваше замовлення. Дякуємо!</p>
-</body>
-</html>
+{% block lead %}
+    {{ order.customer_name }}, ми підтверджуємо оплату замовлення {{ order.order_number }}.
+    Далі — збираємо його й передаємо в доставку.
+{% endblock %}
+
+{% block body %}
+    {% include 'orders/emails/_items.html' %}
+{% endblock %}
+
+{% block action_label %}Переглянути замовлення{% endblock %}

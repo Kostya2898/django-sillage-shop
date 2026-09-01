@@ -38,10 +38,13 @@ class Transaction(models.Model):
         'Статус', max_length=50, choices=STATUS_CHOICES, default=STATUS_SPENDING
     )
     gateway_transaction_id = models.CharField('ID у шлюзі', max_length=255, blank=True)
+    # Порожньо для гостьової оплати: покупця в такому разі знає замовлення.
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='transactions',
+        null=True,
+        blank=True,
         verbose_name='Користувач',
     )
     created_at = models.DateTimeField('Створено', auto_now_add=True)

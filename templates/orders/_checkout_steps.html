@@ -1,0 +1,42 @@
+{% comment %}
+Індикатор кроків checkout.
+
+Навіщо: людина має бачити, скільки ще лишилось, — без цього кожен наступний
+екран сприймається як «а це надовго?». У гостя кроків три (хто ви → дані →
+підтвердження), у власника акаунта два.
+
+Розмітка — список, а не набір div-ів: скрінрідер має прочитати це як
+послідовність, а `aria-current="step"` називає поточний.
+{% endcomment %}
+<nav class="checkout-steps" aria-label="Кроки оформлення">
+    <ol class="checkout-steps__list">
+        {% if steps_total == 3 %}
+            <li class="checkout-steps__item{% if step > 1 %} is-done{% endif %}{% if step == 1 %} is-current{% endif %}"
+                {% if step == 1 %}aria-current="step"{% endif %}>
+                <span class="checkout-steps__num">1</span>
+                <span class="checkout-steps__label">Хто ви</span>
+            </li>
+            <li class="checkout-steps__item{% if step > 2 %} is-done{% endif %}{% if step == 2 %} is-current{% endif %}"
+                {% if step == 2 %}aria-current="step"{% endif %}>
+                <span class="checkout-steps__num">2</span>
+                <span class="checkout-steps__label">Доставка</span>
+            </li>
+            <li class="checkout-steps__item{% if step == 3 %} is-current{% endif %}"
+                {% if step == 3 %}aria-current="step"{% endif %}>
+                <span class="checkout-steps__num">3</span>
+                <span class="checkout-steps__label">Підтвердження</span>
+            </li>
+        {% else %}
+            <li class="checkout-steps__item{% if step > 1 %} is-done{% endif %}{% if step == 1 %} is-current{% endif %}"
+                {% if step == 1 %}aria-current="step"{% endif %}>
+                <span class="checkout-steps__num">1</span>
+                <span class="checkout-steps__label">Адреса доставки</span>
+            </li>
+            <li class="checkout-steps__item{% if step == 2 %} is-current{% endif %}"
+                {% if step == 2 %}aria-current="step"{% endif %}>
+                <span class="checkout-steps__num">2</span>
+                <span class="checkout-steps__label">Підтвердження</span>
+            </li>
+        {% endif %}
+    </ol>
+</nav>

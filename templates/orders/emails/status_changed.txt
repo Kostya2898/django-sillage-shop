@@ -1,9 +1,9 @@
 SILLAGE — нішева парфумерія
 
-ОПЛАТУ ОТРИМАНО.
+СТАТУС ЗМІНИВСЯ: {{ order.get_status_display|upper }}
 
-{{ order.customer_name }}, ми підтверджуємо оплату замовлення {{ order.order_number }}.
-Далі — збираємо його й передаємо в доставку.
+{{ order.customer_name }}, ваше замовлення {{ order.order_number }} тепер має
+статус «{{ order.get_status_display|lower }}».
 
 {% include 'orders/emails/_items.txt' %}
 Переглянути замовлення:

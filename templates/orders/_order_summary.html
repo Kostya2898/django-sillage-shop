@@ -1,21 +1,88 @@
-{# Підсумок кошика. На цій сторінці кількість змінювати не можна — тільки в кошику. #}
-<div class="card">
-    <div class="card-header">Ваше замовлення</div>
-    <ul class="list-group list-group-flush">
+{% load catalogue %}
+{% comment %}
+Підсумок замовлення на всіх кроках checkout: позиції, промокод, доставка, разом.
+
+Кількість тут не змінюється — тільки в кошику. Це свідомо: редагування вмісту
+на кроці оплати повертає людину в режим «а що я взяв», з якого вона часто
+вже не виходить до покупки.
+
+Усі суми приходять з view (`totals`), а не рахуються в шаблоні: та сама
+арифметика потім іде в замовлення, лист і PDF, і вона мусить бути одна.
+{% endcomment %}
+<div class="order-summary">
+    <div class="order-summary__head">Ваше замовлення</div>
+
+    <ul class="order-summary__items">
         {% for item in cart %}
-            <li class="list-group-item d-flex justify-content-between">
-                <span>{{ item.product.name }} <span class="text-muted">× {{ item.quantity }}</span></span>
-                <span>{{ item.total_price }} грн</span>
+            <li class="order-summary__item">
+                <span class="order-summary__name">
+                    {{ item.product.name }}
+                    <span class="order-summary__qty">× {{ item.quantity }}</span>
+                </span>
+                <span class="order-summary__sum">{{ item.total_price|money }} ₴</span>
             </li>
+        {% empty %}
+            <li class="order-summary__item text-muted">У кошику порожньо</li>
         {% endfor %}
-        <li class="list-group-item d-flex justify-content-between bg-light">
-            <strong>Разом</strong>
-            <strong>{{ cart.get_total_price }} грн</strong>
-        </li>
     </ul>
-    <div class="card-footer">
-        <a href="{% url 'cart:cart_detail' %}" class="btn btn-sm btn-outline-secondary">
-            Змінити вміст кошика
-        </a>
+
+    {# --- промокод --- #}
+    <div class="order-summary__coupon">
+        {% if coupon %}
+            <div class="coupon-applied">
+                <div>
+                    <span class="coupon-applied__code">{{ coupon.code }}</span>
+                    <span class="coupon-applied__value">{{ coupon.get_discount_display }}</span>
+                </div>
+                <form method="post" action="{% url 'orders:coupon_remove' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="coupon-applied__remove">Прибрати</button>
+                </form>
+            </div>
+        {% else %}
+            <form method="post" action="{% url 'orders:coupon_apply' %}" class="coupon-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <label class="coupon-form__label" for="{{ coupon_form.code.id_for_label }}">
+                    Маєте промокод?
+                </label>
+                <div class="coupon-form__row">
+                    {{ coupon_form.code }}
+                    <button type="submit" class="btn btn-outline-secondary">Застосувати</button>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+
+    {# --- підсумок --- #}
+    <div class="order-summary__totals">
+        <div class="order-summary__line">
+            <span>Товари</span>
+            <span>{{ totals.items_total|money }} ₴</span>
+        </div>
+
+        {% if totals.discount %}
+            <div class="order-summary__line order-summary__line--discount">
+                <span>Знижка{% if coupon %} «{{ coupon.code }}»{% endif %}</span>
+                <span>−{{ totals.discount|money }} ₴</span>
+            </div>
+        {% endif %}
+
+        <div class="order-summary__line">
+            <span>Доставка{% if delivery %} — {{ delivery.name }}{% endif %}</span>
+            <span>
+                {% if totals.delivery %}{{ totals.delivery|money }} ₴{% else %}безкоштовно{% endif %}
+            </span>
+        </div>
+
+        <div class="order-summary__line order-summary__line--total">
+            <span>Разом</span>
+            <span>{{ totals.total|money }} ₴</span>
+        </div>
+    </div>
+
+    <div class="order-summary__foot">
+        <a href="{% url 'cart:cart_detail' %}">Змінити вміст кошика</a>
     </div>
 </div>

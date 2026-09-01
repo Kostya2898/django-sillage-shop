@@ -1,0 +1,118 @@
+{% load catalogue %}<!DOCTYPE html>
+{% comment %}
+Каркас усіх листів SILLAGE.
+
+Правила, які тут не обговорюються:
+
+* **весь CSS інлайном на елементах.** Outlook і корпоративна пошта вирізають
+  <style> цілком, і лист без інлайну приїжджає голим HTML;
+* **таблиці, а не div-и.** flexbox і grid не працюють у поштових клієнтах;
+* **600px і жодного зовнішнього шрифту.** 600 — ширина, яку показують усі
+  клієнти без горизонтальної прокрутки; шрифти з мережі блокуються, тому
+  вордмарк набраний системним стеком із розрядкою, а не картинкою й не SVG
+  (Gmail вирізає inline SVG);
+* **жодного emoji** — іконки в цьому проєкті або SVG, або нічого.
+
+Кольори — палітра PROJECT_VISION.md: Нуар #0A090C, Смола #16131B,
+Латунь #C8A45C, Кістка #EFE9E1, Попіл #9C93A6, Вуглиста троянда #B8615A.
+{% endcomment %}
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block subject %}SILLAGE{% endblock %}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#EFE9E1; -webkit-font-smoothing:antialiased;">
+
+{# Прехедер: рядок, який поштовий клієнт показує у списку поруч із темою. #}
+<div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent; height:0; width:0;">
+    {% block preheader %}Замовлення {{ order.order_number }} у SILLAGE{% endblock %}
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+       style="background-color:#EFE9E1; padding:24px 12px;">
+    <tr>
+        <td align="center">
+
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="width:600px; max-width:600px; background-color:#FFFFFF;">
+
+                {# --- шапка: темна смуга з вордмарком --- #}
+                <tr>
+                    <td style="background-color:#0A090C; padding:28px 32px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td align="left">
+                                    <span style="font-family:Georgia,'Times New Roman',serif; font-size:22px; line-height:26px; letter-spacing:6px; color:#EFE9E1; font-weight:normal;">SILLAGE</span>
+                                </td>
+                                <td align="right">
+                                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:10px; line-height:26px; letter-spacing:2px; text-transform:uppercase; color:#C8A45C;">Нішева парфумерія</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                {# Латунна волосінь під шапкою — єдиний акцент бренду. #}
+                <tr><td style="background-color:#C8A45C; height:3px; line-height:3px; font-size:0;">&nbsp;</td></tr>
+
+                {# --- заголовок листа --- #}
+                <tr>
+                    <td style="padding:36px 32px 8px 32px;">
+                        <h1 style="margin:0 0 10px 0; font-family:Georgia,'Times New Roman',serif; font-size:26px; line-height:32px; font-weight:normal; color:#16131B;">
+                            {% block heading %}{% endblock %}
+                        </h1>
+                        <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:15px; line-height:24px; color:#4A4553;">
+                            {% block lead %}{% endblock %}
+                        </p>
+                    </td>
+                </tr>
+
+                {# --- тіло листа --- #}
+                <tr>
+                    <td style="padding:20px 32px 0 32px;">
+                        {% block body %}{% endblock %}
+                    </td>
+                </tr>
+
+                {# --- головна кнопка --- #}
+                {% block action %}
+                    <tr>
+                        <td style="padding:28px 32px 8px 32px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="background-color:#16131B; padding:14px 30px;">
+                                        <a href="{% block action_url %}{{ order_url }}{% endblock %}"
+                                           style="font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:18px; letter-spacing:1px; text-transform:uppercase; color:#EFE9E1; text-decoration:none; display:inline-block;">
+                                            {% block action_label %}Переглянути замовлення{% endblock %}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                {% endblock %}
+
+                {# --- підвал --- #}
+                <tr>
+                    <td style="padding:32px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                               style="border-top:1px solid #E4DFD7;">
+                            <tr>
+                                <td style="padding-top:20px; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:20px; color:#6E6878;">
+                                    Питання щодо замовлення — просто дайте відповідь на цей лист.<br>
+                                    SILLAGE, вул. Ярославів Вал, 15, Київ · щодня з 11:00 до 20:00
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

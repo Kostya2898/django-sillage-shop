@@ -1,0 +1,26 @@
+{% load catalogue %}ЗАМОВЛЕННЯ {{ order.order_number }}
+від {{ order.created_at|date:"j E Y, H:i" }}
+{% for item in items %}
+  {{ item.product_name }}
+  {{ item.quantity }} × {{ item.price|money }} ₴ = {{ item.get_total_price|money }} ₴
+{% empty %}
+  (у замовленні немає позицій)
+{% endfor %}
+--------------------------------------------------
+Товари:      {{ order.items_total|money }} ₴{% if order.has_discount %}
+Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}: −{{ order.discount_amount|money }} ₴{% endif %}
+Доставка{% if order.delivery_name %} ({{ order.delivery_name }}){% endif %}: {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+ДО СПЛАТИ:   {{ order.total_amount|money }} ₴
+--------------------------------------------------
+
+ДОСТАВКА
+{{ order.get_shipping_address_display }}{% if order.estimated_delivery_date %}
+Очікуємо доставку {{ order.estimated_delivery_date|date:"j E" }}{% endif %}
+
+ОПЛАТА
+{{ order.get_payment_method_display }}
+Статус: {{ order.get_status_display|lower }}
+{% if order.notes %}
+ВАШ КОМЕНТАР
+{{ order.notes }}
+{% endif %}

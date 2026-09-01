@@ -3,8 +3,10 @@
 {% block title %}Оформлення замовлення — адреса{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-1">Оформлення замовлення</h1>
-<p class="text-muted">Крок 1 з 2 — адреса доставки</p>
+{% include 'orders/_checkout_steps.html' %}
+
+<h1 class="h3 mb-1">Куди доставити</h1>
+<p class="text-muted mb-4">Оберіть збережену адресу або додайте нову</p>
 
 <div class="row">
     <div class="col-lg-7">

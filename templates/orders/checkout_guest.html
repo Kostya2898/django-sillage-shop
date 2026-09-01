@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформлення замовлення — доставка{% endblock %}
+
+{% block content %}
+{% include 'orders/_checkout_steps.html' with step=2 steps_total=3 %}
+
+<div class="row">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-1">Куди доставити</h1>
+        <p class="text-muted mb-4">
+            Ці дані потрібні лише для цього замовлення — в адресну книгу вони не
+            зберігаються, бо акаунта ми не створюємо.
+        </p>
+
+        <form method="post" novalidate class="checkout-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-error mb-3">{{ form.non_field_errors|striptags }}</div>
+            {% endif %}
+
+            {% comment %}
+            Пошта окремим блоком: це єдине поле, без якого гість втрачає
+            доступ до власного замовлення, і воно має читатись як важливе.
+            {% endcomment %}
+            <div class="checkout-form__field checkout-form__field--wide">
+                <label class="form-label" for="{{ form.email.id_for_label }}">
+                    {{ form.email.label }}
+                </label>
+                {{ form.email }}
+                {% if form.email.help_text %}
+                    <p class="form-hint">{{ form.email.help_text }}</p>
+                {% endif %}
+                {% if form.email.errors %}
+                    <p class="form-error">{{ form.email.errors|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <div class="checkout-form__grid">
+                {% for field in form %}
+                    {% if field.name != 'email' %}
+                        <div class="checkout-form__field{% if field.name == 'address_line1' or field.name == 'address_line2' %} checkout-form__field--wide{% endif %}">
+                            <label class="form-label" for="{{ field.id_for_label }}">
+                                {{ field.label }}{% if not field.field.required %}
+                                    <span class="form-label__optional">необовʼязково</span>
+                                {% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="form-error">{{ field.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="checkout-form__actions">
+                <button type="submit" class="btn btn-primary btn-lg">Далі — до підтвердження</button>
+                <a href="{% url 'orders:checkout_identity' %}" class="btn btn-link">← Назад</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        {% include 'orders/_order_summary.html' %}
+    </div>
+</div>
+{% endblock %}

@@ -1,17 +1,15 @@
-Дякуємо за замовлення!
+SILLAGE — нішева парфумерія
 
-Номер замовлення: {{ order.order_number }}
-Дата: {{ order.created_at|date:'d.m.Y H:i' }}
-Спосіб оплати: {{ order.get_payment_method_display }}
+ДЯКУЄМО. ЗАМОВЛЕННЯ ПРИЙНЯТО.
 
-Товари:
-{% for item in items %}- {{ item.product_name }} x {{ item.quantity }} = {{ item.get_total_price }} грн
-{% endfor %}
-Загальна сума: {{ order.total_amount }} грн
+{{ order.customer_name }}, ваше замовлення {{ order.order_number }} уже в роботі.
+Ми напишемо ще раз, щойно передамо його в доставку.
+Рахунок у форматі PDF — у вкладенні до цього листа.
 
-Адреса доставки:
-{{ order.get_shipping_address_display }}
-{% if order.notes %}
-Ваш коментар: {{ order.notes }}
-{% endif %}
-Дякуємо за покупку!
+{% include 'orders/emails/_items.txt' %}
+Стежити за замовленням:
+{{ order_url }}
+
+--
+Питання щодо замовлення — просто дайте відповідь на цей лист.
+SILLAGE, вул. Ярославів Вал, 15, Київ · щодня з 11:00 до 20:00

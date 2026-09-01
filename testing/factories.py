@@ -5,13 +5,22 @@
 унікальні (slug, order_number) генеруються послідовністю.
 """
 
+from datetime import timedelta
 from decimal import Decimal
 
 import factory
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from cart.models import Cart, CartItem
-from orders.models import Order, OrderItem, OrderStatusHistory, ShippingAddress
+from orders.models import (
+    Coupon,
+    DeliveryMethod,
+    Order,
+    OrderItem,
+    OrderStatusHistory,
+    ShippingAddress,
+)
 from payments.models import Transaction
 from shop.models import Brand, Category, Note, Product, ProductNote, Review
 
@@ -129,6 +138,39 @@ class ShippingAddressFactory(factory.django.DjangoModelFactory):
     address_line1 = 'вул. Тестова, 1'
 
 
+class DeliveryMethodFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = DeliveryMethod
+
+    name = factory.Sequence(lambda n: f'Доставка {n}')
+    description = 'Тестовий тариф'
+    price = Decimal('80.00')
+    free_from = None
+    estimated_days = 2
+    is_active = True
+
+
+class CouponFactory(factory.django.DjangoModelFactory):
+    """Активний промокод −10%, дійсний навколо «зараз».
+
+    Вікно дії задане відносно поточного моменту навмисно: купон із
+    захардкодженими датами протух би через рік і посипав би тести.
+    """
+
+    class Meta:
+        model = Coupon
+
+    code = factory.Sequence(lambda n: f'SILLAGE{n}')
+    discount_type = Coupon.TYPE_PERCENT
+    discount_value = Decimal('10.00')
+    valid_from = factory.LazyFunction(lambda: timezone.now() - timedelta(days=1))
+    valid_to = factory.LazyFunction(lambda: timezone.now() + timedelta(days=30))
+    max_uses = 0
+    used_count = 0
+    min_order_amount = Decimal('0.00')
+    is_active = True
+
+
 class OrderFactory(factory.django.DjangoModelFactory):
     """Замовлення зі знімком адреси. `order_number` генерує сама модель."""
 
@@ -142,6 +184,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
     shipping_city = 'Київ'
     shipping_postal_code = '01001'
     shipping_address_line1 = 'вул. Тестова, 1'
+    items_total = factory.LazyAttribute(lambda obj: obj.total_amount)
     total_amount = Decimal('1000.00')
     payment_method = 'card'
     status = Order.STATUS_PENDING

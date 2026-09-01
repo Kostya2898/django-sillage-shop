@@ -1,0 +1,282 @@
+{% load catalogue %}<!DOCTYPE html>
+{% comment %}
+Рахунок-фактура у PDF. Верстка навмисно таблична і без сучасного CSS:
+xhtml2pdf не має ані flexbox, ані grid, ані змінних — усе, що складніше за
+таблицю з відсотковими ширинами, він мовчки ігнорує.
+
+Шрифт реєструє `orders/pdf.py` — через `@font-face` xhtml2pdf його мовчки
+ігнорує і лишає Helvetica, у якій немає кирилиці; рахунок тоді друкується
+чорними квадратами. Тут лишається тільки посилання на родину по імені.
+{% endcomment %}
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.6cm 1.4cm 2.2cm 1.4cm;
+            @frame footer {
+                -pdf-frame-content: page-footer;
+                bottom: 1.1cm;
+                margin-left: 1.4cm;
+                margin-right: 1.4cm;
+                height: 1cm;
+            }
+        }
+
+        body {
+            font-family: "{{ font_family }}";
+            font-size: 9.5pt;
+            color: #16131B;
+            line-height: 1.45;
+        }
+
+        .band {
+            background-color: #0A090C;
+            color: #EFE9E1;
+            padding: 12pt 14pt;
+        }
+
+        .wordmark {
+            font-size: 17pt;
+            font-weight: bold;
+            letter-spacing: 4pt;
+            color: #EFE9E1;
+        }
+
+        .band-sub {
+            font-size: 7.5pt;
+            letter-spacing: 1.6pt;
+            color: #C8A45C;
+            text-transform: uppercase;
+        }
+
+        .doc-title {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #EFE9E1;
+            text-align: right;
+        }
+
+        .doc-meta {
+            font-size: 8.5pt;
+            color: #9C93A6;
+            text-align: right;
+        }
+
+        h2 {
+            font-size: 8pt;
+            letter-spacing: 1.4pt;
+            text-transform: uppercase;
+            color: #9C93A6;
+            font-weight: normal;
+            margin: 0 0 4pt 0;
+            padding-bottom: 3pt;
+            border-bottom: 0.6pt solid #C8A45C;
+        }
+
+        .party {
+            font-size: 9pt;
+            padding-right: 14pt;
+        }
+
+        .party strong { font-size: 10pt; }
+
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4pt;
+        }
+
+        table.items th {
+            background-color: #16131B;
+            color: #EFE9E1;
+            font-size: 7.5pt;
+            letter-spacing: 1pt;
+            text-transform: uppercase;
+            font-weight: normal;
+            padding: 6pt 7pt;
+            text-align: left;
+        }
+
+        table.items td {
+            padding: 6pt 7pt;
+            border-bottom: 0.5pt solid #E4DFD7;
+            vertical-align: top;
+        }
+
+        .num { text-align: right; }
+        .center { text-align: center; }
+
+        table.totals { width: 100%; border-collapse: collapse; }
+        table.totals td { padding: 3.5pt 7pt; }
+        table.totals td.label { text-align: right; color: #4A4553; }
+        table.totals td.value { text-align: right; width: 30%; }
+
+        .discount { color: #B8615A; }
+
+        .grand td {
+            border-top: 1.2pt solid #0A090C;
+            font-size: 12pt;
+            font-weight: bold;
+            padding-top: 7pt;
+        }
+
+        .note {
+            background-color: #F7F4EE;
+            border-left: 2.5pt solid #C8A45C;
+            padding: 7pt 9pt;
+            font-size: 8.5pt;
+            color: #3A3542;
+        }
+
+        .sign { font-size: 8.5pt; color: #4A4553; }
+
+        .sign-line {
+            border-bottom: 0.6pt solid #16131B;
+            width: 45%;
+        }
+
+        .muted { color: #6E6878; font-size: 8pt; }
+
+        #page-footer {
+            font-size: 7.5pt;
+            color: #9C93A6;
+            text-align: center;
+            border-top: 0.5pt solid #E4DFD7;
+            padding-top: 4pt;
+        }
+    </style>
+</head>
+<body>
+
+<table class="band" width="100%">
+    <tr>
+        <td width="55%">
+            <div class="wordmark">SILLAGE</div>
+            <div class="band-sub">Нішева парфумерія</div>
+        </td>
+        <td width="45%">
+            <div class="doc-title">Рахунок № {{ order.order_number }}</div>
+            <div class="doc-meta">від {{ order.created_at|date:"j E Y" }} р.</div>
+        </td>
+    </tr>
+</table>
+
+<table width="100%" style="margin-top: 16pt;">
+    <tr>
+        <td width="50%" class="party">
+            <h2>Продавець</h2>
+            <strong>{{ seller.name }}</strong><br>
+            {{ seller.legal }}<br>
+            {{ seller.address }}<br>
+            {{ seller.bank }}<br>
+            {{ seller.phone }} · {{ seller.email }}
+        </td>
+        <td width="50%" class="party">
+            <h2>Покупець</h2>
+            <strong>{{ order.shipping_full_name }}</strong><br>
+            {{ order.customer_email }}<br>
+            {% if order.customer_phone %}{{ order.customer_phone }}<br>{% endif %}
+            {{ order.shipping_postal_code }}, {{ order.shipping_city }}, {{ order.shipping_country }}<br>
+            {{ order.shipping_address_line1 }}{% if order.shipping_address_line2 %}, {{ order.shipping_address_line2 }}{% endif %}
+        </td>
+    </tr>
+</table>
+
+<table class="items">
+    <thead>
+        <tr>
+            <th width="6%" class="center">№</th>
+            <th width="52%">Найменування</th>
+            <th width="12%" class="center">К-сть</th>
+            <th width="15%" class="num">Ціна, ₴</th>
+            <th width="15%" class="num">Сума, ₴</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+            <tr>
+                <td class="center">{{ forloop.counter }}</td>
+                <td>{{ item.product_name }}</td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="num">{{ item.price|money }}</td>
+                <td class="num">{{ item.get_total_price|money }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" class="center muted">У замовленні немає позицій</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<table width="100%" style="margin-top: 12pt;">
+    <tr>
+        <td width="50%" style="vertical-align: top; padding-right: 12pt;">
+            <div class="note">
+                <strong>Спосіб оплати:</strong> {{ order.get_payment_method_display }}<br>
+                <strong>Статус:</strong> {{ order.get_status_display }}
+                {% if order.delivery_name %}
+                    <br><strong>Доставка:</strong> {{ order.delivery_name }}
+                {% endif %}
+                {% if order.estimated_delivery_date %}
+                    <br><strong>Очікувана дата:</strong> {{ order.estimated_delivery_date|date:"j E Y" }} р.
+                {% endif %}
+            </div>
+        </td>
+        <td width="50%" style="vertical-align: top;">
+            <table class="totals">
+                <tr>
+                    <td class="label">Товари</td>
+                    <td class="value">{{ order.items_total|money }} ₴</td>
+                </tr>
+                {% if order.has_discount %}
+                    <tr class="discount">
+                        <td class="label">
+                            Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
+                        </td>
+                        <td class="value">−{{ order.discount_amount|money }} ₴</td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td class="label">Доставка</td>
+                    <td class="value">
+                        {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+                    </td>
+                </tr>
+                <tr class="grand">
+                    <td class="label">До сплати</td>
+                    <td class="value">{{ order.total_amount|money }} ₴</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+{% if order.notes %}
+    <div style="margin-top: 12pt;">
+        <h2>Коментар до замовлення</h2>
+        <div class="muted">{{ order.notes }}</div>
+    </div>
+{% endif %}
+
+<table width="100%" style="margin-top: 26pt;">
+    <tr>
+        <td width="55%" class="sign">
+            {{ seller.signatory }}
+            <div class="sign-line" style="margin-top: 20pt;"></div>
+            <div class="muted" style="margin-top: 3pt;">підпис, печатка</div>
+        </td>
+        <td width="45%" class="sign">
+            Отримувач
+            <div class="sign-line" style="margin-top: 20pt;"></div>
+            <div class="muted" style="margin-top: 3pt;">підпис</div>
+        </td>
+    </tr>
+</table>
+
+<div id="page-footer">
+    SILLAGE · {{ seller.address }} · {{ seller.email }} — рахунок № {{ order.order_number }}
+</div>
+
+</body>
+</html>

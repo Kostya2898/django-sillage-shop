@@ -43,7 +43,7 @@ class GuestToPaidOrderTests(ShopTestCase):
         # 4. Підтвердження замовлення з онлайн-оплатою.
         self.client.post(
             reverse('orders:checkout_confirm'),
-            {'payment_method': 'card', 'notes': 'Лишити у консьєржа', 'agree_terms': 'on'},
+            self.confirm_payload(payment_method='card', notes='Лишити у консьєржа'),
         )
 
         order = Order.objects.get()
@@ -107,7 +107,7 @@ class GuestToPaidOrderTests(ShopTestCase):
         )
         response = self.client.post(
             reverse('orders:checkout_confirm'),
-            {'payment_method': 'cash', 'notes': '', 'agree_terms': 'on'},
+            self.confirm_payload(),
             follow=True,
         )
 

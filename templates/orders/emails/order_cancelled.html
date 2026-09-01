@@ -1,0 +1,20 @@
+{% extends 'orders/emails/_base.html' %}
+
+{% block subject %}Замовлення {{ order.order_number }} скасовано{% endblock %}
+
+{% block preheader %}Замовлення {{ order.order_number }} скасовано, товари повернулись у продаж.{% endblock %}
+
+{% block heading %}Замовлення скасовано.{% endblock %}
+
+{% block lead %}
+    {{ order.customer_name }}, замовлення {{ order.order_number }} скасовано, а всі його
+    позиції повернулись у продаж. Якщо оплата вже пройшла — повернемо кошти на той
+    самий рахунок протягом кількох робочих днів.
+{% endblock %}
+
+{% block body %}
+    {% include 'orders/emails/_items.html' %}
+{% endblock %}
+
+{% block action_url %}{{ catalogue_url }}{% endblock %}
+{% block action_label %}Повернутись до каталогу{% endblock %}

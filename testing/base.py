@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from orders.models import Order, OrderItem, OrderStatusHistory
+from orders.models import DeliveryMethod, Order, OrderItem, OrderStatusHistory
 
 from .factories import (
     DEFAULT_PASSWORD,
@@ -44,14 +44,22 @@ class ShopTestCase(TestCase):
 
         return cart
 
-    def create_order(self, user=None, items=None, status=Order.STATUS_PENDING, **kwargs):
+    def create_order(
+        self, user=None, items=None, status=Order.STATUS_PENDING, guest_email='', **kwargs
+    ):
         """Замовлення з позиціями і початковим записом в історії статусів.
 
         `items` — послідовність `(product, quantity)`. Склад **не** списується:
         тести, яким це важливо, або йдуть через `create_order` з `orders.services`,
         або виставляють `stock` руками.
+
+        `guest_email` робить замовлення гостьовим: користувач тоді не
+        створюється взагалі, бо саме його відсутність і є предметом перевірки.
         """
-        user = user or UserFactory()
+        if guest_email:
+            kwargs['guest_email'] = guest_email
+        else:
+            user = user or UserFactory()
 
         if items is None:
             items = [(ProductFactory(), 1)]
@@ -73,6 +81,26 @@ class ShopTestCase(TestCase):
 
         OrderStatusHistory.objects.create(order=order, status=status, created_by=user)
         return order
+
+    def confirm_payload(self, payment_method='cash', notes='', **extra):
+        """POST-дані кроку підтвердження замовлення.
+
+        Спосіб доставки обовʼязковий — покупець мусить його обрати, інакше
+        магазин узяв би з нього гроші за тариф, якого той не бачив. Тому й
+        тести підставляють його явно; хелпер лише не дає забути.
+        """
+        payload = {
+            'payment_method': payment_method,
+            'notes': notes,
+            'agree_terms': 'on',
+        }
+
+        method = DeliveryMethod.objects.filter(is_active=True).first()
+        if method is not None:
+            payload['delivery_method'] = method.pk
+
+        payload.update(extra)
+        return payload
 
     def create_address(self, user):
         """Адреса доставки для checkout-сценаріїв."""

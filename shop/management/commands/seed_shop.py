@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from orders.models import Order, OrderItem, OrderStatusHistory, ShippingAddress
+from orders.models import Coupon, Order, OrderItem, OrderStatusHistory, ShippingAddress
 from shop.models import Brand, Category, Note, Product, ProductImage, ProductNote, Review
 
 from ._catalogue import BRANDS, CATEGORIES, NOTES
@@ -154,6 +154,7 @@ class Command(BaseCommand):
         notes = self._seed_notes()
         products = self._seed_products(categories, brands, notes, limit=options['products'])
 
+        self._seed_coupons()
         users = self._seed_users(options['users'])
         self._seed_orders(users, products, count=options['orders'])
         self._seed_reviews(users, products)
@@ -329,6 +330,59 @@ class Command(BaseCommand):
 
     # --- покупці, замовлення, відгуки ------------------------------------
 
+    def _seed_coupons(self):
+        """Демо-промокоди — по одному на кожну гілку перевірки.
+
+        Прострочений і вичерпаний тут не для краси: саме на них видно, що
+        магазин пояснює причину відмови, а не відповідає «код недійсний».
+        """
+        now = timezone.now()
+        coupons = [
+            {
+                'code': 'SILLAGE10',
+                'description': 'Знайомство: −10% на перше замовлення',
+                'discount_type': Coupon.TYPE_PERCENT,
+                'discount_value': Decimal('10.00'),
+                'valid_from': now - timedelta(days=7),
+                'valid_to': now + timedelta(days=90),
+                'min_order_amount': Decimal('0.00'),
+            },
+            {
+                'code': 'SLID500',
+                'description': '−500 ₴ при замовленні від 4 000 ₴',
+                'discount_type': Coupon.TYPE_FIXED,
+                'discount_value': Decimal('500.00'),
+                'valid_from': now - timedelta(days=7),
+                'valid_to': now + timedelta(days=60),
+                'min_order_amount': Decimal('4000.00'),
+            },
+            {
+                'code': 'VESNA',
+                'description': 'Прострочений — показує повідомлення про дату',
+                'discount_type': Coupon.TYPE_PERCENT,
+                'discount_value': Decimal('15.00'),
+                'valid_from': now - timedelta(days=120),
+                'valid_to': now - timedelta(days=30),
+                'min_order_amount': Decimal('0.00'),
+            },
+            {
+                'code': 'PERSHI50',
+                'description': 'Вичерпаний ліміт — показує повідомлення про використання',
+                'discount_type': Coupon.TYPE_PERCENT,
+                'discount_value': Decimal('50.00'),
+                'valid_from': now - timedelta(days=30),
+                'valid_to': now + timedelta(days=30),
+                'min_order_amount': Decimal('0.00'),
+                'max_uses': 50,
+                'used_count': 50,
+            },
+        ]
+
+        for values in coupons:
+            Coupon.objects.update_or_create(code=values['code'], defaults=values)
+
+        self.stdout.write(f'Промокоди: {len(coupons)}')
+
     def _seed_users(self, count):
         users = []
 
@@ -460,6 +514,7 @@ class Command(BaseCommand):
             ('  немає на складі', Product.objects.filter(stock=0).count()),
             ('Покупці', User.objects.filter(is_superuser=False).count()),
             ('Замовлення', Order.objects.count()),
+            ('Промокоди', Coupon.objects.count()),
             ('Відгуки', Review.objects.count()),
         ]
 

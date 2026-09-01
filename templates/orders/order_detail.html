@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalogue %}
 
 {% block title %}Замовлення {{ order.order_number }}{% endblock %}
 
@@ -14,7 +15,7 @@
     <div class="alert alert-warning d-flex justify-content-between align-items-center">
         <span>Замовлення очікує онлайн-оплати.</span>
         <a href="{% url 'payments:initiate_payment' order.order_number %}" class="btn btn-success btn-sm">
-            Оплатити {{ order.total_amount }} грн
+            Оплатити {{ order.total_amount|money }} ₴
         </a>
     </div>
 {% endif %}
@@ -25,22 +26,44 @@
             <div class="card-header">Товари</div>
             <table class="table mb-0">
                 <thead class="table-light">
-                    <tr><th>Товар</th><th>Ціна</th><th>К-сть</th><th>Сума</th></tr>
+                    <tr><th>Товар</th><th>Ціна</th><th>К-сть</th><th class="text-end">Сума</th></tr>
                 </thead>
                 <tbody>
                     {% for item in order.items.all %}
                         <tr>
                             <td>{{ item.product_name }}</td>
-                            <td>{{ item.price }} грн</td>
+                            <td>{{ item.price|money }} ₴</td>
                             <td>{{ item.quantity }}</td>
-                            <td>{{ item.get_total_price }} грн</td>
+                            <td class="text-end">{{ item.get_total_price|money }} ₴</td>
                         </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-muted">У замовленні немає позицій</td></tr>
                     {% endfor %}
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
+                        <td colspan="3" class="text-end text-muted">Товари</td>
+                        <td class="text-end text-muted">{{ order.items_total|money }} ₴</td>
+                    </tr>
+                    {% if order.has_discount %}
+                        <tr>
+                            <td colspan="3" class="text-end order-discount">
+                                Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
+                            </td>
+                            <td class="text-end order-discount">−{{ order.discount_amount|money }} ₴</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td colspan="3" class="text-end text-muted">
+                            Доставка{% if order.delivery_name %} — {{ order.delivery_name }}{% endif %}
+                        </td>
+                        <td class="text-end text-muted">
+                            {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
                         <td colspan="3" class="text-end"><strong>Разом</strong></td>
-                        <td><strong>{{ order.total_amount }} грн</strong></td>
+                        <td class="text-end"><strong>{{ order.total_amount|money }} ₴</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -55,6 +78,8 @@
                         <span class="text-muted small ms-2">{{ entry.created_at|date:'d.m.Y H:i' }}</span>
                         {% if entry.note %}<div class="small mt-1">{{ entry.note }}</div>{% endif %}
                     </li>
+                {% empty %}
+                    <li class="list-group-item text-muted">Історія поки порожня</li>
                 {% endfor %}
             </ul>
         </div>
@@ -64,11 +89,16 @@
         <div class="card mb-4">
             <div class="card-header">Доставка</div>
             <div class="card-body">
-                <p class="mb-0">{{ order.get_shipping_address_display|linebreaksbr }}</p>
+                <p class="mb-2">{{ order.get_shipping_address_display|linebreaksbr }}</p>
+                {% if order.estimated_delivery_date %}
+                    <p class="mb-0 text-muted small">
+                        Очікуємо доставку {{ order.estimated_delivery_date|date:'j E Y' }}
+                    </p>
+                {% endif %}
             </div>
         </div>
 
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">Оплата</div>
             <div class="card-body">
                 <p class="mb-1">Спосіб: {{ order.get_payment_method_display }}</p>
@@ -79,8 +109,48 @@
                 {% endif %}
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-header">Документи й дії</div>
+            <div class="card-body d-grid gap-2">
+                <a href="{% url 'orders:order_invoice' order.order_number %}" class="btn btn-outline-dark">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="me-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                    Завантажити рахунок
+                </a>
+
+                {% if order.can_be_cancelled %}
+                    {% comment %}
+                    Скасування — незворотна дія, тому це POST-форма з
+                    підтвердженням, а не посилання: GET-посилання спрацювало б
+                    від будь-якого префетчу браузера чи антивіруса.
+                    {% endcomment %}
+                    <form method="post" action="{% url 'orders:order_cancel' order.order_number %}"
+                          onsubmit="return confirm('Скасувати замовлення {{ order.order_number }}? Товари повернуться у продаж.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            Скасувати замовлення
+                        </button>
+                    </form>
+                    <p class="text-muted small mb-0">
+                        Скасувати самостійно можна до
+                        {{ order.cancellation_deadline|date:'d.m.Y H:i' }}.
+                    </p>
+                {% elif order.status == 'cancelled' %}
+                    <p class="text-muted small mb-0">Замовлення скасовано.</p>
+                {% else %}
+                    <p class="text-muted small mb-0">
+                        Замовлення вже в роботі — щоб щось змінити, напишіть нам,
+                        і ми розберемось окремо.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
-<a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary mt-4">← До списку замовлень</a>
+{% if user.is_authenticated %}
+    <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary mt-4">← До списку замовлень</a>
+{% else %}
+    <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary mt-4">← До каталогу</a>
+{% endif %}
 {% endblock %}

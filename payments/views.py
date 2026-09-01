@@ -22,15 +22,14 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from cart.models import Cart
-from orders.emails import send_payment_received_email
-from orders.models import Order, OrderStatusHistory
+from orders.models import Order
+from orders.services import get_order_for_request
 
 from .models import Transaction
 from .signing import signature_is_valid, transaction_signature
@@ -45,10 +44,26 @@ def _calculate_total(order):
     return order.total_amount + tax
 
 
-@login_required
+def _get_transaction_for_request(request, tx_ref):
+    """Транзакція, яку цьому запиту дозволено бачити.
+
+    Право визначає не сама транзакція, а замовлення за нею: власник акаунта
+    або гість, у чиїй сесії лежить це замовлення. Так гостьова оплата працює,
+    а чужа лишається недоступною — правило ізоляції одне на весь проєкт.
+    """
+    transaction = get_object_or_404(Transaction.objects.select_related('order'), reference=tx_ref)
+    get_order_for_request(request, transaction.order.order_number)
+    return transaction
+
+
 def initiate_payment(request, order_number):
-    """Крок 1: створити транзакцію та відправити користувача на шлюз."""
-    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    """Крок 1: створити транзакцію та відправити користувача на шлюз.
+
+    Без `@login_required`: гість, який обрав оплату карткою, має дійти до
+    кінця так само, як власник акаунта. Право на замовлення перевіряє
+    `get_order_for_request` — воно ж закриває доступ до чужих.
+    """
+    order = get_order_for_request(request, order_number)
 
     if order.is_paid:
         messages.info(request, 'Це замовлення вже оплачено')
@@ -62,7 +77,7 @@ def initiate_payment(request, order_number):
         order=order,
         amount=total_amount,
         currency=settings.PAYMENT_CURRENCY,
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         status=Transaction.STATUS_SPENDING,
     )
 
@@ -97,10 +112,9 @@ def initiate_payment(request, order_number):
     )
 
 
-@login_required
 def mock_gateway(request, tx_ref):
     """Крок 2: сторінка-імітація платіжного шлюзу."""
-    transaction = get_object_or_404(Transaction, reference=tx_ref, user=request.user)
+    transaction = _get_transaction_for_request(request, tx_ref)
 
     if transaction.status != Transaction.STATUS_SPENDING:
         messages.info(request, 'Цю транзакцію вже оброблено')
@@ -119,7 +133,6 @@ def mock_gateway(request, tx_ref):
     )
 
 
-@login_required
 def payment_callback(request):
     """Крок 3: шлюз повернув користувача — перевіряємо результат.
 
@@ -143,7 +156,7 @@ def payment_callback(request):
         logger.warning('Callback без tx_ref від користувача %s', request.user)
         return HttpResponseBadRequest('Некоректний запит платіжного шлюзу')
 
-    transaction = get_object_or_404(Transaction, reference=tx_ref, user=request.user)
+    transaction = _get_transaction_for_request(request, tx_ref)
     order = transaction.order
 
     # 1. Підпис. Рахуємо від полів транзакції в базі, а не від того, що прийшло
@@ -225,16 +238,13 @@ def _complete_payment(transaction, gateway_transaction_id):
     transaction.gateway_transaction_id = gateway_transaction_id
     transaction.save(update_fields=['status', 'gateway_transaction_id', 'updated_at'])
 
+    # Історію статусу й лист «оплату отримано» пише сигнал
+    # `record_status_change` (orders/signals.py) — тут лише причина переходу.
     order = transaction.order
     order.status = Order.STATUS_PAID
+    order._status_note = f'Оплату підтверджено. Транзакція {transaction.reference}'
+    order._status_actor = transaction.user
     order.save(update_fields=['status', 'updated_at'])
-
-    OrderStatusHistory.objects.create(
-        order=order,
-        status=Order.STATUS_PAID,
-        note=f'Оплату підтверджено. Транзакція {transaction.reference}',
-        created_by=transaction.user,
-    )
 
     # Закриваємо рівно той кошик, з якого зроблене це замовлення. Фільтр
     # «усі неоплачені кошики користувача» закривав і той, який покупець набрав
@@ -242,5 +252,4 @@ def _complete_payment(transaction, gateway_transaction_id):
     if order.cart_id:
         Cart.objects.filter(pk=order.cart_id).update(paid_status=True)
 
-    send_payment_received_email(order)
     return True

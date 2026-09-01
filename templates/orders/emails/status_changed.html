@@ -1,0 +1,29 @@
+{% extends 'orders/emails/_base.html' %}
+
+{% block subject %}Замовлення {{ order.order_number }}: {{ order.get_status_display|lower }}{% endblock %}
+
+{% block preheader %}Новий статус замовлення {{ order.order_number }} — {{ order.get_status_display|lower }}.{% endblock %}
+
+{% block heading %}Статус змінився.{% endblock %}
+
+{% block lead %}
+    {{ order.customer_name }}, ваше замовлення {{ order.order_number }} тепер має статус
+    «{{ order.get_status_display|lower }}».
+{% endblock %}
+
+{% block body %}
+    {# Статус великим планом: у цьому листі це головна новина. #}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="margin-bottom:24px; background-color:#16131B;">
+        <tr>
+            <td align="center" style="padding:22px 20px;">
+                <div style="font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#C8A45C; padding-bottom:8px;">Поточний статус</div>
+                <div style="font-family:Georgia,'Times New Roman',serif; font-size:24px; line-height:30px; color:#EFE9E1;">{{ order.get_status_display }}</div>
+            </td>
+        </tr>
+    </table>
+
+    {% include 'orders/emails/_items.html' %}
+{% endblock %}
+
+{% block action_label %}Переглянути замовлення{% endblock %}

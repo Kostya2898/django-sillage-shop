@@ -6,6 +6,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from cart.cart import merge_carts
+from orders.services import attach_guest_orders
 
 from .models import UserProfile
 
@@ -17,6 +18,17 @@ def create_user_profile(sender, instance, created, **kwargs):
     """Кожному новому користувачу автоматично створюємо профіль."""
     if created:
         UserProfile.objects.get_or_create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def claim_guest_orders(sender, instance, created, **kwargs):
+    """Купував гостем, потім зареєструвався — замовлення стають його.
+
+    Інакше історія покупок починалася б з нуля саме тоді, коли людина вперше
+    вирішила завести акаунт, і перше ж «а де моє замовлення?» йшло б у підтримку.
+    """
+    if created:
+        attach_guest_orders(instance)
 
 
 @receiver(user_logged_in)

@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
+{% load catalogue %}
 
 {% block title %}Оформлення замовлення — підтвердження{% endblock %}
 
 {% block content %}
-<h1 class="h3 mb-1">Підтвердження замовлення</h1>
-<p class="text-muted">Крок 2 з 2 — перевірте дані та оберіть спосіб оплати</p>
+{% include 'orders/_checkout_steps.html' %}
 
 <div class="row">
     <div class="col-lg-7">
+        <h1 class="h3 mb-4">Перевірте й підтвердьте</h1>
+
         <div class="card mb-4">
             <div class="card-header">Адреса доставки</div>
             <div class="card-body">
@@ -19,12 +21,51 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">Оплата та коментар</div>
-            <div class="card-body">
-                <form method="post" novalidate>
-                    {% csrf_token %}
+        <form method="post" novalidate>
+            {% csrf_token %}
 
+            {% if delivery_methods %}
+                <div class="card mb-4">
+                    <div class="card-header">Спосіб доставки</div>
+                    <div class="card-body">
+                        {% comment %}
+                        Радіо-кнопки малюємо руками, а не {{ form.delivery_method }}:
+                        поруч із назвою має стояти ціна й строк, інакше вибір
+                        робиться наосліп, а «безкоштовно від 2 500 ₴» — найсильніший
+                        аргумент докласти ще один флакон.
+                        {% endcomment %}
+                        {% for method in delivery_methods %}
+                            <label class="delivery-option">
+                                <input type="radio" name="delivery_method" value="{{ method.pk }}"
+                                       {% if delivery and delivery.pk == method.pk %}checked{% endif %}>
+                                <span class="delivery-option__body">
+                                    <span class="delivery-option__name">{{ method.name }}</span>
+                                    {% if method.description %}
+                                        <span class="delivery-option__desc">{{ method.description }}</span>
+                                    {% endif %}
+                                    <span class="delivery-option__days">
+                                        орієнтовно {{ method.estimated_days }}
+                                        {% if method.estimated_days == 1 %}день{% elif method.estimated_days < 5 %}дні{% else %}днів{% endif %}
+                                    </span>
+                                </span>
+                                <span class="delivery-option__price">
+                                    {% if method.price %}{{ method.price|money }} ₴{% else %}безкоштовно{% endif %}
+                                    {% if method.free_from %}
+                                        <span class="delivery-option__free">від {{ method.free_from|money }} ₴ — безкоштовно</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                        {% if form.delivery_method.errors %}
+                            <p class="form-error">{{ form.delivery_method.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">Оплата та коментар</div>
+                <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">{{ form.payment_method.label }}</label>
                         {% for radio in form.payment_method %}
@@ -50,10 +91,12 @@
                         {% endif %}
                     </div>
 
-                    <button type="submit" class="btn btn-success btn-lg">Підтвердити замовлення</button>
-                </form>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Підтвердити замовлення на {{ totals.total|money }} ₴
+                    </button>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 
     <div class="col-lg-5">
