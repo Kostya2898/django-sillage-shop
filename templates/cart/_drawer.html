@@ -1,5 +1,7 @@
-{# Висувна панель кошика. Саме цей фрагмент повертає JSON у полі cart_html,
-   тож фронтенду достатньо підмінити розмітку одним присвоєнням. #}
+{% comment %}
+Висувна панель кошика. Саме цей фрагмент повертає JSON у полі cart_html,
+тож фронтенду достатньо підмінити розмітку одним присвоєнням.
+{% endcomment %}
 <div class="cart-drawer" id="cart-drawer" data-count="{{ cart|length }}">
     <header class="cart-drawer__header">
         <h2 class="cart-drawer__title">Кошик</h2>

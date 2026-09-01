@@ -1,6 +1,8 @@
 {% load catalogue %}
-{# Сітка товарів разом із пагінацією. Саме цей фрагмент підміняє fetch,
-   коли користувач міняє фільтр — тому пагінація має бути всередині. #}
+{% comment %}
+Сітка товарів разом із пагінацією. Саме цей фрагмент підміняє fetch,
+коли користувач міняє фільтр — тому пагінація має бути всередині.
+{% endcomment %}
 <div id="catalogue-grid" data-total="{{ total }}">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -45,8 +47,10 @@
             <ul class="pagination justify-content-center">
                 {% if page.has_previous %}
                     <li class="page-item">
-                        {# query_string зберігає активні фільтри — інакше перехід
-                           на другу сторінку скидав би вибраний бренд. #}
+                        {% comment %}
+                        query_string зберігає активні фільтри — інакше перехід
+                        на другу сторінку скидав би вибраний бренд.
+                        {% endcomment %}
                         <a class="page-link" href="{% query_string page=page.previous_page_number %}">←</a>
                     </li>
                 {% endif %}
