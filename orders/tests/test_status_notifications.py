@@ -77,9 +77,20 @@ class StatusChangeSendsLetterTests(ShopTestCase):
         self.order = self.create_order()
         mail.outbox.clear()
 
+    def move_to(self, status, order=None):
+        """Перевести замовлення в статус так, щоб відкладений лист таки пішов.
+
+        Без `commits()` лист лишився б у чергі `on_commit` до кінця тесту:
+        саме так і має бути, поки транзакція не закомічена.
+        """
+        order = order or self.order
+        with self.commits():
+            order.status = status
+            order.save(update_fields=['status', 'updated_at'])
+        return order
+
     def test_letter_is_sent_on_status_change(self):
-        self.order.status = Order.STATUS_SHIPPED
-        self.order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_SHIPPED)
 
         self.assertEqual(len(mail.outbox), 1)
         letter = mail.outbox[0]
@@ -89,8 +100,7 @@ class StatusChangeSendsLetterTests(ShopTestCase):
 
     def test_letter_has_both_formats(self):
         """Вимога курсу: текстова версія обовʼязкова, HTML — альтернативою."""
-        self.order.status = Order.STATUS_DELIVERED
-        self.order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_DELIVERED)
 
         letter = mail.outbox[0]
         self.assertIn('SILLAGE', letter.body)
@@ -101,16 +111,14 @@ class StatusChangeSendsLetterTests(ShopTestCase):
 
     def test_html_letter_carries_only_inline_css(self):
         """Поштові клієнти вирізають <style> — лист має жити без нього."""
-        self.order.status = Order.STATUS_SHIPPED
-        self.order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_SHIPPED)
 
         html = mail.outbox[0].alternatives[0][0]
         self.assertNotIn('<style', html)
         self.assertIn('style="', html)
 
     def test_html_letter_has_no_external_resources(self):
-        self.order.status = Order.STATUS_SHIPPED
-        self.order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_SHIPPED)
 
         html = mail.outbox[0].alternatives[0][0]
         self.assertNotIn('fonts.googleapis', html)
@@ -118,14 +126,14 @@ class StatusChangeSendsLetterTests(ShopTestCase):
         self.assertNotIn('<script', html)
 
     def test_cancellation_sends_its_own_letter(self):
-        self.order.cancel(note='Передумав')
+        with self.commits():
+            self.order.cancel(note='Передумав')
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('скасовано', mail.outbox[0].subject.lower())
 
     def test_payment_sends_the_payment_letter_not_a_generic_one(self):
-        self.order.status = Order.STATUS_PAID
-        self.order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_PAID)
 
         self.assertEqual(len(mail.outbox), 1, 'Двох листів про одну подію бути не має')
         self.assertIn('Оплату', mail.outbox[0].subject)
@@ -134,8 +142,7 @@ class StatusChangeSendsLetterTests(ShopTestCase):
         order = self.create_order(guest_email='hostia@example.com')
         mail.outbox.clear()
 
-        order.status = Order.STATUS_SHIPPED
-        order.save(update_fields=['status', 'updated_at'])
+        self.move_to(Order.STATUS_SHIPPED, order=order)
 
         self.assertEqual(mail.outbox[0].to, ['hostia@example.com'])
 
@@ -182,9 +189,10 @@ class AdminBulkStatusTests(ShopTestCase):
         orders = [self.create_order() for _ in range(3)]
         mail.outbox.clear()
 
-        self.admin.mark_shipped(
-            self._request(), Order.objects.filter(pk__in=[o.pk for o in orders])
-        )
+        with self.commits():
+            self.admin.mark_shipped(
+                self._request(), Order.objects.filter(pk__in=[o.pk for o in orders])
+            )
 
         for order in orders:
             order.refresh_from_db()
@@ -199,9 +207,10 @@ class AdminBulkStatusTests(ShopTestCase):
         orders = [self.create_order() for _ in range(3)]
         mail.outbox.clear()
 
-        self.admin.mark_shipped(
-            self._request(), Order.objects.filter(pk__in=[o.pk for o in orders])
-        )
+        with self.commits():
+            self.admin.mark_shipped(
+                self._request(), Order.objects.filter(pk__in=[o.pk for o in orders])
+            )
 
         self.assertEqual(len(mail.outbox), 3)
 
@@ -209,7 +218,8 @@ class AdminBulkStatusTests(ShopTestCase):
         already = self.create_order(status=Order.STATUS_SHIPPED)
         mail.outbox.clear()
 
-        self.admin.mark_shipped(self._request(), Order.objects.filter(pk=already.pk))
+        with self.commits():
+            self.admin.mark_shipped(self._request(), Order.objects.filter(pk=already.pk))
 
         self.assertEqual(len(mail.outbox), 0)
 
@@ -220,7 +230,8 @@ class AdminBulkStatusTests(ShopTestCase):
         product.save(update_fields=['stock'])
         mail.outbox.clear()
 
-        self.admin.mark_cancelled(self._request(), Order.objects.filter(pk=order.pk))
+        with self.commits():
+            self.admin.mark_cancelled(self._request(), Order.objects.filter(pk=order.pk))
 
         self.assertStock(product, 10)
         self.assertEqual(len(mail.outbox), 1)

@@ -85,7 +85,8 @@ class CancellationViewTests(ShopTestCase):
         self.assertStock(self.product, 10)
 
     def test_cancelling_sends_the_letter(self):
-        self._cancel()
+        with self.commits():
+            self._cancel()
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('скасовано', mail.outbox[0].subject.lower())

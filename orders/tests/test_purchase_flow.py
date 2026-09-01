@@ -58,17 +58,20 @@ class GuestToPaidOrderTests(ShopTestCase):
         # 5. Оплата через мок-шлюз із коректним підписом.
         self.client.get(reverse('payments:initiate_payment', args=[order.order_number]))
         payment = Transaction.objects.get(order=order)
-        self.client.get(
-            reverse('payments:payment_callback'),
-            {
-                'status': 'successful',
-                'tx_ref': payment.reference,
-                'transaction_id': 'MOCK-E2E',
-                'signature': transaction_signature(
-                    payment.reference, payment.amount, payment.currency
-                ),
-            },
-        )
+        # Лист про оплату відкладений до коміту транзакції (orders/signals.py),
+        # тож у тесті коміт треба зімітувати — інакше outbox лишиться порожнім.
+        with self.commits():
+            self.client.get(
+                reverse('payments:payment_callback'),
+                {
+                    'status': 'successful',
+                    'tx_ref': payment.reference,
+                    'transaction_id': 'MOCK-E2E',
+                    'signature': transaction_signature(
+                        payment.reference, payment.amount, payment.currency
+                    ),
+                },
+            )
 
         order.refresh_from_db()
         db_cart.refresh_from_db()

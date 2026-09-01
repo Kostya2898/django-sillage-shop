@@ -184,10 +184,14 @@ class PaymentCallbackSecurityTests(ShopTestCase):
     def test_repeated_callback_does_not_send_second_email(self):
         from django.core import mail
 
-        self.client.get(self.url, self.params(), follow=True)
+        # Лист про оплату відкладено до коміту транзакції `_complete_payment`
+        # (orders/signals.py), тож коміт треба зімітувати в обох викликах.
+        with self.commits():
+            self.client.get(self.url, self.params(), follow=True)
         self.assertEqual(len(mail.outbox), 1)
 
-        self.client.get(self.url, self.params(), follow=True)
+        with self.commits():
+            self.client.get(self.url, self.params(), follow=True)
         self.assertEqual(len(mail.outbox), 1, 'Другий лист про оплату надсилати не можна')
 
     def test_repeated_callback_does_not_duplicate_status_history(self):

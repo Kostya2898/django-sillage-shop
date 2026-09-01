@@ -28,6 +28,19 @@ class ShopTestCase(TestCase):
         self.assertTrue(logged_in, 'Не вдалося залогінити тестового користувача')
         return user
 
+    def commits(self):
+        """Контекст, у якому `transaction.on_commit` справді виконується.
+
+        `TestCase` тримає кожен тест у транзакції й наприкінці відкочує її,
+        тому колбеки `on_commit` самі собою не спрацьовують ніколи. Листи про
+        зміну статусу відкладені саме до коміту (`orders/signals.py`), тож без
+        цієї обгортки вони не дійдуть до `mail.outbox` — і тест побачить
+        порожньо там, де на проді лист пішов би.
+
+        Обгортка робить те, що зробила б справжня база на коміті.
+        """
+        return self.captureOnCommitCallbacks(execute=True)
+
     def create_cart_with_items(self, user=None, items=None, paid_status=False):
         """Кошик у базі з позиціями.
 
