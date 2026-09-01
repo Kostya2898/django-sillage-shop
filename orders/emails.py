@@ -46,15 +46,20 @@ def _send_order_email(order, subject, template_base, attachments=()):
 
     Повертає True, якщо лист пішов, і False у будь-якому іншому випадку.
     """
-    recipient = order.customer_email
-    if not recipient:
-        logger.warning(
-            'Замовлення %s не має адреси покупця — лист не надіслано',
-            order.order_number,
-        )
-        return False
-
+    # Пошук адресата теж під `try`. Раніше він стояв вище, і це було
+    # нешкідливо, поки функцію викликали напряму. Тепер вона виконується
+    # колбеком `on_commit`, і будь-який виняток звідси пішов би не покупцю в
+    # лог, а нагору — у код, який завершує транзакцію. Тіло функції має бути
+    # закрите цілком, без «майже».
     try:
+        recipient = order.customer_email
+        if not recipient:
+            logger.warning(
+                'Замовлення %s не має адреси покупця — лист не надіслано',
+                order.order_number,
+            )
+            return False
+
         context = _order_context(order)
         text_content = render_to_string(f'{template_base}.txt', context)
         html_content = render_to_string(f'{template_base}.html', context)

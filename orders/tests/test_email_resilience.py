@@ -14,7 +14,13 @@ from unittest import mock
 from django.core.mail import EmailMultiAlternatives
 from django.urls import reverse
 
-from orders.emails import notify_admins_about_order, send_order_confirmation_email
+from orders.emails import (
+    notify_admins_about_order,
+    send_order_cancelled_email,
+    send_order_confirmation_email,
+    send_order_status_email,
+    send_payment_received_email,
+)
 from orders.models import Order
 from testing import ShopTestCase
 from testing.factories import ProductFactory
@@ -56,6 +62,41 @@ class EmailFailureIsContainedTests(ShopTestCase):
             self.assertLogs('orders.emails', level='ERROR'),
         ):
             self.assertFalse(notify_admins_about_order(order))
+
+    def test_no_email_function_lets_an_exception_out(self):
+        """Контракт модуля: жодна функція не піднімає виняток назовні.
+
+        Перевіряються всі чотири, а не лише підтвердження: три з них тепер
+        викликаються з колбека `on_commit`, де виняток пішов би не в лог, а в
+        код, що завершує транзакцію, — і обвалив би запит, який уже вдався.
+        """
+        order = self.create_order()
+        senders = (
+            send_order_confirmation_email,
+            send_payment_received_email,
+            send_order_status_email,
+            send_order_cancelled_email,
+        )
+
+        for send in senders:
+            with self.subTest(sender=send.__name__), broken_mail():
+                self.assertFalse(send(order), 'Функція мала повернути False, а не впасти')
+
+    def test_broken_order_object_does_not_raise_either(self):
+        """Навіть якщо ламається не пошта, а сам обʼєкт замовлення.
+
+        `customer_email` читає користувача з бази; у колбеку `on_commit` це
+        окремий запит, і він теж має бути прикритий.
+        """
+        order = self.create_order()
+
+        with mock.patch.object(
+            type(order),
+            'customer_email',
+            new_callable=mock.PropertyMock,
+            side_effect=RuntimeError('база відвалилась'),
+        ):
+            self.assertFalse(send_order_status_email(order))
 
     def test_missing_recipient_email_is_not_an_error(self):
         order = self.create_order()
