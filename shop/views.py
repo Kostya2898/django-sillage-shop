@@ -1,11 +1,15 @@
 """View-функції каталогу: головна, список товарів, живий пошук, картка товару."""
 
+from django.conf import settings
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import F
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST, require_safe
 
-from .models import Category, Product
+from .models import Category, Product, ProductImage
+from .photo_rejects import REJECTED_HASHES, REJECTED_URLS, add_rejection
 from .services import (
     PRODUCTS_PER_PAGE,
     CatalogueQuery,
@@ -123,3 +127,66 @@ def product_detail(request, slug):
             'breadcrumbs': product.category.get_ancestors(include_self=True),
         },
     )
+
+
+@require_safe
+def photo_sources(request):
+    """Службова сторінка: звідки взялося кожне зображення каталогу.
+
+    Тільки при `DEBUG=True`. Показувати покупцям, з яких адрес зібрані фото,
+    сенсу немає, а мені це головний робочий інструмент: видно товар, кадр,
+    джерело й запит, за яким кадр знайшовся.
+
+    Запит тут не менш важливий за адресу. Коли кадр виявиться невдалим, видно
+    буде, яке формулювання дало сміття, — і можна виправити запит, а не
+    перебирати результати наосліп.
+    """
+    if not settings.DEBUG:
+        raise Http404('Сторінка доступна лише в режимі розробки')
+
+    images = ProductImage.objects.select_related('product', 'product__brand').order_by(
+        'product__id', 'sort_order'
+    )
+
+    rendered = Product.objects.exclude(images__source_url__gt='').order_by('id')
+
+    return render(
+        request,
+        'shop/photo_sources.html',
+        {
+            'images': images,
+            'rendered': rendered,
+            'rejected_urls': REJECTED_URLS,
+            'rejected_hashes': REJECTED_HASHES,
+        },
+    )
+
+
+@require_POST
+def photo_reject(request, image_id):
+    """Забракувати кадр: дописати його хеш у `shop/photo_rejects.py`.
+
+    Після цього `--only=<slug> --force` візьме **наступного** кандидата, а не
+    того самого. Рішення лягає в код, а не в базу: воно має пережити
+    `seed_shop --flush` і потрапити в git разом із причиною.
+    """
+    if not settings.DEBUG:
+        raise Http404('Дія доступна лише в режимі розробки')
+
+    image = get_object_or_404(ProductImage, pk=image_id)
+    reason = request.POST.get('reason', '').strip() or 'забраковано вручну'
+
+    if image.source_hash:
+        add_rejection(int(image.source_hash, 16), image.source_url, reason)
+        messages.success(
+            request,
+            f'Кадр «{image.product.name}» забраковано. Перезаберіть його: '
+            f'manage.py fetch_product_photos --only={image.product.slug} --force',
+        )
+    else:
+        messages.warning(
+            request,
+            'У цього зображення немає хеша джерела — це рендер, а не фотографія.',
+        )
+
+    return redirect('shop:photo_sources')

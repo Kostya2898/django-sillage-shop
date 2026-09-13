@@ -14,4 +14,9 @@ urlpatterns = [
         name='product_list_by_category',
     ),
     path('product/<slug:slug>/', views.product_detail, name='product_detail'),
+    # Службові сторінки фотоконвеєра. Самі view відповідають 404 поза DEBUG,
+    # тож маршрути можна лишити зареєстрованими завжди — `{% url %}` у
+    # шаблонах не падає, а сторінка на проді недоступна.
+    path('photo-sources/', views.photo_sources, name='photo_sources'),
+    path('photo-sources/<int:image_id>/reject/', views.photo_reject, name='photo_reject'),
 ]

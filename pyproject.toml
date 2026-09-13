@@ -9,6 +9,7 @@ dependencies = [
     "django-environ>=0.14.0",
     "numpy>=2.0",
     "xhtml2pdf>=0.2.17",
+    "requests>=2.32",
 ]
 
 [project.optional-dependencies]

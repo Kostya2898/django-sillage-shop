@@ -806,3 +806,18 @@ main {
     background: #faf7f1;
     padding: 1.5rem;
 }
+
+/* --- службова сторінка джерел зображень (тільки DEBUG) --- */
+
+.photo-sources__thumb {
+    object-fit: cover;
+    border-radius: 3px;
+    background: #16131b;
+}
+
+.photo-sources__url {
+    display: inline-block;
+    max-width: 26rem;
+    overflow-wrap: anywhere;
+    color: #6c757d;
+}

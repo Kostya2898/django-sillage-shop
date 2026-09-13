@@ -576,6 +576,19 @@ class ProductImage(models.Model):
     is_main = models.BooleanField('Головне', default=False)
     sort_order = models.PositiveSmallIntegerField('Порядок', default=0)
 
+    # Слід походження. Порожньо — отже, це рендер рейтрейсера з B5.
+    #
+    # `source_query` потрібен не менше за адресу: коли кадр виявиться
+    # невдалим, видно буде, яке формулювання дало сміття, і можна виправити
+    # запит, а не перебирати результати наосліп.
+    source_url = models.URLField('Джерело', max_length=500, blank=True)
+    source_query = models.CharField('Пошуковий запит', max_length=250, blank=True)
+
+    # dHash **вхідного** кадру, у hex. Саме вхідного, а не збереженого:
+    # грейд навмисно робить усі кадри схожими, тож хеші результатів
+    # збігаються між різними товарами й для дедуплікації не годяться.
+    source_hash = models.CharField('Хеш джерела', max_length=16, blank=True, db_index=True)
+
     class Meta:
         verbose_name = 'Зображення товару'
         verbose_name_plural = 'Зображення товарів'

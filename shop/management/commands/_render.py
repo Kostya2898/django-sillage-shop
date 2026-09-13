@@ -512,7 +512,21 @@ def aces_tonemap(x):
     return np.clip((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0)
 
 
-def apply_film(image, rng, chroma=1.6, grain=0.007, vignette=0.26):
+# Параметри плівки. Винесені в константи, бо ними користується не лише
+# рейтрейсер: той самий грейд накладається на справжні фотографії
+# (`_photos.py`), інакше рендери й фото не лежали б в одному ряду.
+FILM_CHROMA = 1.6
+FILM_GRAIN = 0.007
+FILM_VIGNETTE = 0.26
+FILM_VIGNETTE_EXP = 2.2
+
+# Кадр живе всередині палітри бренду: ані чистого чорного, ані білого.
+# Нижня межа — Нуар #0A090C, верхня — Кістка #EFE9E1.
+BLACK_FLOOR = np.array([0.039, 0.035, 0.047], dtype=np.float32)
+WHITE_CEIL = np.array([0.937, 0.914, 0.882], dtype=np.float32)
+
+
+def apply_film(image, rng, chroma=FILM_CHROMA, grain=FILM_GRAIN, vignette=FILM_VIGNETTE):
     """Тонмапінг → хроматична аберація → віньєтка → зерно → sRGB."""
     height, width, _ = image.shape
     image = aces_tonemap(image)
@@ -529,16 +543,13 @@ def apply_film(image, rng, chroma=1.6, grain=0.007, vignette=0.26):
     result[..., 0] = image[rows, np.clip(cols + shift, 0, width - 1), 0]
     result[..., 2] = image[rows, np.clip(cols - shift, 0, width - 1), 2]
 
-    result *= (1.0 - vignette * radius**2.2)[..., None]
+    result *= (1.0 - vignette * radius**FILM_VIGNETTE_EXP)[..., None]
     result += rng.normal(0.0, grain, size=(height, width, 1)).astype(np.float32)
 
     result = np.clip(result, 0.0, 1.0)
     # Лінійний → sRGB.
     result = np.where(result <= 0.0031308, result * 12.92, 1.055 * result ** (1 / 2.4) - 0.055)
 
-    # Кадр живе всередині палітри бренду: ані чистого чорного, ані білого.
-    floor_rgb = np.array([0.039, 0.035, 0.047], dtype=np.float32)
-    ceil_rgb = np.array([0.937, 0.914, 0.882], dtype=np.float32)
-    result = floor_rgb + result * (ceil_rgb - floor_rgb)
+    result = BLACK_FLOOR + result * (WHITE_CEIL - BLACK_FLOOR)
 
     return (np.clip(result, 0.0, 1.0) * 255.0).astype(np.uint8)

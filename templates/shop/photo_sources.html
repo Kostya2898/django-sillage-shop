@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load catalogue %}
+
+{% block title %}Джерела зображень — службове{% endblock %}
+
+{% block content %}
+{% comment %}
+Службова сторінка фотоконвеєра, доступна лише при DEBUG=True.
+
+Сюди дивляться після кожного прогону `fetch_product_photos`: видно кадр,
+товар, адресу джерела й запит, за яким кадр знайшовся. Кнопка «забракувати»
+дописує хеш у `shop/photo_rejects.py`, після чого `--only=<slug> --force`
+бере наступного кандидата, а не того самого.
+{% endcomment %}
+
+<h1 class="h3 mb-1">Джерела зображень</h1>
+<p class="text-muted mb-4">
+    Службова сторінка: видна лише при <code>DEBUG=True</code>.
+    Забраковані кадри дописуються в <code>shop/photo_rejects.py</code> —
+    рішення лягає в git, а не в базу.
+</p>
+
+{% if rendered %}
+    <div class="alert alert-warning">
+        <strong>Лишились на рендері B5 ({{ rendered|length }}):</strong>
+        {% for product in rendered %}
+            <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+        <div class="small mt-2 mb-0">
+            Це не дірки в каталозі — зображення там є, але воно згенероване, а не знято.
+        </div>
+    </div>
+{% endif %}
+
+{% if rejected_hashes %}
+    <p class="text-muted small">
+        Забраковано вручну: {{ rejected_hashes|length }} хеш(ів),
+        {{ rejected_urls|length }} адрес(а).
+    </p>
+{% endif %}
+
+<div class="table-responsive">
+    <table class="table align-middle photo-sources">
+        <thead class="table-light">
+            <tr>
+                <th>Кадр</th>
+                <th>Товар</th>
+                <th>Джерело</th>
+                <th>Запит</th>
+                <th>Хеш</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+                <tr>
+                    <td>
+                        {# Рядок без файлу можливий: медіа чистять окремо від бази. #}
+                        {% if image.image %}
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
+                                 width="56" height="70" class="photo-sources__thumb" loading="lazy">
+                        {% else %}
+                            <span class="text-muted small">немає файлу</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ image.product.get_absolute_url }}">{{ image.product.name }}</a>
+                        <div class="text-muted small">
+                            {{ image.product.brand.name }}
+                            {% if image.is_main %}· головне{% endif %}
+                        </div>
+                    </td>
+                    <td class="small">
+                        {% if image.source_url %}
+                            <span class="photo-sources__url">{{ image.source_url }}</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary">рендер B5</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ image.source_query|default:'—' }}</td>
+                    <td class="small text-muted"><code>{{ image.source_hash|default:'—' }}</code></td>
+                    <td class="text-end">
+                        {% if image.source_hash %}
+                            <form method="post" action="{% url 'shop:photo_reject' image.id %}"
+                                  onsubmit="return confirm('Забракувати цей кадр? Він більше не потрапить у каталог.');">
+                                {% csrf_token %}
+                                <input type="hidden" name="reason" value="забраковано на /photo-sources/">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    Забракувати
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-muted">
+                        Зображень ще немає. Запустіть
+                        <code>manage.py fetch_product_photos --from-folder photos_in/</code>.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

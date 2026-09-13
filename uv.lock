@@ -415,6 +415,7 @@ dependencies = [
     { name = "django-environ" },
     { name = "numpy" },
     { name = "pillow" },
+    { name = "requests" },
     { name = "xhtml2pdf" },
 ]
 
@@ -437,6 +438,7 @@ requires-dist = [
     { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3.3" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "pillow", specifier = ">=12.3.0" },
+    { name = "requests", specifier = ">=2.32" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.6" },
     { name = "xhtml2pdf", specifier = ">=0.2.17" },
 ]
