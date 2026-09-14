@@ -1,0 +1,1029 @@
+/* ===========================================================================
+   SILLAGE — компоненти
+   ===========================================================================
+   У цьому файлі **немає жодного HEX** — лише `var(--…)`. Це перевіряється
+   тестом `shop/tests/test_design_system.py`, а не обіцянкою: захардкоджений
+   колір у компоненті означає, що зміна палітри вимагає обходу всіх файлів.
+
+   Кожен компонент описаний в усіх станах, які в нього бувають:
+   default / hover / active / focus-visible / disabled / loading / empty.
+   Пропущений стан — це не «його немає», а «його забули», і виявляється він
+   у найгірший момент.
+
+   Усі інтерактивні елементи ≥ 44 px по обох осях.
+   =========================================================================== */
+
+/* ===========================================================================
+   .btn — три різновиди
+   =========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--btn-height);
+  min-width: var(--tap-min);
+  padding: var(--btn-padding);
+  border: var(--line-hair) solid transparent;
+  border-radius: var(--radius-none);
+  font-family: var(--btn-font);
+  font-size: var(--btn-size);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--btn-tracking);
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  /* Перелічуємо властивості, а не `all`: `transition: all` анімує й те, що
+     анімувати не можна — наприклад ширину при зміні тексту. */
+  transition:
+    background-color var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out),
+    transform var(--dur-hover) var(--ease-out);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.4;
+  /* Вимкнена кнопка не реагує ні на що — інакше вона виглядає натискною. */
+  pointer-events: none;
+}
+
+/* --- основна: латунь плаcка, без градієнта й без відблиску --- */
+.btn--primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.btn--primary:hover {
+  background: var(--btn-primary-bg-hover);
+}
+
+.btn--primary:active {
+  background: var(--btn-primary-bg-active);
+  /* 1 px, не 4: кнопка має відреагувати, а не провалитись. */
+  transform: translateY(1px);
+}
+
+/* --- контурна --- */
+.btn--ghost {
+  background: transparent;
+  border-color: var(--btn-ghost-border);
+  color: var(--btn-ghost-text);
+}
+
+.btn--ghost:hover {
+  background: var(--btn-ghost-bg-hover);
+  color: var(--btn-ghost-text-hover);
+}
+
+.btn--ghost:active {
+  background: var(--accent-active);
+  border-color: var(--accent-active);
+  color: var(--text-on-accent);
+}
+
+/* --- тиха: для другорядних дій, де рамка була б шумом --- */
+.btn--quiet {
+  background: transparent;
+  color: var(--btn-quiet-text);
+  padding-inline: var(--space-4);
+}
+
+.btn--quiet:hover {
+  color: var(--btn-quiet-text-hover);
+}
+
+.btn--quiet:active {
+  color: var(--text-accent);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+/* --- завантаження ---
+   Текст лишається на місці й не зникає: кнопка, яка під час запиту втрачає
+   підпис, змінює ширину і смикає сусідні елементи. Тому підпис просто
+   гасне, а спінер лягає поверх. */
+.btn.is-loading {
+  pointer-events: none;
+  color: transparent;
+}
+
+.btn.is-loading::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: var(--line-bold) solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--btn-primary-text);
+  animation: spin 640ms linear infinite;
+}
+
+.btn--ghost.is-loading::after,
+.btn--quiet.is-loading::after {
+  color: var(--text-accent);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===========================================================================
+   .field — поле вводу
+   =========================================================================== */
+
+.field {
+  display: block;
+}
+
+.field__label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.field__optional {
+  color: var(--text-muted);
+  margin-left: var(--space-2);
+}
+
+.field__control {
+  display: block;
+  width: 100%;
+  min-height: var(--field-height);
+  padding: var(--space-3) var(--space-4);
+  background: var(--field-bg);
+  border: var(--line-hair) solid var(--field-border);
+  border-radius: var(--radius-tight);
+  color: var(--field-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  transition:
+    border-color var(--dur-hover) var(--ease-out),
+    background-color var(--dur-hover) var(--ease-out);
+}
+
+.field__control::placeholder {
+  color: var(--field-placeholder);
+}
+
+.field__control:hover:not(:disabled) {
+  border-color: var(--field-border-hover);
+}
+
+.field__control:focus-visible {
+  border-color: var(--field-border-focus);
+}
+
+.field__control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.field__control[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+
+textarea.field__control {
+  min-height: calc(var(--tap-min) * 2);
+  resize: vertical;
+}
+
+.field__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+/* Помилка поруч із полем, а не списком угорі сторінки: до списку треба
+   вертатись очима, а тут вона вже там, де курсор. */
+.field__error {
+  font-size: var(--text-xs);
+  color: var(--text-danger);
+  margin-top: var(--space-2);
+}
+
+.field.is-loading .field__control {
+  background-image: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-sheen) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: sheen 1200ms linear infinite;
+}
+
+/* ===========================================================================
+   .chip — перемикач фільтра (ноти, бренди)
+   =========================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border: var(--line-hair) solid var(--chip-border);
+  border-radius: var(--radius-none);
+  background: transparent;
+  color: var(--chip-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.chip:active {
+  border-color: var(--accent-active);
+}
+
+.chip[aria-pressed='true'],
+.chip.is-on {
+  border-color: var(--chip-border-on);
+  color: var(--chip-text-on);
+}
+
+.chip:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.chip__count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+/* ===========================================================================
+   .tag — нейтральна позначка, не інтерактивна
+   =========================================================================== */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: var(--line-hair) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.tag--accent {
+  border-color: var(--accent);
+  color: var(--text-accent);
+}
+
+/* Троянда — тільки знижка й помилка. Ніде більше. */
+.tag--sale {
+  border-color: var(--danger);
+  color: var(--text-danger);
+}
+
+.tag--solid {
+  background: var(--bg-surface-active);
+  border-color: transparent;
+  color: var(--text-primary);
+}
+
+/* ===========================================================================
+   .card-product — картка товару
+   =========================================================================== */
+
+/* Скла тут немає навмисно: `backdrop-filter` поверх фотографії з'їдає саме
+   те, за що покупець платить. Скло лишається шапці, drawer і модалкам. */
+.card-product {
+  display: block;
+  background: transparent;
+  border: var(--line-hair) solid var(--card-border);
+  position: relative;
+  transition:
+    transform var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out);
+}
+
+.card-product:hover {
+  transform: translateY(var(--card-lift));
+  border-color: var(--card-border-hover);
+}
+
+.card-product:active {
+  transform: translateY(0);
+}
+
+.card-product__frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--card-bg);
+  margin-bottom: var(--space-5);
+  box-shadow: var(--card-shadow);
+}
+
+.card-product__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--dur-enter) var(--ease-out);
+}
+
+.card-product:hover .card-product__frame img {
+  transform: scale(1.03);
+}
+
+.card-product__badges {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.card-product__brand {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.card-product__name {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-3);
+}
+
+.card-product__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.card-product__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.card-product__old {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-right: var(--space-2);
+}
+
+.card-product--out .card-product__frame img {
+  opacity: 0.45;
+}
+
+/* ===========================================================================
+   .breadcrumbs
+   =========================================================================== */
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.breadcrumbs a {
+  color: inherit;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumbs li:not(:last-child)::after {
+  content: '/';
+  margin-left: var(--space-2);
+  color: var(--text-muted);
+}
+
+.breadcrumbs [aria-current='page'] {
+  color: var(--text-primary);
+}
+
+/* ===========================================================================
+   .pagination
+   =========================================================================== */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.pagination__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: var(--line-hair) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+.pagination__link:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.pagination__link[aria-current='page'] {
+  border-color: var(--accent);
+  color: var(--text-accent);
+}
+
+.pagination__link[aria-disabled='true'] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ===========================================================================
+   .drawer — висувна панель (кошик)
+   =========================================================================== */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  background: var(--bg-scrim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-page) var(--ease-in-out);
+}
+
+.scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Коли оверлей відкрито, контент іде на blur і трохи зменшується. Це читається
+   як зміна фокусної відстані, тобто як робота камери; просте затемнення
+   читається як вимкнене світло. */
+.app-shell {
+  transition:
+    filter var(--dur-page) var(--ease-in-out),
+    transform var(--dur-page) var(--ease-in-out);
+}
+
+body.has-overlay .app-shell {
+  filter: blur(var(--blur-scrim));
+  transform: scale(0.985);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  width: min(var(--drawer-width), 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--drawer-bg);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.15);
+  border-left: var(--line-hair) solid var(--border-default);
+  box-shadow: var(--shadow-overlay), var(--shadow-inset-top);
+  transform: translateX(100%);
+  transition: transform var(--dur-page) var(--ease-in-out);
+}
+
+.drawer.is-open {
+  transform: translateX(0);
+}
+
+.drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.drawer__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.drawer__footer {
+  padding: var(--space-6);
+  border-top: var(--line-hair) solid var(--border-default);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  color: var(--text-secondary);
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.drawer__close:hover {
+  color: var(--text-primary);
+}
+
+/* ===========================================================================
+   .modal
+   =========================================================================== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  pointer-events: none;
+}
+
+.modal.is-open {
+  pointer-events: auto;
+}
+
+.modal__panel {
+  width: min(var(--modal-width), 100%);
+  background: var(--bg-surface);
+  border: var(--line-hair) solid var(--border-default);
+  box-shadow: var(--shadow-overlay), var(--shadow-inset-top);
+  padding: var(--space-8);
+  transform: translateY(16px) scale(0.99);
+  opacity: 0;
+  transition:
+    transform var(--dur-page) var(--ease-in-out),
+    opacity var(--dur-page) var(--ease-in-out);
+}
+
+.modal.is-open .modal__panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal__title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-4);
+}
+
+.modal__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+/* ===========================================================================
+   .toast
+   =========================================================================== */
+
+.toast-stack {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-toast);
+  display: grid;
+  gap: var(--space-2);
+  width: min(480px, calc(100vw - var(--space-10)));
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-surface);
+  border: var(--line-hair) solid var(--border-default);
+  border-left: var(--line-bold) solid var(--accent);
+  box-shadow: var(--shadow-card);
+  font-size: var(--text-sm);
+  transform: translateY(12px);
+  opacity: 0;
+  transition:
+    transform var(--dur-state) var(--ease-out),
+    opacity var(--dur-state) var(--ease-out);
+}
+
+.toast.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Класи від MESSAGE_TAGS у settings/base.py. */
+.toast--success { border-left-color: var(--accent); }
+.toast--info    { border-left-color: var(--text-secondary); }
+.toast--warning { border-left-color: var(--accent); }
+.toast--error   { border-left-color: var(--danger); }
+.toast--debug   { border-left-color: var(--text-muted); }
+
+.toast__close {
+  margin-left: auto;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex: none;
+}
+
+.toast__close:hover {
+  color: var(--text-primary);
+}
+
+/* ===========================================================================
+   .skeleton — заповнювач на час завантаження
+   =========================================================================== */
+
+/* Скелет, а не спінер: він показує майбутню форму контенту, тож сторінка не
+   стрибає, коли дані приходять. */
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-sheen) 50%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: sheen 1200ms linear infinite;
+  border-radius: var(--radius-tight);
+}
+
+.skeleton--text {
+  height: 1em;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton--title {
+  height: 2em;
+  width: 60%;
+  margin-bottom: var(--space-4);
+}
+
+.skeleton--frame {
+  aspect-ratio: 4 / 5;
+  width: 100%;
+}
+
+@keyframes sheen {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .field.is-loading .field__control {
+    animation: none;
+    background: var(--skeleton-base);
+  }
+
+  .btn.is-loading::after {
+    animation: none;
+  }
+}
+
+/* ===========================================================================
+   .stepper — кількість
+   =========================================================================== */
+
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: var(--line-hair) solid var(--border-default);
+}
+
+.stepper__btn {
+  width: var(--tap-min);
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition:
+    background-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+.stepper__btn:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.stepper__btn:active:not(:disabled) {
+  background: var(--bg-surface-active);
+}
+
+.stepper__btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.stepper__value {
+  width: calc(var(--tap-min) + var(--space-2));
+  min-height: var(--tap-min);
+  border: 0;
+  border-inline: var(--line-hair) solid var(--border-default);
+  background: transparent;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  -moz-appearance: textfield;
+}
+
+.stepper__value::-webkit-outer-spin-button,
+.stepper__value::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper.is-loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ===========================================================================
+   .rating
+   =========================================================================== */
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rating__star {
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.rating__star--on {
+  color: var(--accent);
+}
+
+.rating__value {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  margin-left: var(--space-2);
+}
+
+/* Інтерактивна версія — для форми відгуку. */
+.rating--input .rating__star {
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: var(--space-3);
+  cursor: pointer;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.rating--input .rating__star:hover {
+  color: var(--accent);
+}
+
+.rating--empty {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ===========================================================================
+   .accordion
+   =========================================================================== */
+
+.accordion__item {
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.accordion__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-5) 0;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.accordion__trigger:hover {
+  color: var(--text-primary);
+}
+
+.accordion__trigger[aria-expanded='true'] {
+  color: var(--text-primary);
+}
+
+.accordion__icon {
+  flex: none;
+  transition: transform var(--dur-state) var(--ease-in-out);
+}
+
+.accordion__trigger[aria-expanded='true'] .accordion__icon {
+  transform: rotate(45deg);
+}
+
+/* `grid-template-rows` від 0fr до 1fr — єдиний спосіб анімувати розкриття,
+   не анімуючи `height`. Висота в анімації викликає перерахунок компонування
+   на кожному кадрі, і на довгому списку це видно як ривки. */
+.accordion__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-state) var(--ease-in-out);
+}
+
+.accordion__panel > div {
+  overflow: hidden;
+}
+
+.accordion__item.is-open .accordion__panel {
+  grid-template-rows: 1fr;
+}
+
+.accordion__content {
+  padding-bottom: var(--space-5);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ===========================================================================
+   Порожні стани
+   =========================================================================== */
+
+/* Порожній стан завжди має вихід. «Нічого не знайдено» без кнопки — тупик,
+   з якого відвідувач виходить закриванням вкладки. */
+.empty {
+  padding: var(--space-16) var(--space-8);
+  text-align: center;
+  border: var(--line-hair) dashed var(--border-default);
+}
+
+.empty__title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-3);
+}
+
+.empty__text {
+  color: var(--text-secondary);
+  max-width: var(--measure-narrow);
+  margin: 0 auto var(--space-6);
+}
+
+/* ===========================================================================
+   .site-header — скло допустиме тут
+   =========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-5) var(--space-8);
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--blur-glass)) saturate(1.15);
+  border-bottom: var(--line-hair) solid var(--border-default);
+  box-shadow: var(--shadow-inset-top);
+}
+
+.site-header__wordmark {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-wordmark);
+  text-transform: uppercase;
+}
+
+.site-nav {
+  display: flex;
+  gap: var(--space-8);
+  justify-content: center;
+}
+
+.site-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.site-nav__link:hover,
+.site-nav__link[aria-current='page'] {
+  color: var(--text-primary);
+}
+
+/* Лічильник кошика — єдине місце на сайті, де дозволений переліт, і не
+   більше 6%. Він тут доречний саме тому, що повідомляє «число змінилось»;
+   в інших місцях переліт нічого не повідомляє. */
+.cart-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--space-1);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart-count.is-bumped {
+  animation: bump var(--dur-state) var(--ease-out);
+}
+
+@keyframes bump {
+  0%   { transform: scale(1); }
+  55%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-count.is-bumped {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-header {
+    grid-template-columns: auto auto;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .site-nav {
+    display: none;
+  }
+}

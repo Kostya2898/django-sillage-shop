@@ -1,0 +1,206 @@
+/* Checkout. Повітря тут менше, ніж на решті сайту, і це навмисно: тут
+   працюють, а не розглядають, і кожен зайвий піксель — це ще один рух мишею. */
+
+.checkout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.checkout__main {
+  padding: var(--space-12) var(--space-8);
+  border-right: var(--line-hair) solid var(--border-default);
+  min-width: 0;
+}
+
+.checkout__aside {
+  padding: var(--space-12) var(--space-8);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-8);
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.steps__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.steps__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: var(--line-hair) solid currentColor;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.steps__item.is-current {
+  color: var(--text-primary);
+}
+
+.steps__item.is-done {
+  color: var(--text-accent);
+}
+
+.identity-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: var(--line-hair) solid var(--border-default);
+}
+
+.identity-option + .identity-option {
+  margin-top: var(--space-4);
+}
+
+.identity-option--primary {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.identity-option__body {
+  flex: 1 1 18rem;
+}
+
+.identity-option__title {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-1);
+}
+
+.identity-option__text {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  max-width: var(--measure-narrow);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-5);
+}
+
+.form-grid__wide {
+  grid-column: 1 / -1;
+}
+
+.delivery-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5) 0;
+  border-bottom: var(--line-hair) solid var(--border-default);
+  cursor: pointer;
+  min-height: var(--tap-min);
+}
+
+.delivery-option:last-child {
+  border-bottom: 0;
+}
+
+.delivery-option__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.delivery-option__name {
+  font-weight: var(--weight-medium);
+}
+
+.delivery-option__desc,
+.delivery-option__days {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.delivery-option__price {
+  flex: none;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+  white-space: nowrap;
+}
+
+.delivery-option__free {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--text-label);
+}
+
+.summary {
+  border: var(--line-hair) solid var(--border-default);
+}
+
+.summary__head {
+  padding: var(--space-4) var(--space-5);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+.summary__body {
+  padding: var(--space-5);
+}
+
+.summary__line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.summary__line--discount {
+  color: var(--text-danger);
+}
+
+.summary__line--total {
+  border-top: var(--line-hair) solid var(--border-default);
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+}
+
+@media (max-width: 900px) {
+  .checkout {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout__main {
+    border-right: 0;
+    border-bottom: var(--line-hair) solid var(--border-default);
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .checkout__aside {
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .steps {
+    padding-inline: var(--space-5);
+    gap: var(--space-4);
+  }
+}

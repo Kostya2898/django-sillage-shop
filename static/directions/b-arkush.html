@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B · Аркуш — SILLAGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=cyrillic,latin" rel="stylesheet">
+<style>
+:root{
+  --noir:#0A090C; --smola:#16131B; --bone:#EFE9E1; --ash:#9C93A6; --brass:#C8A45C;
+  --rule:rgba(239,233,225,.10);
+  --ease-out:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--noir);color:var(--bone);font-family:'Manrope',system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 70% at 50% 45%,transparent 45%,rgba(10,9,12,.66) 100%)}
+
+/* сітка-каркас: волосінь видно, як у каталозі виставки */
+.frame{max-width:1440px;margin:0 auto;position:relative;z-index:10;
+  border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+
+header{display:grid;grid-template-columns:2fr 1fr;border-bottom:1px solid var(--rule)}
+.brandcell{padding:26px 32px;border-right:1px solid var(--rule)}
+.wordmark{font-family:'Prata',Georgia,serif;font-size:22px;letter-spacing:.34em;text-transform:uppercase}
+.metacell{padding:26px 32px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ash);
+  display:flex;justify-content:space-between;align-items:center}
+.metacell a{color:inherit;text-decoration:none}
+.metacell a:hover{color:var(--bone)}
+
+/* герой: текст як зображення */
+.hero{display:grid;grid-template-columns:1fr 380px;border-bottom:1px solid var(--rule)}
+.hero__type{padding:96px 32px 72px;border-right:1px solid var(--rule)}
+.folio{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:56px;
+  display:flex;gap:24px}
+.mask{overflow:hidden;display:block}
+.mask>span{display:block;animation:rise 640ms var(--ease-out) both}
+.mask:nth-of-type(2)>span{animation-delay:70ms}
+.mask:nth-of-type(3)>span{animation-delay:140ms}
+@keyframes rise{from{transform:translateY(1.1em)}to{transform:translateY(0)}}
+h1{font-family:'Prata',Georgia,serif;font-weight:400;
+  font-size:clamp(40px,5.6vw,88px);line-height:1.06;letter-spacing:-.02em}
+.hero__aside{padding:96px 32px 72px;display:flex;flex-direction:column;justify-content:space-between}
+.hero__aside p{color:var(--ash);font-size:15px;margin-bottom:28px}
+.btn{display:inline-block;padding:16px 32px;background:var(--brass);color:var(--noir);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  text-decoration:none;text-align:center;transition:opacity 160ms var(--ease-out)}
+.btn:hover{opacity:.86}
+
+/* реєстр товарів: індекс, плита, дані — як опис експоната */
+.register{border-bottom:1px solid var(--rule)}
+.register__head{display:grid;grid-template-columns:64px 1.4fr 1fr 1fr 120px;
+  padding:14px 32px;border-bottom:1px solid var(--rule);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+.plate{display:grid;grid-template-columns:64px 1.4fr 1fr 1fr 120px;align-items:center;
+  padding:20px 32px;border-bottom:1px solid var(--rule);text-decoration:none;color:inherit;
+  transition:background 160ms var(--ease-out)}
+.plate:last-child{border-bottom:0}
+.plate:hover{background:rgba(239,233,225,.03)}
+.plate__idx{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--ash);
+  font-variant-numeric:tabular-nums}
+.plate__title{display:flex;align-items:center;gap:18px}
+.plate__title img{width:56px;height:70px;object-fit:cover;background:var(--smola);flex:none;
+  box-shadow:0 24px 48px -12px rgba(12,8,4,.55)}
+.plate__name{font-family:'Prata',Georgia,serif;font-size:24px;line-height:1.15}
+.plate__brand,.plate__notes{font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ash)}
+.plate__price{font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.12em;
+  text-align:right;color:var(--brass);font-variant-numeric:tabular-nums}
+
+/* плити-зображення нижче: фото як таблиця в книзі */
+.plates{display:grid;grid-template-columns:repeat(3,1fr)}
+.plates a{text-decoration:none;color:inherit;padding:40px 32px 44px;
+  border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.plates a:nth-child(3n){border-right:0}
+.plates img{width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--smola);
+  display:block;margin-bottom:20px;box-shadow:0 24px 48px -12px rgba(12,8,4,.55)}
+.plates h3{font-family:'Prata',Georgia,serif;font-size:28px;font-weight:400;
+  line-height:1.14;margin-bottom:10px}
+.plates .row{display:flex;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;font-variant-numeric:tabular-nums}
+.plates .row span:last-child{color:var(--brass)}
+footer{padding:56px 32px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ash);
+  display:flex;justify-content:space-between}
+@media(max-width:900px){
+  header,.hero{grid-template-columns:1fr}
+  .brandcell,.hero__type{border-right:0;border-bottom:1px solid var(--rule)}
+  .hero__type{padding:56px 20px 40px}.hero__aside{padding:32px 20px 48px}
+  .register__head{display:none}
+  .plate{grid-template-columns:36px 1fr auto;gap:12px;padding:16px 20px}
+  .plate__brand,.plate__notes{display:none}
+  .plate__name{font-size:19px;font-family:'Manrope',sans-serif;font-weight:500}
+  .plates{grid-template-columns:1fr 1fr}
+  .plates a{padding:24px 16px 28px}
+  .plates a:nth-child(3n){border-right:1px solid var(--rule)}
+  .plates a:nth-child(2n){border-right:0}
+  .plates h3{font-size:20px;font-family:'Manrope',sans-serif;font-weight:500}
+}
+</style>
+</head>
+<body>
+<div class="vignette"></div><div class="grain"></div>
+
+<div class="frame">
+  <header>
+    <div class="brandcell"><div class="wordmark">Sillage</div></div>
+    <div class="metacell">
+      <a href="#">Аромати</a><a href="#">Дім</a><a href="#">Формати</a><a href="#">Кошик · 0</a>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero__type">
+      <div class="folio"><span>Аркуш 01</span><span>Осінь 2026</span><span>30 позицій</span></div>
+      <h1>
+        <span class="mask"><span>Реєстр</span></span>
+        <span class="mask"><span>ароматів,</span></span>
+        <span class="mask"><span>складений з уваги</span></span>
+      </h1>
+    </div>
+    <div class="hero__aside">
+      <p>Кожна позиція описана так, як опис експоната: хто автор, з чого складено, скільки тримається на шкірі й кому пасує. Без «магії» і «чарівності».</p>
+      <a class="btn" href="#">Дивитись реєстр</a>
+    </div>
+  </div>
+
+  <div class="register">
+    <div class="register__head"><span>№</span><span>Позиція</span><span>Дім</span><span>Серце</span><span>Ціна</span></div>
+    <a class="plate" href="#">
+      <span class="plate__idx">01</span>
+      <span class="plate__title"><img src="/media/products/covers/2026/09/iris-siryi-photo.webp" alt=""><span class="plate__name">Ірис Сірий</span></span>
+      <span class="plate__brand">Orris and Co.</span><span class="plate__notes">Ірис · замша</span>
+      <span class="plate__price">8 600 ₴</span>
+    </a>
+    <a class="plate" href="#">
+      <span class="plate__idx">02</span>
+      <span class="plate__title"><img src="/media/products/covers/2026/09/vetiver-obscure-photo.webp" alt=""><span class="plate__name">Ветивер Обскюр</span></span>
+      <span class="plate__brand">Atelier Noir</span><span class="plate__notes">Ветивер · дим</span>
+      <span class="plate__price">7 900 ₴</span>
+    </a>
+    <a class="plate" href="#">
+      <span class="plate__idx">03</span>
+      <span class="plate__title"><img src="/media/products/covers/2026/09/sandal-07-photo.webp" alt=""><span class="plate__name">Сандал 07</span></span>
+      <span class="plate__brand">Vestige</span><span class="plate__notes">Сандал · вершки</span>
+      <span class="plate__price">6 800 ₴</span>
+    </a>
+  </div>
+
+  <div class="plates">
+    <a href="#"><img src="/media/products/covers/2026/09/kedrova-tysha-photo.webp" alt=""><h3>Кедрова тиша</h3><div class="row"><span>Nord Botanica</span><span>4 200 ₴</span></div></a>
+    <a href="#"><img src="/media/products/covers/2026/09/troyanda-o-shostiy-photo.webp" alt=""><h3>Троянда о шостій</h3><div class="row"><span>Maison Ferrant</span><span>5 400 ₴</span></div></a>
+    <a href="#"><img src="/media/products/covers/2026/09/ambra-1908-photo.webp" alt=""><h3>Амбра 1908</h3><div class="row"><span>Ambre Rouge</span><span>6 200 ₴</span></div></a>
+  </div>
+
+  <footer><span>SILLAGE · Київ</span><span>Аркуш 01 / 05</span></footer>
+</div>
+</body>
+</html>

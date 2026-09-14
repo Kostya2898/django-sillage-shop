@@ -16,7 +16,7 @@
         {% if product.images.first %}
             <img src="{{ product.images.first.image.url }}" class="img-fluid rounded" alt="{{ product.images.first.alt_text|default:product.name }}">
         {% else %}
-            <div class="bg-white border rounded d-flex align-items-center justify-content-center" style="height: 320px;">
+            <div class="product-figure product-figure--empty">
                 <span class="text-muted">Немає зображення</span>
             </div>
         {% endif %}
@@ -35,7 +35,7 @@
                 <div class="col-auto">
                     <label class="form-label" for="quantity">Кількість</label>
                     <input type="number" id="quantity" name="quantity" value="1"
-                           min="1" max="{{ product.stock }}" class="form-control" style="width: 110px;">
+                           min="1" max="{{ product.stock }}" class="qty-input">
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-primary">Додати в кошик</button>

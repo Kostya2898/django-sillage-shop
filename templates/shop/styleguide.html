@@ -1,0 +1,501 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Дизайн-система SILLAGE — службове{% endblock %}
+
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/pages/styleguide.css' %}">{% endblock %}
+
+{% block content %}
+{% comment %}
+Стайлгайд. Доступний лише при DEBUG=True.
+
+Кожен компонент показаний в усіх станах, які в нього бувають, і кожен стан
+підписаний. Це навмисно не вітрина: по вітрині неможливо перевірити, чи стан
+існує — видно лише те, що автор вирішив показати.
+
+Числа контрасту рахуються в `shop/design_tokens.py` із `tokens.css`, а не
+вписані тут руками. Вписані руками вони розходяться з палітрою після першої
+ж правки, і сторінка починає брехати саме там, де має доводити.
+{% endcomment %}
+
+<div class="sg">
+  <h1>Дизайн-система</h1>
+  <p class="sg__intro">
+    Службова сторінка, видна лише при <code>DEBUG=True</code>. Напрям —
+    «Аркуш»: рамка-волосінь, номери позицій, антиква Prata на дисплейних
+    розмірах. Світло одне на весь сайт: зверху-зліва, 30°, тінь падає
+    вправо-вниз.
+  </p>
+
+  {# ===================== палітра ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">Палітра і контраст</h2>
+    <p class="sg-section__note">
+      Один акцент — латунь. Троянда живе тільки на знижці й помилці, більше
+      ніде. Чистого <code>#000</code> і <code>#FFF</code> у системі немає:
+      піднятий чорний з підтоном читається як матеріал, а <code>#000</code> —
+      як діра в екрані.
+    </p>
+
+    <div class="sg-swatches">
+      {% for row in palette %}
+        <div class="sg-swatch">
+          <div class="sg-swatch__chip" data-sg-swatch="{{ row.bg }}">
+            <span class="sr-only">{{ row.label }}</span>
+          </div>
+          <div class="sg-swatch__body">
+            <div class="sg-swatch__name">{{ row.label }}</div>
+            <div class="sg-swatch__meta">{{ row.fg }} на {{ row.bg }} · {{ row.role }}</div>
+            <div class="sg-swatch__ratio">
+              {{ row.ratio_text }}:1 —
+              {% if row.passes_text %}
+                <span class="sg-check sg-check--pass">текст 4.5:1 — так</span>
+              {% elif row.passes_large %}
+                <span class="sg-check">лише великий 3:1</span>
+              {% else %}
+                <span class="sg-check sg-check--fail">не проходить</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-secondary">Токени не прочитались — перевірте tokens.css.</p>
+      {% endfor %}
+    </div>
+
+    <p class="sg-note">
+      «Попіл тьмяний» на смолі дає 3.42:1 і для тексту не годиться — він
+      використовується лише для вимкнених станів, які WCAG з перевірки
+      виключає. Для помилок узято світлішу троянду
+      <code>--rose-text</code>: базова <code>--rose</code> дає 4.28:1, тобто
+      не тягне 4.5:1 для дрібного тексту, а повідомлення про помилку — це
+      саме дрібний текст.
+    </p>
+  </section>
+
+  {# ===================== типографіка ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">Типографіка</h2>
+    <p class="sg-section__note">
+      Антиква тільки від 32 px: нижче її тонкі штрихи витончуються до
+      непомітності, і вона виглядає не дорого, а слабко. Там працює Manrope.
+      Перевірка кирилиці — нижче, через <code>document.fonts.check</code>, а
+      не на око: підміна системним шрифтом візуально майже незамітна.
+    </p>
+
+    <div class="sg-states">
+      <div class="sg-states__label">display-1</div>
+      <div><span class="wordmark" data-sg-font="display">Слід, який лишається</span></div>
+
+      <div class="sg-states__label">h1 · Prata</div>
+      <div><h1>Реєстр ароматів</h1></div>
+
+      <div class="sg-states__label">h2</div>
+      <div><h2>Обране кураторами</h2></div>
+
+      <div class="sg-states__label">h3</div>
+      <div><h3>Кедрова тиша</h3></div>
+
+      <div class="sg-states__label">h4 · Manrope</div>
+      <div><h4>Склад і стійкість</h4></div>
+
+      <div class="sg-states__label">текст</div>
+      <div><p>Тридцять ароматів, обраних за те, що вони розповідають, а не за те, як гучно заявляють про себе. Ґ, Є, Ї, Й — перевірка повного набору.</p></div>
+
+      <div class="sg-states__label">лейбл · моно</div>
+      <div><span class="label">Eau de Parfum · 50 мл</span></div>
+
+      <div class="sg-states__label">ціна · tabular</div>
+      <div><span class="price">4 200 ₴</span> <span class="price">11 800 ₴</span></div>
+    </div>
+
+    <p class="sg-note" id="font-check" data-font-check>
+      Перевірка шрифтів запускається скриптом на цій сторінці.
+    </p>
+  </section>
+
+  {# ===================== простір ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">Шкала простору</h2>
+    <p class="sg-section__note">
+      Крок 4 px, від 4 до 144. Між секціями на десктопі 120–180 px: дорогий
+      вигляд — це відстань між елементами, а не декор у проміжках.
+    </p>
+
+    <div class="sg-space">
+      <div class="sg-space__row"><span class="sg-states__label">space-1 · 4</span><span class="sg-space__bar" data-sg-space="1"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-2 · 8</span><span class="sg-space__bar" data-sg-space="2"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-4 · 16</span><span class="sg-space__bar" data-sg-space="4"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-6 · 24</span><span class="sg-space__bar" data-sg-space="6"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-8 · 32</span><span class="sg-space__bar" data-sg-space="8"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-12 · 48</span><span class="sg-space__bar" data-sg-space="12"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-16 · 64</span><span class="sg-space__bar" data-sg-space="16"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-24 · 96</span><span class="sg-space__bar" data-sg-space="24"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-30 · 120</span><span class="sg-space__bar" data-sg-space="30"></span></div>
+      <div class="sg-space__row"><span class="sg-states__label">space-36 · 144</span><span class="sg-space__bar" data-sg-space="36"></span></div>
+    </div>
+  </section>
+
+  {# ===================== кнопки ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.btn — три різновиди, усі стани</h2>
+    <p class="sg-section__note">
+      Латунь плаcка, без градієнта й без білого відблиску: CSS-«золото» з
+      відблиском завжди виглядає як пластик. Кути 0 — гострий кут читається
+      дорожче за скруглений.
+    </p>
+
+    <div class="sg-states">
+      <div class="sg-states__label">default</div>
+      <div class="sg-row">
+        <button class="btn btn--primary">Додати в кошик</button>
+        <button class="btn btn--ghost">Дивитись</button>
+        <button class="btn btn--quiet">Скасувати</button>
+      </div>
+
+      <div class="sg-states__label">hover (наведіть)</div>
+      <div class="sg-row">
+        <button class="btn btn--primary">Додати в кошик</button>
+        <button class="btn btn--ghost">Дивитись</button>
+        <button class="btn btn--quiet">Скасувати</button>
+      </div>
+
+      <div class="sg-states__label">focus-visible (Tab)</div>
+      <div class="sg-row">
+        <button class="btn btn--primary">Клавіатурний фокус</button>
+        <button class="btn btn--ghost">І тут</button>
+      </div>
+
+      <div class="sg-states__label">disabled</div>
+      <div class="sg-row">
+        <button class="btn btn--primary" disabled>Немає в наявності</button>
+        <button class="btn btn--ghost" disabled>Недоступно</button>
+      </div>
+
+      <div class="sg-states__label">loading</div>
+      <div class="sg-row">
+        <button class="btn btn--primary is-loading">Додаємо</button>
+        <button class="btn btn--ghost is-loading">Чекаємо</button>
+      </div>
+
+      <div class="sg-states__label">block</div>
+      <div><button class="btn btn--primary btn--block">Оформити замовлення</button></div>
+    </div>
+  </section>
+
+  {# ===================== поля ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.field — усі стани</h2>
+    <div class="sg-grid">
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input class="field__control" type="email" placeholder="name@example.com">
+        <span class="field__hint">Надішлемо підтвердження й рахунок</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Місто <span class="field__optional">необовʼязково</span></span>
+        <input class="field__control" type="text" value="Київ">
+      </label>
+
+      <label class="field">
+        <span class="field__label">Телефон</span>
+        <input class="field__control" type="tel" value="+380" aria-invalid="true">
+        <span class="field__error">Введіть номер у форматі +380…</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Вимкнене</span>
+        <input class="field__control" type="text" value="Недоступно" disabled>
+      </label>
+
+      <label class="field is-loading">
+        <span class="field__label">Завантаження</span>
+        <input class="field__control" type="text" value="" readonly>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Коментар</span>
+        <textarea class="field__control" rows="3" placeholder="Для курʼєра…"></textarea>
+      </label>
+    </div>
+  </section>
+
+  {# ===================== чипи й теги ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.chip і .tag</h2>
+    <div class="sg-states">
+      <div class="sg-states__label">chip · default / on / disabled</div>
+      <div class="sg-row">
+        <button class="chip">ветивер <span class="chip__count">7</span></button>
+        <button class="chip is-on" aria-pressed="true">ірис <span class="chip__count">5</span></button>
+        <button class="chip" disabled>тютюн <span class="chip__count">0</span></button>
+      </div>
+
+      <div class="sg-states__label">tag</div>
+      <div class="sg-row">
+        <span class="tag">Eau de Parfum</span>
+        <span class="tag tag--accent">Новинка</span>
+        <span class="tag tag--sale">−15%</span>
+        <span class="tag tag--solid">Останній флакон</span>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== картка товару ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.card-product</h2>
+    <p class="sg-section__note">
+      Скла на картці немає навмисно: <code>backdrop-filter</code> поверх
+      фотографії зʼїдає саме те, за що покупець платить. Підйом при наведенні
+      — 2 px: 12 px читаються як кнопка з іграшки.
+    </p>
+
+    <div class="sg-grid">
+      <a class="card-product" href="#">
+        <div class="card-product__frame">
+          <div class="card-product__badges"><span class="tag tag--accent">Новинка</span></div>
+          <img src="{{ sample_cover }}" alt="" width="480" height="600" data-sg-cover>
+        </div>
+        <div class="card-product__brand">Nord Botanica</div>
+        <div class="card-product__name">Кедрова тиша</div>
+        <div class="card-product__row">
+          <span class="card-product__meta">EDP · 50 мл</span>
+          <span class="price">4 200 ₴</span>
+        </div>
+      </a>
+
+      <div class="card-product card-product--out">
+        <div class="card-product__frame">
+          <div class="card-product__badges"><span class="tag">Немає</span></div>
+          <img src="{{ sample_cover }}" alt="" width="480" height="600" data-sg-cover>
+        </div>
+        <div class="card-product__brand">Atelier Noir</div>
+        <div class="card-product__name">Ветивер Обскюр</div>
+        <div class="card-product__row">
+          <span class="card-product__meta">Extrait · 50 мл</span>
+          <span class="price"><span class="card-product__old">8 900 ₴</span>7 900 ₴</span>
+        </div>
+      </div>
+
+      <div class="card-product">
+        <div class="card-product__frame skeleton skeleton--frame"></div>
+        <div class="skeleton skeleton--text"></div>
+        <div class="skeleton skeleton--title"></div>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== навігація ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.breadcrumbs і .pagination</h2>
+    <div class="sg-states">
+      <div class="sg-states__label">breadcrumbs</div>
+      <div>
+        <ol class="breadcrumbs">
+          <li><a href="#">Каталог</a></li>
+          <li><a href="#">Аромати</a></li>
+          <li><a href="#">Деревні</a></li>
+          <li><span aria-current="page">Кедрова тиша</span></li>
+        </ol>
+      </div>
+
+      <div class="sg-states__label">pagination</div>
+      <div>
+        <nav class="pagination" aria-label="Сторінки">
+          <a class="pagination__link" href="#" aria-disabled="true">←</a>
+          <a class="pagination__link" href="#" aria-current="page">1</a>
+          <a class="pagination__link" href="#">2</a>
+          <a class="pagination__link" href="#">3</a>
+          <a class="pagination__link" href="#">→</a>
+        </nav>
+      </div>
+
+      <div class="sg-states__label">stepper</div>
+      <div class="sg-row">
+        <div class="stepper">
+          <button class="stepper__btn" aria-label="Менше">−</button>
+          <input class="stepper__value" type="number" value="2" aria-label="Кількість">
+          <button class="stepper__btn" aria-label="Більше">+</button>
+        </div>
+        <div class="stepper">
+          <button class="stepper__btn" disabled aria-label="Менше">−</button>
+          <input class="stepper__value" type="number" value="1" aria-label="Кількість">
+          <button class="stepper__btn" aria-label="Більше">+</button>
+        </div>
+        <div class="stepper is-loading">
+          <button class="stepper__btn" aria-label="Менше">−</button>
+          <input class="stepper__value" type="number" value="3" aria-label="Кількість">
+          <button class="stepper__btn" aria-label="Більше">+</button>
+        </div>
+      </div>
+
+      <div class="sg-states__label">rating</div>
+      <div class="sg-row">
+        <span class="rating">
+          {% for i in "12345" %}
+            <svg class="rating__star{% if forloop.counter <= 4 %} rating__star--on{% endif %}"
+                 viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/>
+            </svg>
+          {% endfor %}
+          <span class="rating__value">4.0 · 12</span>
+        </span>
+        <span class="rating--empty">Відгуків ще немає</span>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== акордеон ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.accordion</h2>
+    <p class="sg-section__note">
+      Розкриття через <code>grid-template-rows: 0fr → 1fr</code>, а не через
+      <code>height</code>: висота в анімації змушує браузер перераховувати
+      компонування на кожному кадрі, і на довгому списку це видно як ривки.
+    </p>
+
+    <div class="accordion">
+      <div class="accordion__item is-open">
+        <button class="accordion__trigger" aria-expanded="true">
+          Склад
+          <svg class="accordion__icon" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+        <div class="accordion__panel"><div>
+          <div class="accordion__content">Кедр, ветивер, білий мускус, замша. Тримається 6–8 годин.</div>
+        </div></div>
+      </div>
+      <div class="accordion__item">
+        <button class="accordion__trigger" aria-expanded="false">
+          Доставка
+          <svg class="accordion__icon" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+        <div class="accordion__panel"><div>
+          <div class="accordion__content">Нова пошта — 80 ₴, безкоштовно від 2 500 ₴.</div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== оверлеї ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">.drawer, .modal, .toast</h2>
+    <p class="sg-section__note">
+      Коли оверлей відкривається, контент іде на <code>blur(12px)</code> і
+      <code>scale(.985)</code>. Це читається як зміна фокусної відстані, тобто
+      як робота камери; просте затемнення читається як вимкнене світло.
+      Скло допустиме тут — на шапці, drawer і модалці.
+    </p>
+
+    <div class="sg-row">
+      <button class="btn btn--ghost" data-open="#sg-drawer">Відкрити drawer</button>
+      <button class="btn btn--ghost" data-open="#sg-modal">Відкрити модалку</button>
+    </div>
+
+    <div class="sg-row">
+      <div class="toast toast--success is-visible"><span>Товар «Кедрова тиша» додано</span></div>
+    </div>
+    <div class="sg-row">
+      <div class="toast toast--error is-visible"><span>На складі лишилось 2 од.</span></div>
+    </div>
+  </section>
+
+  {# ===================== порожній стан ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">Порожні стани</h2>
+    <p class="sg-section__note">
+      Порожній стан завжди має вихід. «Нічого не знайдено» без кнопки — це
+      тупик, з якого виходять закриванням вкладки.
+    </p>
+    <div class="empty">
+      <div class="empty__title">У кошику поки порожньо</div>
+      <p class="empty__text">Почніть з discovery-сета — вісім слідів по 2 мл, приблизно на десять нанесень кожен.</p>
+      <a class="btn btn--ghost" href="#">До каталогу</a>
+    </div>
+  </section>
+
+  {# ===================== рух ===================== #}
+  <section class="sg-section">
+    <h2 class="sg-section__title">Моушн-контракт</h2>
+    <p class="sg-section__note">
+      Дефолтний <code>ease</code> не використовується ніде: його ні на що не
+      налаштовано. Пружні криві з перельотом заборонені, крім лічильника
+      кошика — і там переліт не більший за 6%.
+    </p>
+
+    <div class="sg-grid">
+      <div class="sg-curve sg-curve--out">
+        <div class="sg-curve__track"><span class="sg-curve__dot"></span></div>
+        <div class="sg-curve__meta">--ease-out · cubic-bezier(.22,1,.36,1)</div>
+      </div>
+      <div class="sg-curve sg-curve--in-out">
+        <div class="sg-curve__track"><span class="sg-curve__dot"></span></div>
+        <div class="sg-curve__meta">--ease-in-out · cubic-bezier(.65,0,.35,1)</div>
+      </div>
+    </div>
+
+    <div class="sg-states">
+      <div class="sg-states__label">маска тексту</div>
+      <div>
+        <h3 data-reveal-immediate>
+          <span class="reveal-line"><span>Рядок виїжджає</span></span>
+          <span class="reveal-line"><span>з-за краю маски,</span></span>
+          <span class="reveal-line"><span>а не проявляється</span></span>
+        </h3>
+        <button class="btn btn--quiet" data-sg-replay>Повторити</button>
+      </div>
+
+      <div class="sg-states__label">лічильник кошика</div>
+      <div class="sg-row">
+        <span class="cart-count" data-cart-count>3</span>
+        <button class="btn btn--quiet" data-sg-bump>Змінити число</button>
+      </div>
+    </div>
+
+    <p class="sg-note">
+      Тривалості: hover 160 · стан 240 · перехід сторінки 320 · поява
+      елемента 640 · поява секції 800 мс. Нічого довшого за 900 мс.
+      Каскад 70 мс, максимум 8 позицій.
+    </p>
+  </section>
+</div>
+
+{# оверлеї для демонстрації — поза .sg, бо вони fixed #}
+<div class="scrim" data-close></div>
+
+<aside class="drawer" id="sg-drawer" aria-label="Демонстраційний drawer">
+  <div class="drawer__header">
+    <span class="label">Кошик</span>
+    <button class="drawer__close" data-close aria-label="Закрити">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="drawer__body">
+    <p class="text-secondary">Тут лежить розмітка кошика з <code>cart/_drawer.html</code>.</p>
+  </div>
+  <div class="drawer__footer">
+    <span class="price">Разом · 11 000 ₴</span>
+    <a class="btn btn--primary btn--block" href="#">Оформити</a>
+  </div>
+</aside>
+
+<div class="modal" id="sg-modal" role="dialog" aria-modal="true" aria-labelledby="sg-modal-title">
+  <div class="modal__panel">
+    <h2 class="modal__title" id="sg-modal-title">Скасувати замовлення?</h2>
+    <p class="text-secondary">Товари повернуться у продаж. Дію не можна відмінити.</p>
+    <div class="modal__actions">
+      <button class="btn btn--primary">Скасувати замовлення</button>
+      <button class="btn btn--quiet" data-close>Не зараз</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{% static 'js/styleguide.js' %}" defer></script>{% endblock %}

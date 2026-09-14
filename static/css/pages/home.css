@@ -1,0 +1,141 @@
+/* Головна. Герой — басейн світла з напряму A, каркас — аркуш із напряму B. */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.hero__type {
+  padding: var(--space-24) var(--space-8) var(--space-18);
+  border-right: var(--line-hair) solid var(--border-default);
+  position: relative;
+}
+
+/* Єдине джерело світла: зверху-зліва, 30°. Той самий кут на всьому сайті —
+   саме послідовність напрямку, а не сила світла, дає відчуття однієї зйомки. */
+.hero__type::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 70%;
+  z-index: var(--z-base);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 50% at 18% 22%,
+    var(--accent-wash),
+    transparent 68%
+  );
+}
+
+.hero__folio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-bottom: var(--space-16);
+  color: var(--text-accent);
+  position: relative;
+  z-index: var(--z-content);
+}
+
+.hero__title {
+  position: relative;
+  z-index: var(--z-content);
+}
+
+.hero__aside {
+  padding: var(--space-24) var(--space-8) var(--space-18);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.hero__lede {
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  max-width: var(--measure-narrow);
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-8);
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.section-head__count {
+  color: var(--text-secondary);
+}
+
+/* Категорії як колонки аркуша, а не як плитки з тінями. */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.category-tile {
+  padding: var(--space-8);
+  border-right: var(--line-hair) solid var(--border-default);
+  transition: background-color var(--dur-hover) var(--ease-out);
+}
+
+.category-tile:nth-child(4n) {
+  border-right: 0;
+}
+
+.category-tile:hover {
+  background: var(--bg-surface-hover);
+}
+
+.category-tile__name {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-2);
+}
+
+.category-tile__children {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__type {
+    border-right: 0;
+    border-bottom: var(--line-hair) solid var(--border-default);
+    padding: var(--space-16) var(--space-5) var(--space-10);
+  }
+
+  .hero__aside {
+    padding: var(--space-8) var(--space-5) var(--space-12);
+  }
+
+  .section-head {
+    padding-inline: var(--space-5);
+  }
+
+  .category-tile {
+    border-right: 0;
+    border-bottom: var(--line-hair) solid var(--border-default);
+    padding: var(--space-6) var(--space-5);
+  }
+
+  /* Антиква нижче 32 px витончується до непомітності, тож на мобільному
+     назва категорії переходить на інтерфейсний шрифт, а не просто меншає. */
+  .category-tile__name {
+    font-family: var(--font-ui);
+    font-weight: var(--weight-medium);
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-body);
+  }
+}

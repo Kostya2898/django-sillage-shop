@@ -1,0 +1,140 @@
+/* Картка товару: повітря з напряму A, дані як опис експоната з напряму B. */
+
+.product {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.product__gallery {
+  padding: var(--space-12) var(--space-8);
+  border-right: var(--line-hair) solid var(--border-default);
+  position: relative;
+}
+
+/* Той самий кут світла, що в героєві: зверху-зліва. */
+.product__gallery::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-base);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 45% at 30% 20%,
+    var(--accent-wash),
+    transparent 70%
+  );
+}
+
+.product__cover {
+  aspect-ratio: 4 / 5;
+  background: var(--bg-surface);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  position: relative;
+  z-index: var(--z-content);
+}
+
+.product__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product__thumbs {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  position: relative;
+  z-index: var(--z-content);
+}
+
+.product__thumb {
+  width: 72px;
+  aspect-ratio: 4 / 5;
+  background: var(--bg-surface);
+  border: var(--line-hair) solid transparent;
+  overflow: hidden;
+  transition: border-color var(--dur-hover) var(--ease-out);
+}
+
+.product__thumb:hover,
+.product__thumb[aria-current="true"] {
+  border-color: var(--accent);
+}
+
+.product__info {
+  padding: var(--space-12) var(--space-8);
+}
+
+.product__brand {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.product__title {
+  margin-bottom: var(--space-5);
+}
+
+.product__price {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+  margin-bottom: var(--space-8);
+}
+
+.product__buy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-10);
+}
+
+/* Піраміда нот — таблиця, а не мальована піраміда: читають тут склад,
+   а не розглядають схему. */
+.pyramid__row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.pyramid__layer {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.pyramid__notes {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .product {
+    grid-template-columns: 1fr;
+  }
+
+  .product__gallery {
+    border-right: 0;
+    border-bottom: var(--line-hair) solid var(--border-default);
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .product__info {
+    padding: var(--space-8) var(--space-5);
+  }
+
+  .pyramid__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}

@@ -1,83 +1,127 @@
 {% load static %}<!DOCTYPE html>
 <html lang="uk">
+{% comment %}
+Базовий шаблон SILLAGE.
+
+**Порядок підключення CSS фіксований і не переставляється:**
+    tokens → base → components → pages/*
+Кожен наступний файл спирається на змінні попереднього. Сторінковий CSS
+підключається через `{% block page_css %}`, щоб каталог не тягнув стилі
+checkout-а й навпаки.
+
+Bootstrap лишився **тільки як сітка** (`container`, `row`, `col-*`) на тих
+сторінках, які ще не переїхали на власну систему. Як джерело вигляду він не
+використовується: усі візуальні класи — власні. Коли останній шаблон
+переїде, рядок із CDN зникне.
+
+Інлайн-`style` у шаблонах заборонені. Значення в атрибуті неможливо
+перевизначити темою й неможливо знайти пошуком по CSS.
+{% endcomment %}
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Інтернет-магазин{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <title>{% block title %}SILLAGE — нішева парфумерія{% endblock %}</title>
+
+    {# Шрифти першими: без preconnect перший кадр тексту чекає на DNS + TLS. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=cyrillic,cyrillic-ext,latin">
+
+    <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    {% comment %}
+    Шар сумісності для сторінок, які ще не переїхали на нові імена класів.
+    Написаний на тих самих токенах, тож палітра діє й там. Зникне разом із
+    останнім старим шаблоном.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/pages/legacy.css' %}">
+    {% block page_css %}{% endblock %}
+
+    {# Сітка Bootstrap для ще не перенесених сторінок. Вигляд — власний. #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css">
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand d-inline-flex align-items-center" href="{% url 'shop:home' %}"><svg class="me-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Магазин</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+{% include 'partials/_film.html' %}
 
-        <div class="collapse navbar-collapse" id="nav">
-            {# Живий пошук. Без JS лишається звичайною формою з кнопкою. #}
-            <form class="d-flex ms-lg-4 my-2 my-lg-0 site-search" method="get"
-                  action="{% url 'shop:product_list' %}" role="search" autocomplete="off">
-                <div class="site-search__field">
-                    <input class="form-control" type="search" name="q" id="site-search-input"
-                           placeholder="Аромат, бренд або нота"
-                           value="{{ request.GET.q|default:'' }}"
-                           aria-label="Пошук по каталогу"
-                           aria-controls="site-search-results" aria-expanded="false">
-                    <div id="site-search-results" class="site-search__results" role="listbox" hidden></div>
-                </div>
-                <button class="btn btn-outline-light ms-2" type="submit">Знайти</button>
-            </form>
+<a class="skip-link" href="#main">До основного вмісту</a>
 
-            <ul class="navbar-nav ms-auto align-items-lg-center">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'cart:cart_detail' %}">
-                        Кошик
-                        <span class="badge bg-primary">{{ cart|length }}</span>
-                    </a>
-                </li>
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'orders:order_list' %}">Мої замовлення</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link">Вийти</button>
-                        </form>
-                    </li>
-                {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Увійти</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:signup' %}">Реєстрація</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+{# app-shell — те, що йде на blur, коли відкривається оверлей. #}
+<div class="app-shell">
 
-<main class="container my-4">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-dismissible fade show {{ message.tags|default:'toast--info' }}">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<header class="site-header">
+    <a class="site-header__wordmark" href="{% url 'shop:home' %}">Sillage</a>
+
+    <nav class="site-nav" aria-label="Основна навігація">
+        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Аромати</a>
+        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Дім</a>
+        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Формати</a>
+    </nav>
+
+    <div class="site-header__actions">
+        {# Живий пошук. Без JS лишається звичайною формою з кнопкою. #}
+        <form class="site-search" method="get" action="{% url 'shop:product_list' %}"
+              role="search" autocomplete="off">
+            <div class="site-search__field">
+                <label class="sr-only" for="site-search-input">Пошук по каталогу</label>
+                <input class="field__control" type="search" name="q" id="site-search-input"
+                       placeholder="Аромат, бренд або нота"
+                       value="{{ request.GET.q|default:'' }}"
+                       aria-controls="site-search-results" aria-expanded="false">
+                <div id="site-search-results" class="site-search__results" role="listbox" hidden></div>
             </div>
-        {% endfor %}
+        </form>
+
+        <a class="site-nav__link" href="{% url 'cart:cart_detail' %}">
+            Кошик <span class="cart-count" data-cart-count>{{ cart|length }}</span>
+        </a>
+
+        {% if user.is_authenticated %}
+            <a class="site-nav__link" href="{% url 'orders:order_list' %}">Замовлення</a>
+            <a class="site-nav__link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn--quiet">Вийти</button>
+            </form>
+        {% else %}
+            <a class="site-nav__link" href="{% url 'accounts:login' %}">Увійти</a>
+        {% endif %}
+    </div>
+</header>
+
+<main id="main">
+    {% if messages %}
+        <div class="toast-stack" role="status" aria-live="polite">
+            {% for message in messages %}
+                <div class="toast is-visible {{ message.tags|default:'toast--info' }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="toast__close" data-toast-close
+                            aria-label="Закрити повідомлення">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path d="M6 6l12 12M18 6L6 18"/>
+                        </svg>
+                    </button>
+                </div>
+            {% empty %}
+            {% endfor %}
+        </div>
     {% endif %}
 
     {% block content %}{% endblock %}
 </main>
 
-<footer class="text-center text-muted py-4">
-    <small>Навчальний проект Django — кошик, checkout та email</small>
+<footer class="site-footer">
+    <span class="label">SILLAGE · вул. Ярославів Вал, 15, Київ</span>
+    <span class="label">щодня з 11:00 до 20:00</span>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</div>{# /app-shell #}
+
+<script src="{% static 'js/film.js' %}" defer></script>
+<script src="{% static 'js/reveal.js' %}" defer></script>
+<script src="{% static 'js/ui.js' %}" defer></script>
 <script>
 // Підказки пошуку. Debounce 250 мс — інакше запит іде на кожну літеру.
 (function () {
@@ -111,7 +155,7 @@
                         '<a class="site-search__item" role="option" href="' + item.url + '">' +
                         image +
                         '<span><strong>' + item.name + '</strong>' +
-                        '<small>' + item.brand + ' · ' + item.price + ' \u20b4</small></span></a>'
+                        '<small>' + item.brand + ' · ' + item.price + ' ₴</small></span></a>'
                     );
                 })
                 .join('');

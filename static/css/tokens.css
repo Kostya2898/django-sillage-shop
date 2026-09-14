@@ -1,0 +1,264 @@
+/* ===========================================================================
+   SILLAGE — токени дизайн-системи
+   ===========================================================================
+
+   Три шари, і порядок має значення:
+
+     1. ПЕРВИННІ   — сирі значення. Єдине місце в проєкті, де стоять HEX.
+     2. СЕМАНТИЧНІ — роль замість кольору: `--text-primary`, а не `--bone`.
+     3. КОМПОНЕНТНІ — те, що читає компонент: `--btn-bg`, `--card-border`.
+
+   Компонент ніколи не звертається до первинного шару. Причина практична:
+   коли акцент зміниться, правити треба один рядок у шарі 1, а не тридцять
+   входжень `--brass` по всьому `components.css`. Саме тому в `components.css`
+   немає жодного HEX — це перевіряється тестом.
+
+   Джерело палітри — `PROJECT_VISION.md`, схема світла — `REFERENCE_TEARDOWN.md`.
+   =========================================================================== */
+
+:root {
+  /* =========================================================================
+     ШАР 1 · ПЕРВИННІ ЗНАЧЕННЯ
+     ========================================================================= */
+
+  /* --- палітра ---
+     Чистого #000 і #FFF у проєкті немає. Піднятий чорний з підтоном читається
+     як матеріал; #000 читається як діра в екрані й на OLED розмазується. */
+  --noir: #0a090c;            /* тло сторінки, футер */
+  --noir-deep: #060508;       /* тільки затемнення під оверлеєм */
+  --smola: #16131b;           /* картки, поля вводу, шапка при скролі */
+  --smola-lift: #1e1a24;      /* наведення на поверхню */
+  --smola-high: #272230;      /* активна поверхня, skeleton */
+
+  --bone: #efe9e1;            /* заголовки, основний текст */
+  --bone-dim: #d8d2ca;        /* текст на латуні при наведенні */
+  --ash: #9c93a6;             /* підписи, службові дати — 6.24:1 на смолі */
+  --ash-dim: #6e6878;         /* вимкнений стан, розділювачі */
+
+  --brass: #c8a45c;           /* ЄДИНИЙ акцент. Плаский колір, не градієнт */
+  --brass-dim: #a8873f;       /* натиснута латунь */
+  --brass-wash: rgba(200, 164, 92, 0.12);
+
+  --rose: #b8615a;            /* знижка, помилка — поверхні й рамки */
+  --rose-text: #c26f68;       /* та сама троянда, але 5.05:1 — для тексту */
+  --rose-wash: rgba(184, 97, 90, 0.12);
+
+  /* --- шкала простору, 4 → 144 ---
+     Крок 4 px. Усе, що між — помилка, а не задум. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-18: 72px;
+  --space-22: 88px;
+  --space-24: 96px;
+  --space-30: 120px;
+  --space-36: 144px;
+
+  /* --- родини шрифтів ---
+     Кожна має кирилицю; це перевіряється не на око, а `document.fonts.check`
+     із кириличним рядком (див. `/styleguide/`). */
+  --font-display: 'Prata', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+
+  /* --- типографічна шкала ---
+     Антиква живе тільки від 32 px: нижче її тонкі штрихи витончуються до
+     непомітності, і вона починає виглядати не дорого, а слабко. Тому
+     `--text-*` нижче 32 px узагалі не мають дисплейного варіанту. */
+  --text-display-1: clamp(2.5rem, 5.6vw, 5.5rem);   /* 40 → 88 */
+  --text-display-2: clamp(2rem, 3.6vw, 3.5rem);     /* 32 → 56 */
+  --text-display-3: clamp(2rem, 2.4vw, 2.5rem);     /* 32 → 40 */
+  --text-xl: 1.3125rem;   /* 21 */
+  --text-lg: 1.0625rem;   /* 17 */
+  --text-md: 1rem;        /* 16 — базовий */
+  --text-sm: 0.875rem;    /* 14 */
+  --text-xs: 0.8125rem;   /* 13 */
+  --text-label: 0.6875rem;/* 11 — моно, uppercase */
+
+  --leading-display: 1.06;
+  --leading-snug: 1.3;
+  --leading-body: 1.6;
+
+  /* --- оптичний трекінг ---
+     Дисплейне стискаємо, моно розганяємо, текст не чіпаємо. */
+  --tracking-display: -0.02em;
+  --tracking-body: 0;
+  --tracking-mono: 0.18em;
+  --tracking-wordmark: 0.34em;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  /* --- світло і тіні ---
+     Одне джерело: зверху-зліва, 30°. Тінь падає вправо-вниз, завжди.
+     Колір тіні теплий і напівпрозорий — чорна тінь виглядає як наліпка. */
+  --shadow-raise: 0 2px 6px -2px rgba(12, 8, 4, 0.4);
+  --shadow-card: 0 24px 48px -12px rgba(12, 8, 4, 0.55);
+  --shadow-overlay: 0 40px 80px -20px rgba(12, 8, 4, 0.7);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --focus-ring: 0 0 0 2px var(--noir), 0 0 0 4px var(--brass);
+
+  /* --- лінії ---
+     Кути 0 або 2 px. `border-radius: 16px` на всьому — головна ознака
+     шаблонного SaaS, і найдешевший спосіб зробити дорогий бренд дешевим. */
+  --line-hair: 1px;
+  --line-bold: 2px;
+  --radius-none: 0;
+  --radius-tight: 2px;
+
+  --border-subtle: rgba(239, 233, 225, 0.1);
+  --border-strong: rgba(239, 233, 225, 0.18);
+  --border-brass: var(--brass);
+
+  /* --- рух ---
+     Дефолтний `ease` не використовується ніде: його ні на що не налаштовано. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --dur-hover: 160ms;
+  --dur-state: 240ms;
+  --dur-page: 320ms;
+  --dur-enter: 640ms;
+  --dur-section: 800ms;
+
+  --stagger: 70ms;
+
+  /* --- шари глибини ---
+     Рівно три плани плюс зерно. Числа з проміжками, щоб між ними було куди
+     вставити, не переписуючи решту. */
+  --z-base: 0;
+  --z-content: 10;
+  --z-sticky: 30;
+  --z-header: 40;
+  --z-scrim: 100;
+  --z-drawer: 200;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-grain: 9999;
+
+  /* --- розміри ---
+     44 px — мінімальна тач-ціль. Не «бажано», а мінімум. */
+  --tap-min: 44px;
+  --container: 1440px;
+  --measure: 68ch;
+  --measure-narrow: 40ch;
+
+  --blur-glass: 24px;
+  --blur-scrim: 12px;
+
+  /* =========================================================================
+     ШАР 2 · СЕМАНТИЧНІ РОЛІ
+     Компоненти читають цей шар і наступний, не первинний.
+     ========================================================================= */
+
+  --bg-page: var(--noir);
+  --bg-surface: var(--smola);
+  --bg-surface-hover: var(--smola-lift);
+  --bg-surface-active: var(--smola-high);
+  --bg-scrim: rgba(6, 5, 8, 0.72);
+  --bg-glass: rgba(22, 19, 27, 0.55);
+
+  --text-primary: var(--bone);
+  --text-secondary: var(--ash);
+  --text-muted: var(--ash-dim);
+  --text-accent: var(--brass);
+  --text-on-accent: var(--noir);
+  --text-danger: var(--rose-text);
+
+  --accent: var(--brass);
+  --accent-hover: var(--bone);
+  --accent-active: var(--brass-dim);
+  --accent-wash: var(--brass-wash);
+
+  --danger: var(--rose);
+  --danger-wash: var(--rose-wash);
+
+  --border-default: var(--border-subtle);
+  --border-hover: var(--border-strong);
+  --border-focus: var(--brass);
+
+  /* =========================================================================
+     ШАР 3 · КОМПОНЕНТНІ ТОКЕНИ
+     ========================================================================= */
+
+  /* кнопка */
+  --btn-height: var(--tap-min);
+  --btn-padding: 0 var(--space-8);
+  --btn-font: var(--font-mono);
+  --btn-size: var(--text-label);
+  --btn-tracking: var(--tracking-mono);
+
+  --btn-primary-bg: var(--accent);
+  --btn-primary-text: var(--text-on-accent);
+  --btn-primary-bg-hover: var(--bone);
+  --btn-primary-bg-active: var(--accent-active);
+
+  --btn-ghost-border: var(--accent);
+  --btn-ghost-text: var(--accent);
+  --btn-ghost-bg-hover: var(--accent);
+  --btn-ghost-text-hover: var(--text-on-accent);
+
+  --btn-quiet-text: var(--text-secondary);
+  --btn-quiet-text-hover: var(--text-primary);
+
+  /* поле вводу */
+  --field-bg: var(--bg-surface);
+  --field-border: var(--border-default);
+  --field-border-hover: var(--border-hover);
+  --field-border-focus: var(--border-focus);
+  --field-text: var(--text-primary);
+  --field-placeholder: var(--text-muted);
+  --field-height: var(--tap-min);
+
+  /* картка товару — скла тут немає навмисно: воно з'їдає фотографію */
+  --card-bg: var(--bg-surface);
+  --card-border: transparent;
+  --card-border-hover: var(--border-hover);
+  --card-shadow: var(--shadow-card);
+  --card-lift: -2px;
+
+  /* чип / тег */
+  --chip-border: var(--border-default);
+  --chip-text: var(--text-secondary);
+  --chip-border-on: var(--accent);
+  --chip-text-on: var(--accent);
+
+  /* оверлеї */
+  --drawer-width: 420px;
+  --drawer-bg: var(--bg-glass);
+  --modal-width: 560px;
+
+  /* службове */
+  --skeleton-base: var(--smola);
+  --skeleton-sheen: var(--smola-high);
+  --grain-opacity: 0.035;
+  --vignette-strength: 0.3;
+}
+
+/* ---------------------------------------------------------------------------
+   Рух за запитом користувача
+   ---------------------------------------------------------------------------
+   Тривалості зводяться до нуля, але **композиція лишається**: жоден елемент
+   не має залишитись невидимим чи зсунутим. Тому тут обнуляється лише час —
+   кінцеві стани описані в `base.css` так, щоб без анімації сторінка була
+   завершеною, а не порожньою.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-hover: 1ms;
+    --dur-state: 1ms;
+    --dur-page: 1ms;
+    --dur-enter: 1ms;
+    --dur-section: 1ms;
+    --stagger: 0ms;
+  }
+}

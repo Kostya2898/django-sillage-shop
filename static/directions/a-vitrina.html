@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A · Вітрина о третій ночі — SILLAGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=cyrillic,latin" rel="stylesheet">
+<style>
+:root{
+  --noir:#0A090C; --smola:#16131B; --bone:#EFE9E1; --ash:#9C93A6; --brass:#C8A45C;
+  --ease-out:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--noir); color:var(--bone);
+  font-family:'Manrope',system-ui,sans-serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 75% 65% at 50% 42%,transparent 40%,rgba(10,9,12,.72) 100%)}
+
+/* --- шапка --- */
+header{position:fixed;top:0;left:0;right:0;z-index:40;padding:22px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(22,19,27,.55);backdrop-filter:blur(24px) saturate(1.15);
+  border-bottom:1px solid rgba(239,233,225,.07);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.wordmark{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;letter-spacing:.42em;
+  font-weight:400;text-transform:uppercase}
+nav{display:flex;gap:32px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ash)}
+nav a{color:inherit;text-decoration:none;transition:color 160ms var(--ease-out)}
+nav a:hover{color:var(--bone)}
+
+/* --- герой: один басейн світла --- */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;
+  gap:64px;padding:180px 48px 140px;position:relative;z-index:10}
+.hero::before{content:'';position:absolute;left:52%;top:6%;width:46vw;height:88vh;z-index:-1;
+  background:radial-gradient(ellipse 50% 45% at 42% 30%,rgba(239,233,225,.13),transparent 62%)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:40px}
+.mask{overflow:hidden;display:block}
+.mask>span{display:block;animation:rise 640ms var(--ease-out) both}
+.mask:nth-of-type(2)>span{animation-delay:70ms}
+.mask:nth-of-type(3)>span{animation-delay:140ms}
+@keyframes rise{from{transform:translateY(1.1em)}to{transform:translateY(0)}}
+h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;
+  font-size:clamp(44px,6.4vw,104px);line-height:1.02;letter-spacing:-.02em;margin-bottom:36px}
+h1 em{font-style:italic;color:var(--brass)}
+.lede{max-width:34ch;color:var(--ash);font-size:17px;margin-bottom:48px}
+.btn{display:inline-block;padding:17px 38px;border:1px solid var(--brass);color:var(--brass);
+  background:transparent;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;text-decoration:none;cursor:pointer;
+  transition:background 160ms var(--ease-out),color 160ms var(--ease-out)}
+.btn:hover{background:var(--brass);color:var(--noir)}
+.hero-figure{position:relative;justify-self:center}
+.hero-figure img{width:min(38vw,430px);display:block;
+  filter:drop-shadow(0 24px 48px rgba(12,8,4,.55))}
+
+/* --- сітка товарів: багато повітря --- */
+section.catalogue{padding:160px 48px;position:relative;z-index:10}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;
+  padding-bottom:28px;border-bottom:1px solid rgba(239,233,225,.09);margin-bottom:72px}
+.section-head h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:40px;
+  letter-spacing:-.02em}
+.section-head span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:72px 32px}
+.card{text-decoration:none;color:inherit;display:block;transition:transform 160ms var(--ease-out)}
+.card:hover{transform:translateY(-2px)}
+.card__frame{aspect-ratio:4/5;background:var(--smola);overflow:hidden;margin-bottom:22px;
+  position:relative}
+.card__frame img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform 640ms var(--ease-out)}
+.card:hover .card__frame img{transform:scale(1.03)}
+.card__brand{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash);margin-bottom:9px}
+.card__name{font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:300;
+  line-height:1.12;margin-bottom:12px}
+.card__row{display:flex;justify-content:space-between;align-items:baseline;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;
+  font-variant-numeric:tabular-nums}
+.card__meta{color:var(--ash)}
+.card__price{color:var(--brass)}
+footer{padding:120px 48px 72px;text-align:center;position:relative;z-index:10;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+@media(max-width:900px){
+  header{padding:16px 20px}nav{display:none}
+  .hero{grid-template-columns:1fr;padding:120px 20px 80px;gap:48px;text-align:left}
+  .hero-figure img{width:70vw}
+  section.catalogue{padding:80px 20px}
+  .grid{grid-template-columns:1fr 1fr;gap:48px 16px}
+  .card__name{font-size:24px;font-family:'Manrope',sans-serif;font-weight:500}
+}
+</style>
+</head>
+<body>
+<div class="vignette"></div><div class="grain"></div>
+
+<header>
+  <div class="wordmark">Sillage</div>
+  <nav>
+    <a href="#">Аромати</a><a href="#">Дім</a><a href="#">Формати</a><a href="#">Нотатник</a>
+  </nav>
+  <nav><a href="#">Кошик · 0</a></nav>
+</header>
+
+<div class="hero">
+  <div>
+    <div class="eyebrow">Київ · нішева парфумерія</div>
+    <h1>
+      <span class="mask"><span>Слід, який</span></span>
+      <span class="mask"><span>лишається</span></span>
+      <span class="mask"><span><em>після вас</em></span></span>
+    </h1>
+    <p class="lede">Тридцять ароматів, обраних за те, що вони розповідають. Не за те, як гучно вони про себе заявляють.</p>
+    <a class="btn" href="#">Увійти до вітрини</a>
+  </div>
+  <div class="hero-figure">
+    <img src="/media/products/covers/2026/09/iris-siryi-photo.webp" alt="Ірис Сірий">
+  </div>
+</div>
+
+<section class="catalogue">
+  <div class="section-head">
+    <h2>Обране кураторами</h2>
+    <span>30 ароматів · 13 категорій</span>
+  </div>
+  <div class="grid">
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/kedrova-tysha-photo.webp" alt=""></div><div class="card__brand">Nord Botanica</div><div class="card__name">Кедрова тиша</div><div class="card__row"><span class="card__meta">EDP · 50 мл</span><span class="card__price">4 200 ₴</span></div></a>
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/sandal-07-photo.webp" alt=""></div><div class="card__brand">Vestige</div><div class="card__name">Сандал 07</div><div class="card__row"><span class="card__meta">EDP · 100 мл</span><span class="card__price">6 800 ₴</span></div></a>
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/vetiver-obscure-photo.webp" alt=""></div><div class="card__brand">Atelier Noir</div><div class="card__name">Ветивер Обскюр</div><div class="card__row"><span class="card__meta">Extrait · 50 мл</span><span class="card__price">7 900 ₴</span></div></a>
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/troyanda-o-shostiy-photo.webp" alt=""></div><div class="card__brand">Maison Ferrant</div><div class="card__name">Троянда о шостій</div><div class="card__row"><span class="card__meta">EDP · 50 мл</span><span class="card__price">5 400 ₴</span></div></a>
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/ambra-1908-photo.webp" alt=""></div><div class="card__brand">Ambre Rouge</div><div class="card__name">Амбра 1908</div><div class="card__row"><span class="card__meta">EDP · 100 мл</span><span class="card__price">6 200 ₴</span></div></a>
+    <a class="card" href="#"><div class="card__frame"><img src="/media/products/covers/2026/09/pivnichnyi-lis-photo.webp" alt=""></div><div class="card__brand">Nord Botanica</div><div class="card__name">Північний ліс</div><div class="card__row"><span class="card__meta">EDT · 30 мл</span><span class="card__price">2 600 ₴</span></div></a>
+  </div>
+</section>
+
+<footer>SILLAGE · вул. Ярославів Вал, 15, Київ · щодня з 11:00 до 20:00</footer>
+</body>
+</html>

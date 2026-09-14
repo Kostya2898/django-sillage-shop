@@ -42,3 +42,4 @@ db-backup-*.json
 # Фотоконвеєр: оригінали й вхідні файли в git не потрапляють.
 /media/_originals/
 /photos_in/
+

@@ -1,0 +1,219 @@
+/* Стайлгайд. Службова сторінка, доступна лише при DEBUG=True. */
+
+.sg {
+  max-width: var(--container);
+  margin: 0 auto;
+  /* Горизонтальне поле дає `<main>` (legacy.css) — тут лише вертикальне,
+     інакше відступ подвоюється. */
+  padding: var(--space-12) 0 var(--space-24);
+}
+
+.sg__intro {
+  max-width: var(--measure);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-16);
+}
+
+.sg-section {
+  padding-top: var(--space-16);
+  margin-top: var(--space-16);
+  border-top: var(--line-hair) solid var(--border-default);
+}
+
+.sg-section:first-of-type {
+  margin-top: 0;
+  border-top: 0;
+}
+
+.sg-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-3);
+}
+
+.sg-section__note {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  max-width: var(--measure);
+  margin-bottom: var(--space-10);
+}
+
+/* Кожен стан підписаний: сітка «підпис → приклад», а не просто ряд
+   прикладів. Без підписів стайлгайд перетворюється на вітрину, по якій
+   неможливо перевірити, чи всі стани існують. */
+.sg-states {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: var(--space-5) var(--space-6);
+  align-items: center;
+}
+
+.sg-states__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.sg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-6);
+}
+
+/* --- палітра з реальними числами контрасту --- */
+
+.sg-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.sg-swatch {
+  border: var(--line-hair) solid var(--border-default);
+}
+
+.sg-swatch__chip {
+  height: 88px;
+}
+
+.sg-swatch__body {
+  padding: var(--space-3) var(--space-4);
+}
+
+.sg-swatch__name {
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+}
+
+.sg-swatch__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.sg-swatch__ratio {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+}
+
+/* --- шкала простору --- */
+
+.sg-space {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sg-space__row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.sg-space__bar {
+  height: 12px;
+  background: var(--accent);
+}
+
+/* --- криві --- */
+
+.sg-curve {
+  border: var(--line-hair) solid var(--border-default);
+  padding: var(--space-5);
+}
+
+.sg-curve__track {
+  height: 36px;
+  position: relative;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+
+.sg-curve__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  background: var(--accent);
+}
+
+/* Демонстраційний рух — єдине місце, де анімація нескінченна: тут вона і є
+   предметом розгляду. */
+.sg-curve--out .sg-curve__dot {
+  animation: sg-slide 1800ms var(--ease-out) infinite alternate;
+}
+
+.sg-curve--in-out .sg-curve__dot {
+  animation: sg-slide 1800ms var(--ease-in-out) infinite alternate;
+}
+
+@keyframes sg-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(100% * 14)); }
+}
+
+.sg-curve__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-top: var(--space-3);
+}
+
+.sg-note {
+  padding: var(--space-4) var(--space-5);
+  border-left: var(--line-bold) solid var(--accent);
+  background: var(--accent-wash);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  max-width: var(--measure);
+}
+
+.sg-check {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+}
+
+.sg-check--pass { color: var(--text-accent); }
+.sg-check--fail { color: var(--text-danger); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-curve__dot {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .sg {
+    padding: var(--space-8) 0 var(--space-16);
+  }
+
+  .sg-states {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .sg-space__row {
+    grid-template-columns: 88px 1fr;
+  }
+}

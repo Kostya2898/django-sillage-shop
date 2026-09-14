@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C · Нотатник перфумера — SILLAGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=cyrillic,latin" rel="stylesheet">
+<style>
+:root{
+  --noir:#0A090C; --smola:#16131B; --bone:#EFE9E1; --ash:#9C93A6; --brass:#C8A45C;
+  --ease-out:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--noir);color:var(--bone);font-family:'Manrope',system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 85% 75% at 50% 40%,transparent 48%,rgba(10,9,12,.60) 100%)}
+
+header{position:fixed;top:0;left:0;right:0;z-index:40;padding:20px 40px;display:flex;
+  align-items:center;justify-content:space-between;background:rgba(22,19,27,.55);
+  backdrop-filter:blur(24px) saturate(1.15);border-bottom:1px solid rgba(239,233,225,.07);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.wordmark{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;letter-spacing:.40em;
+  text-transform:uppercase}
+.hnav{display:flex;gap:28px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--ash)}
+.hnav a{color:inherit;text-decoration:none}
+.hnav a:hover{color:var(--bone)}
+
+/* герой: нота як вхід у каталог */
+.hero{min-height:94vh;display:flex;flex-direction:column;justify-content:center;
+  padding:150px 40px 90px;position:relative;z-index:10;max-width:1320px;margin:0 auto}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:44px}
+.mask{overflow:hidden;display:block}
+.mask>span{display:block;animation:rise 640ms var(--ease-out) both}
+.mask:nth-of-type(2)>span{animation-delay:70ms}
+@keyframes rise{from{transform:translateY(1.1em)}to{transform:translateY(0)}}
+h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;
+  font-size:clamp(40px,7.2vw,116px);line-height:.98;letter-spacing:-.02em;margin-bottom:52px}
+
+/* ноти як навігація — головна ідея напряму */
+.notes{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:56px;max-width:900px}
+.note{padding:11px 20px;border:1px solid rgba(239,233,225,.14);color:var(--ash);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  text-decoration:none;min-height:44px;display:inline-flex;align-items:center;
+  transition:border-color 160ms var(--ease-out),color 160ms var(--ease-out)}
+.note:hover{border-color:var(--brass);color:var(--bone)}
+.note--on{border-color:var(--brass);color:var(--brass)}
+.note span{font-variant-numeric:tabular-nums;opacity:.55;margin-left:10px}
+.hint{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+
+/* каталог: фото маленьке, текст головний */
+section.list{padding:120px 40px;max-width:1320px;margin:0 auto;position:relative;z-index:10}
+.list__head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:56px;
+  padding-bottom:24px;border-bottom:1px solid rgba(239,233,225,.09)}
+.list__head h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:38px;
+  letter-spacing:-.02em}
+.list__head span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash)}
+.rows{display:grid;gap:0}
+.row{display:grid;grid-template-columns:88px 1fr 300px 130px;gap:28px;align-items:center;
+  padding:26px 0;border-bottom:1px solid rgba(239,233,225,.07);
+  text-decoration:none;color:inherit;transition:opacity 160ms var(--ease-out)}
+.rows:hover .row{opacity:.45}
+.rows .row:hover{opacity:1}
+.row img{width:88px;height:110px;object-fit:cover;background:var(--smola);
+  box-shadow:0 24px 48px -12px rgba(12,8,4,.55)}
+.row__name{font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:300;
+  line-height:1.08;letter-spacing:-.02em}
+.row__brand{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash);margin-top:8px}
+.row__notes{font-size:14px;color:var(--ash)}
+.row__price{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:.12em;
+  text-align:right;color:var(--brass);font-variant-numeric:tabular-nums}
+footer{padding:110px 40px 64px;max-width:1320px;margin:0 auto;position:relative;z-index:10;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ash);display:flex;justify-content:space-between}
+@media(max-width:900px){
+  header{padding:14px 20px}.hnav{display:none}
+  .hero{padding:110px 20px 64px;min-height:auto}
+  section.list{padding:64px 20px}
+  .row{grid-template-columns:60px 1fr auto;gap:16px;padding:18px 0}
+  .row img{width:60px;height:75px}
+  .row__notes{display:none}
+  .row__name{font-size:21px;font-family:'Manrope',sans-serif;font-weight:500;letter-spacing:0}
+}
+</style>
+</head>
+<body>
+<div class="vignette"></div><div class="grain"></div>
+
+<header>
+  <div class="wordmark">Sillage</div>
+  <div class="hnav"><a href="#">Ноти</a><a href="#">Доми</a><a href="#">Формати</a><a href="#">Кошик · 0</a></div>
+</header>
+
+<div class="hero">
+  <div class="eyebrow">Почніть не з бренду, а з ноти</div>
+  <h1>
+    <span class="mask"><span>Що ви хочете</span></span>
+    <span class="mask"><span>чути на собі?</span></span>
+  </h1>
+  <div class="notes">
+    <a class="note note--on" href="#">ветивер <span>7</span></a>
+    <a class="note" href="#">ірис <span>5</span></a>
+    <a class="note" href="#">білий мускус <span>9</span></a>
+    <a class="note" href="#">замша <span>2</span></a>
+    <a class="note" href="#">кедр <span>6</span></a>
+    <a class="note" href="#">тютюн <span>3</span></a>
+    <a class="note" href="#">бергамот <span>4</span></a>
+    <a class="note" href="#">амбра <span>5</span></a>
+    <a class="note" href="#">смола <span>3</span></a>
+    <a class="note" href="#">інжир <span>2</span></a>
+  </div>
+  <div class="hint">Обрано: ветивер · 7 ароматів</div>
+</div>
+
+<section class="list">
+  <div class="list__head"><h2>Ветивер</h2><span>7 із 30 · сортувати</span></div>
+  <div class="rows">
+    <a class="row" href="#"><img src="/media/products/covers/2026/09/vetiver-obscure-photo.webp" alt=""><div><div class="row__name">Ветивер Обскюр</div><div class="row__brand">Atelier Noir · Extrait · 50 мл</div></div><div class="row__notes">Ветивер, дим, сафʼянова шкіра. Тримається 10–12 годин.</div><div class="row__price">7 900 ₴</div></a>
+    <a class="row" href="#"><img src="/media/products/covers/2026/09/kedrova-tysha-photo.webp" alt=""><div><div class="row__name">Кедрова тиша</div><div class="row__brand">Nord Botanica · EDP · 50 мл</div></div><div class="row__notes">Кедр, ветивер, білий мускус. Тримається 6–8 годин.</div><div class="row__price">4 200 ₴</div></a>
+    <a class="row" href="#"><img src="/media/products/covers/2026/09/iris-siryi-photo.webp" alt=""><div><div class="row__name">Ірис Сірий</div><div class="row__brand">Orris and Co. · Extrait · 50 мл</div></div><div class="row__notes">Ірис, замша, ветивер. Тримається 9–11 годин.</div><div class="row__price">8 600 ₴</div></a>
+    <a class="row" href="#"><img src="/media/products/covers/2026/09/sandal-07-photo.webp" alt=""><div><div class="row__name">Сандал 07</div><div class="row__brand">Vestige · EDP · 100 мл</div></div><div class="row__notes">Сандал, вершки, ветивер. Тримається 7–9 годин.</div><div class="row__price">6 800 ₴</div></a>
+  </div>
+</section>
+
+<footer><span>SILLAGE · Київ</span><span>30 ароматів · 13 категорій</span></footer>
+</body>
+</html>

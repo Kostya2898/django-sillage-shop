@@ -8,6 +8,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_safe
 
+from .design_tokens import palette_report
 from .models import Category, Product, ProductImage
 from .photo_rejects import REJECTED_HASHES, REJECTED_URLS, add_rejection
 from .services import (
@@ -190,3 +191,32 @@ def photo_reject(request, image_id):
         )
 
     return redirect('shop:photo_sources')
+
+
+@require_safe
+def styleguide(request):
+    """Дизайн-система живцем: усі компоненти в усіх станах.
+
+    Тільки при `DEBUG=True`. Це не сторінка магазину, а інструмент: сюди
+    дивляться, щоб перевірити, що стан існує і виглядає як задумано, перш ніж
+    він знадобиться на реальній сторінці. Пропущений стан виявляється саме
+    тут, а не в кошику покупця.
+
+    Контрасти рахуються на льоту, а не вписані руками: число, скопійоване в
+    розмітку, перестає відповідати кольору вже після першої правки палітри.
+    """
+    if not settings.DEBUG:
+        raise Http404('Сторінка доступна лише в режимі розробки')
+
+    # Справжня обкладинка, а не заглушка: картку треба бачити з тією
+    # фотографією, яку вона показуватиме в каталозі.
+    sample = Product.objects.exclude(cover='').order_by('id').first()
+
+    return render(
+        request,
+        'shop/styleguide.html',
+        {
+            'palette': palette_report(),
+            'sample_cover': sample.cover.url if sample else '',
+        },
+    )
