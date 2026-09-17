@@ -1,0 +1,61 @@
+# Render Blueprint: застосунок + PostgreSQL + Key Value (Redis) одним файлом.
+#
+# Dashboard -> New -> Blueprint -> цей репозиторій. Render попросить ввести
+# SECRET_KEY (sync: false) — див. docs/deploy.md.
+#
+# Синтаксис звірено з https://render.com/docs/blueprint-spec (вересень 2026).
+# Файл не проганявся на Render: акаунта на момент написання не було.
+
+services:
+  - type: web
+    name: sillage
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    # healthCheckPath свідомо не задано. Перевірка Render ходить у контейнер
+    # напряму, без X-Forwarded-Proto і з внутрішнім Host: із prod-редиректом
+    # на https і строгим ALLOWED_HOSTS вона отримувала б 301 чи 400, і деплой
+    # вважався б невдалим. Без неї сервіс живий, щойно відкрито порт.
+    envVars:
+      # generateValue тут не годиться: Render генерує 44 символи, а prod
+      # вимагає щонайменше 50 (див. shop_project/settings/prod.py).
+      - key: SECRET_KEY
+        sync: false
+      - key: PAYMENT_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sillage-db
+          property: connectionString
+      - key: CACHE_URL
+        fromService:
+          type: keyvalue
+          name: sillage-cache
+          property: connectionString
+      # ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS і SITE_URL entrypoint бере з
+      # RENDER_EXTERNAL_HOSTNAME, яку Render задає сам.
+      - key: SERVE_MEDIA
+        value: "True"
+      - key: SEED_DEMO_DATA
+        value: "1"
+      - key: GUNICORN_WORKERS
+        # Безкоштовний інстанс — 512 МБ пам'яті; три воркери з numpy і
+        # reportlab у кожному туди не влазять.
+        value: "2"
+      - key: EMAIL_BACKEND
+        # Без SMTP листи пишуться в лог сервісу, а не губляться з помилкою.
+        value: django.core.mail.backends.console.EmailBackend
+
+  - type: keyvalue
+    name: sillage-cache
+    plan: free
+    # Порожній список — доступ лише з внутрішньої мережі Render.
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: sillage-db
+    plan: free
+    databaseName: sillage
+    user: sillage
+    postgresMajorVersion: "16"

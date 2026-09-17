@@ -19,6 +19,23 @@ if [ -z "${SECRET_KEY}" ]; then
          "Сесії й посилання з листів не переживуть перезапуску." >&2
 fi
 
+# --- домен на хостингу ----------------------------------------------------------
+# Адресу сервісу хостинг знає лише після його створення, тож вписати її в
+# render.yaml заздалегідь неможливо. Render і Railway самі кладуть домен в
+# оточення — беремо його, якщо ALLOWED_HOSTS не задано явно. Без цього prod
+# відмовляється стартувати (порожній ALLOWED_HOSTS — ImproperlyConfigured).
+PLATFORM_HOST="${RENDER_EXTERNAL_HOSTNAME:-${RAILWAY_PUBLIC_DOMAIN:-}}"
+if [ -z "${ALLOWED_HOSTS}" ] && [ -n "${PLATFORM_HOST}" ]; then
+    export ALLOWED_HOSTS="${PLATFORM_HOST}"
+    echo "ALLOWED_HOSTS узято з домену хостингу: ${PLATFORM_HOST}"
+fi
+if [ -z "${CSRF_TRUSTED_ORIGINS}" ] && [ -n "${PLATFORM_HOST}" ]; then
+    export CSRF_TRUSTED_ORIGINS="https://${PLATFORM_HOST}"
+fi
+if [ -z "${SITE_URL}" ] && [ -n "${PLATFORM_HOST}" ]; then
+    export SITE_URL="https://${PLATFORM_HOST}"
+fi
+
 # --- очікування бази ----------------------------------------------------------
 # healthcheck у compose вже чекає на Postgres, але на хостингу його немає, а
 # база може прокидатись після застосунку. Питаємо саму Django: так
@@ -64,6 +81,20 @@ if [ "${SEED_DEMO_DATA}" = "1" ]; then
     else
         echo "Порожній каталог — заповнюю демо-даними."
         python manage.py seed_shop
+    fi
+fi
+
+# --- адміністратор ----------------------------------------------------------------
+# На безкоштовному Render немає Shell, тож `createsuperuser` руками не
+# запустити. Задайте DJANGO_SUPERUSER_USERNAME / _EMAIL / _PASSWORD — акаунт
+# створиться один раз. Після першого входу змінні з оточення варто прибрати:
+# пароль не має жити в налаштуваннях сервісу.
+if [ -n "${DJANGO_SUPERUSER_USERNAME}" ] && [ -n "${DJANGO_SUPERUSER_PASSWORD}" ]; then
+    if python manage.py shell -c "from django.contrib.auth import get_user_model; import os, sys; sys.exit(0 if get_user_model().objects.filter(username=os.environ['DJANGO_SUPERUSER_USERNAME']).exists() else 1)"; then
+        echo "Адміністратор ${DJANGO_SUPERUSER_USERNAME} уже існує."
+    else
+        python manage.py createsuperuser --noinput
+        echo "Створено адміністратора ${DJANGO_SUPERUSER_USERNAME}."
     fi
 fi
 
