@@ -30,6 +30,11 @@ requests==2.34.2
 # (shop_project/ratelimit.py). У prod потребує спільного кешу — Redis.
 django-ratelimit==4.1.0
 
+# Кеш каталогу й лічильники лімітів у prod (CACHE_URL=redis://...).
+# Без CACHE_URL проєкт працює на LocMemCache і Redis не потрібен.
+django-redis==7.0.0
+redis==8.1.0
+
 # Транзитивні залежності xhtml2pdf — зафіксовані, щоб збірка була відтворюваною.
 arabic-reshaper==3.0.1
 asn1crypto==1.5.1

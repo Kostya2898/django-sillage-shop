@@ -1,26 +1,27 @@
-"""Сигнали каталогу: скидання кешу фасетів."""
+"""Сигнали каталогу: скидання кешу при будь-якій зміні каталогу."""
 
 from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
-from .models import Brand, Category, Note, Product
-from .services import invalidate_facets, invalidate_navigation_tree
+from .cache import invalidate_catalog_cache
+from .models import Brand, Category, Note, Product, Review
+
+# `Review` тут через головну: картки кураторського вибору показують середню
+# оцінку, і новий відгук інакше з'явився б там лише через TTL.
+CATALOG_MODELS = (Brand, Category, Note, Product, Review)
 
 
-@receiver(post_save, sender=Brand)
-@receiver(post_save, sender=Category)
-@receiver(post_save, sender=Note)
-@receiver(post_save, sender=Product)
-@receiver(post_delete, sender=Brand)
-@receiver(post_delete, sender=Category)
-@receiver(post_delete, sender=Note)
-@receiver(post_delete, sender=Product)
-def reset_catalogue_facets(sender, **kwargs):
-    """Фасети містять лічильники товарів, тож застарівають від будь-якої зміни.
-
-    Дешевше скинути кеш і перерахувати раз, ніж показувати «Деревні (12)»,
-    коли їх насправді одинадцять. Те саме стосується дерева мега-меню: воно
-    теж із лічильниками і теж застаріває від будь-якої зміни каталогу.
+def reset_catalog_cache(sender, **kwargs):
+    """Лічильники у фасетах і меню, рейтинг на головній застарівають від
+    будь-якої зміни. Дешевше перерахувати раз, ніж показувати «Деревні (12)»,
+    коли їх насправді одинадцять.
     """
-    invalidate_facets()
-    invalidate_navigation_tree()
+    invalidate_catalog_cache()
+
+
+for model in CATALOG_MODELS:
+    for signal in (post_save, post_delete):
+        signal.connect(
+            reset_catalog_cache,
+            sender=model,
+            dispatch_uid=f'shop:reset-catalog-cache:{signal is post_save}:{model.__name__}',
+        )

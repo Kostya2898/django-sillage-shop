@@ -123,10 +123,29 @@ DATABASES = {
 # Кеш
 # ---------------------------------------------------------------------------
 
-# CACHE_URL: locmemcache://, dummycache://, rediscache://127.0.0.1:6379/1
+# CACHE_URL: redis://host:6379/1 (django-redis) або locmemcache://.
+#
+# Немає змінної або вона порожня — LocMemCache, і проєкт піднімається без
+# Redis. Порожню обробляємо окремо: на хостингу змінну часто створюють
+# заздалегідь і не заповнюють, а `environ` на порожньому рядку падає.
+CACHE_URL = env('CACHE_URL', default='').strip() or 'locmemcache://'
+
 CACHES = {
-    'default': env.cache_url('CACHE_URL', default='locmemcache://'),
+    'default': env.cache_url_config(CACHE_URL),
 }
+
+REDIS_CACHE_BACKEND = 'django_redis.cache.RedisCache'
+
+if CACHES['default']['BACKEND'] == REDIS_CACHE_BACKEND:
+    # Redis недоступний — це промах кешу, а не 500 на кожній сторінці:
+    # каталог просто рахується з бази, як без кешу. Кожен такий збій
+    # пишеться в лог, щоб падіння не пройшло непоміченим.
+    CACHES['default'].setdefault('OPTIONS', {})['IGNORE_EXCEPTIONS'] = True
+    DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
+    # Той самий збій django-ratelimit за замовчуванням трактує як «ліміт
+    # перевищено» — і з лежачим Redis ніхто не може увійти. Для магазину
+    # це гірше за кілька хвилин без захисту від перебору, тому відкрито.
+    RATELIMIT_FAIL_OPEN = True
 
 
 # ---------------------------------------------------------------------------

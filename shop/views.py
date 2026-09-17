@@ -20,18 +20,18 @@ from .services import (
     CatalogueQuery,
     fallback_suggestions,
     get_facets,
+    get_home_featured,
     search_suggestions,
     similar_by_notes,
 )
 
 # Скільки товарів показуємо в кожному блоці головної.
-HOME_FEATURED = 6
 HOME_NEW = 4
 
 
 def home(request):
     """Головна «Слід»: кураторський вибір, новинки, вхід у категорії."""
-    featured = Product.objects.featured().with_relations().with_rating()[:HOME_FEATURED]
+    featured = get_home_featured()
     new_arrivals = (
         Product.objects.available()
         .with_relations()

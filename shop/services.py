@@ -11,6 +11,13 @@ from decimal import Decimal, InvalidOperation
 from django.core.cache import cache
 from django.db.models import Count, Q
 
+from .cache import (
+    BRANDS_KEY,
+    CATALOG_CACHE_TIMEOUT,
+    FACETS_KEY,
+    HOME_FEATURED_KEY,
+    NAVIGATION_TREE_KEY,
+)
 from .models import Brand, Category, Note, Product
 
 # Скільки товарів на сторінці каталогу.
@@ -19,14 +26,12 @@ PRODUCTS_PER_PAGE = 12
 # Скільки підказок віддає живий пошук.
 SEARCH_SUGGESTIONS = 6
 
-FACETS_CACHE_KEY = 'shop:catalogue-facets'
-FACETS_CACHE_TIMEOUT = 60 * 15
+# Скільки товарів кураторського вибору на головній.
+HOME_FEATURED = 6
 
-# Дерево для мега-меню. Окремий ключ, а не частина фасетів: меню є на кожній
-# сторінці сайту, а фасети потрібні лише каталогу — тягнути повний набір
-# брендів і нот у підвал і на checkout немає сенсу.
-NAV_CACHE_KEY = 'shop:navigation-tree'
-NAV_CACHE_TIMEOUT = 60 * 15
+# Ключі кешу й TTL — у `shop/cache.py`. Дерево меню має окремий ключ, а не
+# частину фасетів: меню є на кожній сторінці, а фасети потрібні лише
+# каталогу — тягнути всі бренди й ноти на checkout немає сенсу.
 
 # Скільком ароматам показувати дорогу, коли пошук нічого не знайшов.
 FALLBACK_SUGGESTIONS = 3
@@ -187,14 +192,7 @@ def build_facets():
     додавав би три-чотири запити, які майже ніколи не змінюють результат.
     """
     available = Q(products__is_available=True)
-
-    brands = list(
-        Brand.objects.filter(is_active=True)
-        .annotate(product_count=Count('products', filter=available, distinct=True))
-        .filter(product_count__gt=0)
-        .values('name', 'slug', 'product_count')
-        .order_by('name')
-    )
+    brands = get_brands()
 
     notes = list(
         Note.objects.annotate(product_count=Count('products', filter=available, distinct=True))
@@ -278,12 +276,40 @@ def build_navigation_tree():
 
 
 def get_navigation_tree():
-    """Дерево меню з кешу. Інвалідується тими ж сигналами, що й фасети."""
-    return cache.get_or_set(NAV_CACHE_KEY, build_navigation_tree, NAV_CACHE_TIMEOUT)
+    """Дерево меню з кешу. Інвалідується сигналами в `shop/signals.py`."""
+    return cache.get_or_set(NAVIGATION_TREE_KEY, build_navigation_tree, CATALOG_CACHE_TIMEOUT)
 
 
-def invalidate_navigation_tree():
-    cache.delete(NAV_CACHE_KEY)
+def build_brands():
+    """Активні бренди, в яких є товар у продажу, з лічильниками."""
+    available = Q(products__is_available=True)
+    return list(
+        Brand.objects.filter(is_active=True)
+        .annotate(product_count=Count('products', filter=available, distinct=True))
+        .filter(product_count__gt=0)
+        .values('name', 'slug', 'product_count')
+        .order_by('name')
+    )
+
+
+def get_brands():
+    """Список брендів з кешу: його беруть і фасети каталогу, і шаблони."""
+    return cache.get_or_set(BRANDS_KEY, build_brands, CATALOG_CACHE_TIMEOUT)
+
+
+def build_home_featured(limit=HOME_FEATURED):
+    """Кураторський вибір для головної — вже виконаним списком.
+
+    `list()` обов'язковий: у кеш іде результат, а не QuerySet. Лінивий
+    QuerySet у кеші виконувався б заново на кожному рендері, і кеш нічого
+    б не економив, лише додавав серіалізацію.
+    """
+    return list(Product.objects.featured().with_relations().with_rating()[:limit])
+
+
+def get_home_featured():
+    """Кураторський вибір з кешу. Головна — найвідвідуваніша сторінка."""
+    return cache.get_or_set(HOME_FEATURED_KEY, build_home_featured, CATALOG_CACHE_TIMEOUT)
 
 
 def fallback_suggestions(limit=FALLBACK_SUGGESTIONS):
@@ -300,11 +326,7 @@ def fallback_suggestions(limit=FALLBACK_SUGGESTIONS):
 
 def get_facets():
     """Фасети з кешу. Інвалідуються сигналами в `shop/signals.py`."""
-    return cache.get_or_set(FACETS_CACHE_KEY, build_facets, FACETS_CACHE_TIMEOUT)
-
-
-def invalidate_facets():
-    cache.delete(FACETS_CACHE_KEY)
+    return cache.get_or_set(FACETS_KEY, build_facets, CATALOG_CACHE_TIMEOUT)
 
 
 # ---------------------------------------------------------------------------
