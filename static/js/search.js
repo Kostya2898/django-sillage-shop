@@ -183,12 +183,23 @@
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
       .then(function (response) {
+        // 429 — не збій, а ліміт: у відповіді вже є текст для людини,
+        // і «пошук недоступний» замість нього збрехав би.
+        if (response.status === 429) {
+          return response.json().then(function (payload) {
+            show('<p class="search__empty">' + escapeHtml(payload.error) + '</p>');
+            return null;
+          });
+        }
         if (!response.ok) {
           throw new Error('HTTP ' + response.status);
         }
         return response.json();
       })
       .then(function (payload) {
+        if (!payload) {
+          return;
+        }
         if (payload.results.length) {
           show(
             payload.results

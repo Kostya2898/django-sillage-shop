@@ -7,8 +7,10 @@ from django.db.models import F
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_safe
+from django_ratelimit.decorators import ratelimit
 
 from cart.services import format_price
+from shop_project.ratelimit import LIMITS
 
 from .design_tokens import palette_report
 from .models import Category, Product, ProductImage
@@ -86,6 +88,13 @@ def product_list(request, category_slug=None):
     return render(request, 'shop/product_list.html', context)
 
 
+@ratelimit(
+    group='shop:product_search',
+    key='ip',
+    rate=LIMITS['shop:product_search'].rate,
+    method='GET',
+    block=True,
+)
 def product_search(request):
     """Живий пошук: підказки для випадаючого списку під полем.
 

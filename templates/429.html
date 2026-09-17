@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% comment %}
+Сторінка перевищення ліміту запитів (`shop_project/ratelimit.py`).
+
+Текст приходить з таблиці лімітів і каже, скільки чекати. Кнопка «назад»
+не потрібна: браузерна поверне на форму з уже введеними даними, а посилання
+на головну — ні.
+{% endcomment %}
+
+{% block title %}Забагато запитів — SILLAGE{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Зачекайте трохи</div>
+            <div class="card-body">
+                <p class="mb-3">{{ message }}</p>
+                <p class="text-muted small mb-0">
+                    Ліміт захищає акаунти й промокоди від автоматичного перебору.
+                    Якщо ви просто кілька разів помилились — це не блокування,
+                    він зніметься сам.
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'shop:product_list' %}">До каталогу</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

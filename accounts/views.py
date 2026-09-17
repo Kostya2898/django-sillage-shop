@@ -4,12 +4,21 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django_ratelimit.decorators import ratelimit
 
 from orders.models import Order
+from shop_project.ratelimit import LIMITS
 
 from .forms import SignUpForm, UserAccountForm, UserProfileForm
 
 
+@ratelimit(
+    group='accounts:signup',
+    key='ip',
+    rate=LIMITS['accounts:signup'].rate,
+    method='POST',
+    block=True,
+)
 def signup(request):
     """Реєстрація нового користувача з автоматичним входом."""
     if request.user.is_authenticated:

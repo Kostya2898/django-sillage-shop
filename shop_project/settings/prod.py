@@ -90,8 +90,14 @@ SECURE_REFERRER_POLICY = 'same-origin'
 #
 # Вимикати (`USE_X_FORWARDED_PROTO=False`) — лише якщо gunicorn дивиться в
 # інтернет напряму без проксі: тоді заголовок може підробити будь-хто.
-if env.bool('USE_X_FORWARDED_PROTO', default=True):
+BEHIND_PROXY = env.bool('USE_X_FORWARDED_PROTO', default=True)
+
+if BEHIND_PROXY:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Той самий проксі дописує адресу клієнта в X-Forwarded-For. Без довіри до
+# нього всі покупці ділили б один ліміт входу — адресу проксі.
+RATELIMIT_TRUST_PROXY = BEHIND_PROXY
 
 
 # ---------------------------------------------------------------------------

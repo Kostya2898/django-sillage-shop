@@ -62,8 +62,10 @@ LOCAL_APPS = [
     'payments.apps.PaymentsConfig',
 ]
 
-# Сторонні пакети додаються в dev.py / prod.py — спільних поки немає.
-THIRD_PARTY_APPS = []
+# Спільні сторонні пакети. Інструменти розробника додає dev.py.
+THIRD_PARTY_APPS = [
+    'django_ratelimit',
+]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -75,6 +77,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Перетворює виняток `Ratelimited` на RATELIMIT_VIEW (429). Без нього
+    # перевищення ліміту стає PermissionDenied і показується як 403.
+    'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
 ROOT_URLCONF = 'shop_project.urls'
@@ -122,6 +127,19 @@ DATABASES = {
 CACHES = {
     'default': env.cache_url('CACHE_URL', default='locmemcache://'),
 }
+
+
+# ---------------------------------------------------------------------------
+# Обмеження частоти запитів
+# ---------------------------------------------------------------------------
+
+# Самі ліміти й тексти — у `shop_project/ratelimit.py`, тут лише підключення.
+RATELIMIT_VIEW = 'shop_project.ratelimit.limited'
+RATELIMIT_IP_META_KEY = 'shop_project.ratelimit.client_ip'
+
+# Чи стоїть перед Django проксі, якому можна вірити в `X-Forwarded-For`.
+# Локально — ні: заголовок підробляє будь-хто. Prod перевизначає.
+RATELIMIT_TRUST_PROXY = env.bool('RATELIMIT_TRUST_PROXY', default=False)
 
 
 # ---------------------------------------------------------------------------

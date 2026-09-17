@@ -18,10 +18,12 @@ from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from cart.cart import get_cart
 from cart.models import Cart
 from shop.models import Product
+from shop_project.ratelimit import LIMITS
 
 from .emails import notify_admins_about_order, send_order_confirmation_email
 from .forms import (
@@ -443,6 +445,13 @@ def _consume_coupon(coupon):
 
 
 @require_POST
+@ratelimit(
+    group='orders:coupon_apply',
+    key='ip',
+    rate=LIMITS['orders:coupon_apply'].rate,
+    method='POST',
+    block=True,
+)
 def coupon_apply(request):
     """Застосувати промокод до поточного кошика."""
     cart = get_cart(request)

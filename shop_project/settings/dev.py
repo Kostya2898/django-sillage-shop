@@ -11,7 +11,7 @@ import importlib.util
 import sys
 
 from .base import *  # noqa: F403
-from .base import INSTALLED_APPS, MIDDLEWARE, env
+from .base import CACHES, INSTALLED_APPS, MIDDLEWARE, env
 
 # ---------------------------------------------------------------------------
 # Основне
@@ -46,6 +46,23 @@ def _installed(module_name):
 # лається помилкою E001. Панель у тестах усе одно ні до чого — просто не
 # підключаємо її, заразом трохи швидший прогін.
 RUNNING_TESTS = 'test' in sys.argv
+
+# Лічильники лімітів живуть у кеші, спільному для всього прогону: без цього
+# сьомий за прогін тест із логіном отримав би 429 від попередніх шести.
+# Тести самих лімітів вмикають їх через override_settings.
+RATELIMIT_ENABLE = not RUNNING_TESTS
+
+# django-ratelimit відмовляється працювати на LocMemCache (E003): кеш живе в
+# пам'яті одного процесу, і з трьома воркерами gunicorn «5 спроб» стають
+# п'ятнадцятьма. Для production це правда, і там перевірка лишається
+# увімкненою — `check --deploy` вимагає Redis.
+#
+# Але runserver і прогін тестів — це **один** процес, у якому LocMemCache
+# рахує точно. Без Redis локально проєкт інакше не піднявся б узагалі:
+# помилка перевірки зупиняє і runserver, і migrate, і test. Тому тут, і лише
+# поки кеш справді локальний, ці дві перевірки вимкнені.
+if CACHES['default']['BACKEND'] == 'django.core.cache.backends.locmem.LocMemCache':
+    SILENCED_SYSTEM_CHECKS = ['django_ratelimit.E003', 'django_ratelimit.W001']
 
 INSTALLED_APPS = INSTALLED_APPS.copy()
 MIDDLEWARE = MIDDLEWARE.copy()
