@@ -1,0 +1,5 @@
+# Скрипти, які виконуються в Linux-контейнері, завжди з LF.
+# На Windows git інакше віддає їх із CRLF, і `#!/bin/sh\r` падає з
+# «/bin/sh^M: not found».
+*.sh text eol=lf
+Dockerfile text eol=lf

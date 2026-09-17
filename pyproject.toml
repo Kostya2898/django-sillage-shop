@@ -12,6 +12,9 @@ dependencies = [
     "requests>=2.32",
     "django-ratelimit>=4.1",
     "django-redis>=6.0",
+    "gunicorn>=23.0",
+    "whitenoise>=6.9",
+    "psycopg[binary]>=3.2",
 ]
 
 [project.optional-dependencies]

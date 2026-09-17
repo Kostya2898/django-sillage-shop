@@ -140,7 +140,17 @@ if CACHES['default']['BACKEND'] == REDIS_CACHE_BACKEND:
     # Redis недоступний — це промах кешу, а не 500 на кожній сторінці:
     # каталог просто рахується з бази, як без кешу. Кожен такий збій
     # пишеться в лог, щоб падіння не пройшло непоміченим.
-    CACHES['default'].setdefault('OPTIONS', {})['IGNORE_EXCEPTIONS'] = True
+    CACHES['default'].setdefault('OPTIONS', {}).update(
+        {
+            'IGNORE_EXCEPTIONS': True,
+            # Без таймаутів redis-py чекає безкінечно: Redis, що не відмовляє,
+            # а просто не відповідає (мережа, перевантаження), повісив би
+            # кожен запит. Кеш, який відповідає довше за пів секунди, вже
+            # повільніший за запит до бази, від якого мав рятувати.
+            'SOCKET_CONNECT_TIMEOUT': 0.5,
+            'SOCKET_TIMEOUT': 0.5,
+        }
+    )
     DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = True
     # Той самий збій django-ratelimit за замовчуванням трактує як «ліміт
     # перевищено» — і з лежачим Redis ніхто не може увійти. Для магазину
@@ -195,6 +205,10 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Віддавати медіа самим Django при DEBUG=False (див. shop_project/urls.py).
+# Лише коли перед застосунком немає nginx чи хмарного сховища.
+SERVE_MEDIA = env.bool('SERVE_MEDIA', default=False)
 
 # Каталоги, які мають існувати ще до старту сервера. STATIC_ROOT сюди не
 # входить — його створює collectstatic.

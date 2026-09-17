@@ -35,6 +35,14 @@ django-ratelimit==4.1.0
 django-redis==7.0.0
 redis==8.1.0
 
+# Production-сервер і статика (Dockerfile, docker/entrypoint.sh).
+gunicorn==26.2.0
+whitenoise==6.12.0
+# Драйвер Postgres для DATABASE_URL=postgres://... (docker-compose, хостинг).
+# binary — з вбудованою libpq: у slim-образі не треба ставити її окремо.
+psycopg==3.3.5
+psycopg-binary==3.3.5
+
 # Транзитивні залежності xhtml2pdf — зафіксовані, щоб збірка була відтворюваною.
 arabic-reshaper==3.0.1
 asn1crypto==1.5.1

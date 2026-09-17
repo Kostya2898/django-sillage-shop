@@ -12,7 +12,7 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
-from .base import BASE_DIR, LOG_LEVEL, LOGGING, env
+from .base import BASE_DIR, LOG_LEVEL, LOGGING, MIDDLEWARE, env
 
 # Ключ із base.py — дефолт для розробки. У production він означає, що змінну
 # забули задати, а `.env` із машини розробника підставив свій.
@@ -98,6 +98,53 @@ if BEHIND_PROXY:
 # Той самий проксі дописує адресу клієнта в X-Forwarded-For. Без довіри до
 # нього всі покупці ділили б один ліміт входу — адресу проксі.
 RATELIMIT_TRUST_PROXY = BEHIND_PROXY
+
+
+# ---------------------------------------------------------------------------
+# Статика
+# ---------------------------------------------------------------------------
+
+# Хеш у назві файлу (`app.3f9c1a.js`) дозволяє віддавати статику з кешем на
+# рік і `immutable`: нова версія — нова адреса, старий кеш не заважає.
+# WhiteNoise заодно кладе поруч gzip і brotli, і сервер не стискає на льоту.
+#
+# Тільки тут, не в base.py: маніфест існує лише після collectstatic, а без
+# нього `{% static %}` падає — тести й runserver зламались би.
+#
+# Зворотний бік тієї ж суворості: посилання на файл, якого немає, у prod —
+# 500 на сторінці, а не бита картинка. Так знайшовся відсутній
+# `og/cover.png`, на який посилався base.html.
+# WhiteNoise — одразу після SecurityMiddleware: статика віддається до сесій,
+# CSRF і автентифікації (запит за CSS не має чіпати базу), але після безпеки,
+# щоб і вона отримала nosniff і HSTS.
+#
+# Лише в prod. У dev із DEBUG=True WhiteNoise вмикає autorefresh і на кожен
+# запит перевіряє файлову систему — тести з ним ішли на 30 % довше (заміряно:
+# 23.4 с проти 18.1 с на 111 тестах). Статику в розробці й так віддає runserver.
+MIDDLEWARE = MIDDLEWARE.copy()
+MIDDLEWARE.insert(
+    MIDDLEWARE.index('django.middleware.security.SecurityMiddleware') + 1,
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+)
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
+
+
+# ---------------------------------------------------------------------------
+# База даних
+# ---------------------------------------------------------------------------
+
+# DATABASE_URL читає base.py через django-environ (postgres://...), тому
+# dj-database-url не потрібен — це був би другий парсер тієї самої змінної.
+# Тут лише тримаємо з'єднання між запитами: нове TCP+TLS з'єднання з
+# Postgres на кожен запит коштує більше за сам запит до каталогу.
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)  # noqa: F405
+# Перевірка перед повторним використанням: інакше перший запит після
+# рестарту бази отримує 500 на «мертвому» з'єднанні з пулу.
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True  # noqa: F405
 
 
 # ---------------------------------------------------------------------------

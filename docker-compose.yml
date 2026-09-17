@@ -1,0 +1,85 @@
+# SILLAGE — локальний запуск у контейнерах: застосунок, Postgres, Redis.
+#
+#   docker compose up --build        -> http://localhost:8000
+#
+# Працює з нуля, без .env: SECRET_KEY генерується на старті (див.
+# docker/entrypoint.sh), демо-каталог заливається в порожню базу.
+# Змінні з оточення або .env у корені перебивають значення нижче.
+
+name: sillage
+
+services:
+  web:
+    build: .
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:-}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      DATABASE_URL: postgres://sillage:sillage@db:5432/sillage
+      CACHE_URL: redis://redis:6379/1
+      # Локально сайт відкривається по http, без проксі з TLS. Із prod-
+      # дефолтами браузер отримував би редирект на https://localhost, якого
+      # немає, а cookie з прапорцем Secure не поверталися б — вхід і кошик
+      # не працювали б. На хостингу ці змінні не задаються, і діють дефолти.
+      SECURE_SSL_REDIRECT: "False"
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_SECURE: "False"
+      SECURE_HSTS_SECONDS: "0"
+      USE_X_FORWARDED_PROTO: "False"
+      # Медіа віддає сам Django: nginx у цьому складі немає.
+      SERVE_MEDIA: "True"
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-1}
+      EMAIL_URL: consolemail://
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=4)"
+      interval: 30s
+      timeout: 5s
+      # Міграції й сид на першому старті — до хвилини.
+      start_period: 90s
+      retries: 3
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sillage
+      POSTGRES_USER: sillage
+      POSTGRES_PASSWORD: sillage
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sillage -d sillage"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # Кеш, а не сховище: після перезапуску все відновлюється з бази, тому
+    # запис на диск вимкнено.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  postgres:
+  media:
