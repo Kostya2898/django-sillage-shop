@@ -293,9 +293,9 @@ def fallback_suggestions(limit=FALLBACK_SUGGESTIONS):
     закриванням вкладки. Кураторський вибір дає куди клікнути, і це
     правило UX: порожній результат мусить пропонувати, куди йти далі.
     """
-    return Product.objects.available().with_relations().order_by('-is_featured', '-sold_count')[
-        :limit
-    ]
+    return (
+        Product.objects.available().with_relations().order_by('-is_featured', '-sold_count')[:limit]
+    )
 
 
 def get_facets():
