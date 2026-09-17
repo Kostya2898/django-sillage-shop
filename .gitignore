@@ -44,3 +44,8 @@ db-backup-*.json
 /photos_in/
 
 
+
+# Coverage: сирі дані й HTML-звіт (текстовий звіт лежить у docs/)
+.coverage
+.coverage.*
+htmlcov/

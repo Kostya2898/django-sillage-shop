@@ -21,6 +21,7 @@ dev = [
     "factory-boy>=3.3.3",
     "ruff>=0.14.6",
     "black>=25.11.0",
+    "coverage>=7.6",
 ]
 
 # ---------------------------------------------------------------------------
@@ -79,3 +80,37 @@ extend-exclude = '''
   | staticfiles
 )/
 '''
+
+# ---------------------------------------------------------------------------
+# Coverage — покриття тестами
+# ---------------------------------------------------------------------------
+#
+#   coverage run manage.py test
+#   coverage report          # таблиця в консоль
+#   coverage html            # htmlcov/index.html
+
+[tool.coverage.run]
+source = ["accounts", "cart", "orders", "payments", "shop", "shop_project", "testing"]
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/tests.py",
+    # Точки входу серверів: у тестах не виконуються за визначенням.
+    "shop_project/asgi.py",
+    "shop_project/wsgi.py",
+    # Prod-налаштування імпортуються в окремому процесі
+    # (shop_project/tests/test_prod_settings.py), і coverage їх не бачить.
+    "shop_project/settings/prod.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+sort = "Cover"
+precision = 1
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
