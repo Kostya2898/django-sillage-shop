@@ -1,0 +1,114 @@
+{% comment %}
+Підвал. Його бачать на кожній сторінці, тож він зверстаний за системою —
+рамка-волосінь, колонки на сітці, моно-лейбли, — а не «аби було».
+
+Іконки соцмереж — inline-SVG з одного набору: однакова сітка 24×24, однакова
+товщина штриха 1.5, однаковий стиль (контур, не заливка). Мішанина з різних
+наборів помітна навіть тому, хто не зможе сказати, що саме не так.
+
+Підписка валідується інлайн (`app.js`), але `type="email"` і `required`
+лишаються: без JS перевірку зробить браузер.
+{% endcomment %}
+
+<footer class="footer">
+    <div class="footer__inner">
+
+        <div class="footer__brand">
+            <span class="header__wordmark">Sillage</span>
+            <p class="footer__tagline">
+                Тридцять ароматів, обраних за те, що вони розповідають.
+            </p>
+        </div>
+
+        <nav class="footer__columns" aria-label="Навігація у підвалі">
+            {% for column in nav_tree %}
+                <div class="footer__column">
+                    <h2 class="footer__heading">{{ column.name }}</h2>
+                    <ul>
+                        {% for child in column.children %}
+                            <li>
+                                <a class="footer__link" href="{% url 'shop:product_list' %}?category={{ child.slug }}">
+                                    {{ child.name }}
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li class="footer__link">Поки порожньо</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% empty %}
+                <p class="footer__link">Категорії ще не заведені.</p>
+            {% endfor %}
+
+            <div class="footer__column">
+                <h2 class="footer__heading">Магазин</h2>
+                <ul>
+                    <li><a class="footer__link" href="{% url 'shop:product_list' %}">Каталог</a></li>
+                    <li><a class="footer__link" href="{% url 'cart:cart_detail' %}">Кошик</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a class="footer__link" href="{% url 'orders:order_list' %}">Мої замовлення</a></li>
+                    {% else %}
+                        <li><a class="footer__link" href="{% url 'accounts:signup' %}">Створити акаунт</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <div class="footer__subscribe">
+            <h2 class="footer__heading">Листи про нові аромати</h2>
+            <p class="footer__tagline">
+                Одне повідомлення на місяць. Без «останній шанс» і без щоденних нагадувань.
+            </p>
+
+            <form class="subscribe" method="post" action="{% url 'shop:home' %}#subscribe"
+                  data-subscribe novalidate>
+                {% csrf_token %}
+                <label class="sr-only" for="subscribe-email">Email для розсилки</label>
+                <div class="subscribe__row">
+                    <input class="field__control" type="email" id="subscribe-email" name="email"
+                           placeholder="name@example.com" required
+                           aria-describedby="subscribe-error" data-subscribe-input>
+                    <button type="submit" class="btn btn--primary">Підписатись</button>
+                </div>
+                <p class="field__error" id="subscribe-error" data-subscribe-error hidden></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer__bar">
+        <span class="label">© 2026 SILLAGE · вул. Ярославів Вал, 15, Київ</span>
+
+        <ul class="footer__social">
+            <li>
+                <a class="footer__social-link" href="https://instagram.com" aria-label="Instagram"
+                   rel="noopener noreferrer" target="_blank">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M17 7h.01"/>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a class="footer__social-link" href="https://t.me" aria-label="Telegram"
+                   rel="noopener noreferrer" target="_blank">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 4 3 11l5 2 2 6 4-4 5 3z"/>
+                        <path d="M8 13l9-7"/>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a class="footer__social-link" href="https://facebook.com" aria-label="Facebook"
+                   rel="noopener noreferrer" target="_blank">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M15 3h-2a4 4 0 0 0-4 4v3H7v4h2v7h4v-7h2.5l.5-4H13V7a1 1 0 0 1 1-1h1z"/>
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </div>
+</footer>

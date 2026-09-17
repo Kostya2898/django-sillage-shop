@@ -1,198 +1,118 @@
 {% load static %}<!DOCTYPE html>
 <html lang="uk">
 {% comment %}
-Базовий шаблон SILLAGE.
+Каркас SILLAGE.
 
-**Порядок підключення CSS фіксований і не переставляється:**
-    tokens → base → components → pages/*
-Кожен наступний файл спирається на змінні попереднього. Сторінковий CSS
-підключається через `{% block page_css %}`, щоб каталог не тягнув стилі
-checkout-а й навпаки.
+**Порядок підключення CSS фіксований:** tokens → base → components → pages/*.
+Кожен наступний файл спирається на змінні попереднього.
 
-Bootstrap лишився **тільки як сітка** (`container`, `row`, `col-*`) на тих
-сторінках, які ще не переїхали на власну систему. Як джерело вигляду він не
-використовується: усі візуальні класи — власні. Коли останній шаблон
-переїде, рядок із CDN зникне.
+**Bootstrap прибраний повністю** — ані CSS, ані сітки, ані JS. Усе, що було на
+його класах, живе у власній системі (`components.css`) і в шарі сумісності
+(`pages/legacy.css`) для ще не перенесених шаблонів.
 
-Інлайн-`style` у шаблонах заборонені. Значення в атрибуті неможливо
-перевизначити темою й неможливо знайти пошуком по CSS.
+**Жодного синхронного скрипта.** Усі `<script>` із `defer`: синхронний тег у
+`<head>` блокує парсер, і перший кадр чекає на мережу.
+
+Блоки: `title`, `meta`, `extra_css`, `content`, `extra_js`.
 {% endcomment %}
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>{% block title %}SILLAGE — нішева парфумерія{% endblock %}</title>
 
-    {# Шрифти першими: без preconnect перший кадр тексту чекає на DNS + TLS. #}
+    {% block meta %}
+        <meta name="description" content="Тридцять нішевих ароматів, обраних за те, що вони розповідають. Доставка по Україні, гостьове замовлення без реєстрації.">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="SILLAGE">
+        <meta property="og:title" content="SILLAGE — нішева парфумерія">
+        <meta property="og:description" content="Тридцять ароматів, обраних за те, що вони розповідають.">
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'og/cover.png' %}">
+        <meta property="og:locale" content="uk_UA">
+        <meta name="twitter:card" content="summary_large_image">
+    {% endblock %}
+
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    {% comment %}
+    Колір адресного рядка = колір тла сторінки, інакше мобільний браузер
+    домальовує світлу смугу над темним сайтом.
+    {% endcomment %}
+    <meta name="theme-color" content="#0a090c">
+
+    {% comment %}
+    Іконка одна, у SVG: браузери масштабують її самі під будь-який розмір,
+    тож набір із чотирьох png тут не потрібен. `sizes="any"` перебиває
+    запит браузера на `/favicon.ico` — без цього рядка кожна сторінка
+    отримує зайвий 404 у консоль.
+    {% endcomment %}
+    <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml" sizes="any">
+
+    {% comment %}
+    preconnect до обох хостів: CSS шрифтів лежить на googleapis, самі файли —
+    на gstatic. Без другого рядка перший кадр тексту чекає на окреме
+    DNS + TLS рукостискання вже після завантаження CSS.
+    {% endcomment %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=cyrillic,cyrillic-ext,latin">
 
+    {% comment %}
+    Критичний CSS вантажимо з пріоритетом: токени й база потрібні для
+    першого кадру, решта — вже для компонентів нижче.
+    {% endcomment %}
+    <link rel="preload" href="{% static 'css/tokens.css' %}" as="style">
+    <link rel="preload" href="{% static 'css/base.css' %}" as="style">
+
     <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shell.css' %}">
     {% comment %}
     Шар сумісності для сторінок, які ще не переїхали на нові імена класів.
-    Написаний на тих самих токенах, тож палітра діє й там. Зникне разом із
-    останнім старим шаблоном.
+    Написаний на тих самих токенах. Зникне разом з останнім старим шаблоном.
     {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/legacy.css' %}">
-    {% block page_css %}{% endblock %}
-
-    {# Сітка Bootstrap для ще не перенесених сторінок. Вигляд — власний. #}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
 
 {% include 'partials/_film.html' %}
 
+{# Перший фокусований елемент на сторінці. #}
 <a class="skip-link" href="#main">До основного вмісту</a>
 
 {# app-shell — те, що йде на blur, коли відкривається оверлей. #}
-<div class="app-shell">
+<div class="app-shell" data-app-shell>
 
-<header class="site-header">
-    <a class="site-header__wordmark" href="{% url 'shop:home' %}">Sillage</a>
+    {% include 'partials/_header.html' %}
 
-    <nav class="site-nav" aria-label="Основна навігація">
-        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Аромати</a>
-        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Дім</a>
-        <a class="site-nav__link" href="{% url 'shop:product_list' %}">Формати</a>
-    </nav>
+    <main id="main">
+        {% block content %}{% endblock %}
+    </main>
 
-    <div class="site-header__actions">
-        {# Живий пошук. Без JS лишається звичайною формою з кнопкою. #}
-        <form class="site-search" method="get" action="{% url 'shop:product_list' %}"
-              role="search" autocomplete="off">
-            <div class="site-search__field">
-                <label class="sr-only" for="site-search-input">Пошук по каталогу</label>
-                <input class="field__control" type="search" name="q" id="site-search-input"
-                       placeholder="Аромат, бренд або нота"
-                       value="{{ request.GET.q|default:'' }}"
-                       aria-controls="site-search-results" aria-expanded="false">
-                <div id="site-search-results" class="site-search__results" role="listbox" hidden></div>
-            </div>
-        </form>
-
-        <a class="site-nav__link" href="{% url 'cart:cart_detail' %}">
-            Кошик <span class="cart-count" data-cart-count>{{ cart|length }}</span>
-        </a>
-
-        {% if user.is_authenticated %}
-            <a class="site-nav__link" href="{% url 'orders:order_list' %}">Замовлення</a>
-            <a class="site-nav__link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
-            <form method="post" action="{% url 'accounts:logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn--quiet">Вийти</button>
-            </form>
-        {% else %}
-            <a class="site-nav__link" href="{% url 'accounts:login' %}">Увійти</a>
-        {% endif %}
-    </div>
-</header>
-
-<main id="main">
-    {% if messages %}
-        <div class="toast-stack" role="status" aria-live="polite">
-            {% for message in messages %}
-                <div class="toast is-visible {{ message.tags|default:'toast--info' }}">
-                    <span>{{ message }}</span>
-                    <button type="button" class="toast__close" data-toast-close
-                            aria-label="Закрити повідомлення">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path d="M6 6l12 12M18 6L6 18"/>
-                        </svg>
-                    </button>
-                </div>
-            {% empty %}
-            {% endfor %}
-        </div>
-    {% endif %}
-
-    {% block content %}{% endblock %}
-</main>
-
-<footer class="site-footer">
-    <span class="label">SILLAGE · вул. Ярославів Вал, 15, Київ</span>
-    <span class="label">щодня з 11:00 до 20:00</span>
-</footer>
+    {% include 'partials/_footer.html' %}
 
 </div>{# /app-shell #}
 
+{% include 'partials/_drawer.html' %}
+{% include 'partials/_toasts.html' %}
+
+{% comment %}
+Порядок скриптів має значення: `app.js` оголошує `window.SILLAGE` (CSRF,
+фокус-трап, шина подій), і решта на нього спирається. `defer` зберігає
+порядок виконання, тож явних залежностей не потрібно.
+
+Lenis і GSAP — з CDN і теж `defer`. `motion.js` перевіряє їхню наявність і
+працює без них: анімації тоді робить CSS, а не JS.
+{% endcomment %}
+<script src="{% static 'js/app.js' %}" defer></script>
+<script src="{% static 'js/search.js' %}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="{% static 'js/motion.js' %}" defer></script>
 <script src="{% static 'js/film.js' %}" defer></script>
-<script src="{% static 'js/reveal.js' %}" defer></script>
-<script src="{% static 'js/ui.js' %}" defer></script>
-<script>
-// Підказки пошуку. Debounce 250 мс — інакше запит іде на кожну літеру.
-(function () {
-    const input = document.getElementById('site-search-input');
-    const box = document.getElementById('site-search-results');
-    if (!input || !box) return;
 
-    const endpoint = '{% url 'shop:product_search' %}';
-    let timer = null;
-    let controller = null;
-
-    function hide() {
-        box.hidden = true;
-        box.innerHTML = '';
-        input.setAttribute('aria-expanded', 'false');
-    }
-
-    function render(data) {
-        if (!data.results.length) {
-            // Порожній результат — не порожній екран: даємо дію.
-            box.innerHTML =
-                '<p class="site-search__empty">Нічого не знайшлося. ' +
-                '<a href="' + endpoint.replace('/search/', '/') + '">Переглянути весь каталог</a></p>';
-        } else {
-            box.innerHTML = data.results
-                .map(function (item) {
-                    const image = item.image
-                        ? '<img src="' + item.image + '" alt="" loading="lazy">'
-                        : '<span class="site-search__thumb"></span>';
-                    return (
-                        '<a class="site-search__item" role="option" href="' + item.url + '">' +
-                        image +
-                        '<span><strong>' + item.name + '</strong>' +
-                        '<small>' + item.brand + ' · ' + item.price + ' ₴</small></span></a>'
-                    );
-                })
-                .join('');
-        }
-        box.hidden = false;
-        input.setAttribute('aria-expanded', 'true');
-    }
-
-    input.addEventListener('input', function () {
-        clearTimeout(timer);
-        const term = input.value.trim();
-        if (term.length < 2) return hide();
-
-        timer = setTimeout(async function () {
-            if (controller) controller.abort();
-            controller = new AbortController();
-            try {
-                const response = await fetch(
-                    endpoint + '?q=' + encodeURIComponent(term),
-                    {signal: controller.signal}
-                );
-                if (response.ok) render(await response.json());
-            } catch (error) {
-                // Скасований або невдалий запит просто нічого не показує:
-                // форма лишається робочою через звичайний сабміт.
-            }
-        }, 250);
-    });
-
-    document.addEventListener('click', function (event) {
-        if (!box.contains(event.target) && event.target !== input) hide();
-    });
-    input.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') hide();
-    });
-})();
-</script>
-{% block scripts %}{% endblock %}
+{% block extra_js %}{% endblock %}
 </body>
 </html>

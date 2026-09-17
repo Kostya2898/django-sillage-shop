@@ -1,0 +1,47 @@
+{% comment %}
+Живий пошук. Без JS — звичайна форма: Enter веде на каталог із `?q=`, і
+результат той самий, лише повною сторінкою.
+
+`role="combobox"` з `aria-autocomplete="list"` — не декорація: без них
+скрінрідер не повідомляє, що під полем зʼявився список, і стрілки ↑↓ для
+його користувача не означають нічого.
+{% endcomment %}
+
+{% comment %}
+`action` веде на каталог — це те, що робить форма без JS. Ендпоінт підказок
+інший (`shop:product_search`), тож він передається окремим data-атрибутом:
+інакше fetch пішов би на сторінку каталогу і повернув HTML замість JSON.
+{% endcomment %}
+<form class="search" method="get" action="{% url 'shop:product_list' %}"
+      role="search" autocomplete="off"
+      data-search data-endpoint="{% url 'shop:product_search' %}">
+
+    <button type="button" class="search__toggle" data-search-toggle
+            aria-label="Відкрити пошук" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/>
+        </svg>
+    </button>
+
+    <div class="search__field">
+        <label class="sr-only" for="search-input">Пошук по каталогу</label>
+        <input class="search__input" type="search" name="q" id="search-input"
+               placeholder="Аромат, бренд або нота"
+               value="{{ request.GET.q|default:'' }}"
+               role="combobox" aria-autocomplete="list" aria-expanded="false"
+               aria-controls="search-results" data-search-input>
+
+        <button type="button" class="search__clear" data-search-clear
+                aria-label="Очистити пошук" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+
+        {# Без JS кнопка потрібна: інакше форму нічим відправити з мобільного. #}
+        <button type="submit" class="search__submit">Знайти</button>
+
+        <div class="search__results" id="search-results" role="listbox"
+             aria-label="Підказки пошуку" data-search-results hidden></div>
+    </div>
+</form>

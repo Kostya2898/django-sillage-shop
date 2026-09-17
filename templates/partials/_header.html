@@ -1,0 +1,112 @@
+{% load static %}
+{% comment %}
+Шапка: вордмарк, навігація з мега-меню, живий пошук, кошик.
+
+**Без JS усе працює.** Мега-меню — це `<details>`/`<summary>`: браузер сам
+розкриває його кліком і сам обслуговує клавіатуру. JS лише перехоплює
+керування, щоб додати затримку на `mouseleave` і каскад появи. Пошук —
+звичайна форма з кнопкою, яка веде на сторінку каталогу з `?q=`. Кошик —
+посилання на окрему сторінку.
+
+Саме тому розмітка `<details>`, а не `<div>` з `aria-expanded`: другий варіант
+без JS не розкривається взагалі, і меню перетворюється в мертвий текст.
+{% endcomment %}
+
+<header class="header" data-header>
+    <div class="header__inner">
+
+        {# --- вордмарк --- #}
+        <a class="header__wordmark" href="{% url 'shop:home' %}" aria-label="SILLAGE, на головну">
+            Sillage
+        </a>
+
+        {# --- навігація --- #}
+        <nav class="header__nav" aria-label="Основна навігація">
+            <details class="mega" data-mega>
+                <summary class="mega__summary nav-link">
+                    Каталог
+                    <svg class="mega__chevron" width="10" height="6" viewBox="0 0 12 8" fill="none"
+                         stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path d="M1 1l5 5 5-5"/>
+                    </svg>
+                </summary>
+
+                <div class="mega__panel" data-mega-panel>
+                    <div class="mega__grid">
+                        {% for column in nav_tree %}
+                            <div class="mega__column" data-mega-item>
+                                <a class="mega__root" href="{% url 'shop:product_list' %}?category={{ column.slug }}">
+                                    {{ column.name }}
+                                    <span class="mega__count">{{ column.count }}</span>
+                                </a>
+                                <ul class="mega__list">
+                                    {% for child in column.children %}
+                                        <li>
+                                            <a class="mega__link" href="{% url 'shop:product_list' %}?category={{ child.slug }}">
+                                                {{ child.name }}
+                                                <span class="mega__count">{{ child.count }}</span>
+                                            </a>
+                                        </li>
+                                    {% empty %}
+                                        <li class="mega__empty">Поки порожньо</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% empty %}
+                            <div class="mega__column">
+                                <p class="mega__empty">Категорії ще не заведені.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mega__footer" data-mega-item>
+                        <a class="btn btn--ghost" href="{% url 'shop:product_list' %}">
+                            Усі тридцять ароматів
+                        </a>
+                    </div>
+                </div>
+            </details>
+
+            <a class="nav-link" href="{% url 'shop:product_list' %}?sort=featured">Ольфакторні родини</a>
+            <a class="nav-link" href="{% url 'shop:product_list' %}?sort=popular">Бренди</a>
+            <a class="nav-link" href="{% url 'shop:home' %}#about">Про нас</a>
+        </nav>
+
+        {# --- дії --- #}
+        <div class="header__actions">
+            {% include 'partials/_search.html' %}
+
+            <a class="header__cart" href="{% url 'cart:cart_detail' %}"
+               data-drawer-open aria-label="Кошик" data-cart-trigger>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                <span class="cart-count" data-cart-count>{{ cart|length }}</span>
+            </a>
+
+            {% if user.is_authenticated %}
+                <a class="nav-link header__account" href="{% url 'accounts:profile' %}">
+                    {{ user.username }}
+                </a>
+            {% else %}
+                <a class="nav-link header__account" href="{% url 'accounts:login' %}">Увійти</a>
+            {% endif %}
+
+            {% comment %}
+            Кнопка мобільного меню. Без JS її не видно, бо без JS працює
+            `<details>` вище — а два способи розкрити те саме меню
+            заплутували б.
+            {% endcomment %}
+            <button type="button" class="header__burger" data-menu-open
+                    aria-label="Відкрити меню" aria-expanded="false" aria-controls="mobile-menu">
+                <span class="header__burger-line"></span>
+                <span class="header__burger-line"></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+{% include 'partials/_mobile_menu.html' %}

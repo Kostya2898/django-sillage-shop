@@ -306,11 +306,38 @@ class TemplateDisciplineTests(SimpleTestCase):
             # а не колір. Прибираємо вміст <code> перед перевіркою.
             source = re.sub(r'<code>.*?</code>', '', source, flags=re.DOTALL)
 
+            # `theme-color` — другий виняток межі рушія, і теж названий явно.
+            # Цей колір читає не сторінка, а хром браузера: смужку навколо
+            # вікна він фарбує **до** того, як існує хоч один стиль, тому
+            # `var(--bg-page)` там не існує в принципі. Щоб дублікат не
+            # розʼїхався з токеном, його пінить окремий тест нижче.
+            source = re.sub(r'<meta\s+name="theme-color"[^>]*>', '', source)
+
             for number, line in enumerate(source.splitlines(), 1):
                 if hex_re.search(line):
                     offenders.append(f'{path.relative_to(TEMPLATES_DIR)}:{number}')
 
         self.assertEqual(offenders, [], f'HEX у шаблоні: {offenders}')
+
+    def test_theme_color_matches_page_background(self):
+        """Смужка браузера і тло сторінки — один колір, інакше видно шов.
+
+        Це єдине місце, де значення з токенів продубльоване вручну, тож
+        тест звіряє дублікат із джерелом: якщо `--bg-page` колись поїде,
+        падає тут, а не в чужому телефоні.
+        """
+        base = (TEMPLATES_DIR / 'base.html').read_text(encoding='utf-8')
+        declared = re.search(r'name="theme-color"\s+content="(#[0-9a-fA-F]{6})"', base)
+        self.assertIsNotNone(declared, 'Немає meta theme-color')
+
+        tokens = TOKENS_FILE.read_text(encoding='utf-8')
+        # `--bg-page: var(--noir)` → сам `--noir` уже HEX.
+        alias = re.search(r'--bg-page:\s*var\((--[\w-]+)\)', tokens)
+        self.assertIsNotNone(alias, 'Немає токена --bg-page')
+        primitive = re.search(rf'{alias.group(1)}:\s*(#[0-9a-fA-F]{{6}})', tokens)
+        self.assertIsNotNone(primitive, f'Не знайдено HEX для {alias.group(1)}')
+
+        self.assertEqual(declared.group(1).lower(), primitive.group(1).lower())
 
     def test_film_layer_is_included_once(self):
         base = (TEMPLATES_DIR / 'base.html').read_text(encoding='utf-8')

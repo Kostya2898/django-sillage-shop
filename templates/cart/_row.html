@@ -1,6 +1,16 @@
 {% load catalogue %}
-{# Одна позиція кошика. Використовується і на сторінці кошика, і в drawer. #}
-<li class="cart-row" data-product="{{ item.product.id }}">
+{% comment %}
+Одна позиція кошика. Використовується і на сторінці кошика, і в drawer.
+
+Кількість — це форма з двома кнопками-сабмітами (`−` і `+`) плюс поле. Без JS
+кожна кнопка відправляє форму з готовим значенням у `name="quantity"`, тобто
+степер працює як звичайна форма. З JS `app.js` перехоплює клік і оновлює
+оптимістично, з відкатом при помилці.
+
+Чому кнопки, а не `<input type=number>` зі стрілками браузера: нативні
+стрілки на мобільному займають 12 px і в тач-ціль 44 px не вкладаються.
+{% endcomment %}
+<li class="cart-row" data-cart-row data-product="{{ item.product.id }}">
     {% if item.product.main_image %}
         <img class="cart-row__image" src="{{ item.product.main_image.url }}"
              alt="{{ item.product.main_image_alt }}" loading="lazy" width="56" height="70">
@@ -13,20 +23,36 @@
         <p class="cart-row__brand">{{ item.product.brand.name }}</p>
 
         <form class="cart-row__qty" method="post"
-              action="{% url 'cart:cart_update' item.product.id %}">
+              action="{% url 'cart:cart_update' item.product.id %}" data-qty-form>
             {% csrf_token %}
-            <input type="number" name="quantity" value="{{ item.quantity }}"
-                   min="0" max="{{ max_quantity|default:99 }}"
-                   aria-label="Кількість «{{ item.product.name }}»">
-            <button type="submit" class="btn btn-sm btn-outline-secondary">Оновити</button>
+
+            <div class="stepper">
+                <button type="submit" class="stepper__btn" name="quantity"
+                        value="{{ item.quantity|add:'-1' }}"
+                        aria-label="Зменшити кількість «{{ item.product.name }}»"
+                        {% if item.quantity <= 1 %}data-removes{% endif %}>−</button>
+
+                <input class="stepper__value" type="number" name="quantity"
+                       value="{{ item.quantity }}" min="0" max="{{ max_quantity|default:99 }}"
+                       aria-label="Кількість «{{ item.product.name }}»" data-qty-input>
+
+                <button type="submit" class="stepper__btn" name="quantity"
+                        value="{{ item.quantity|add:'1' }}"
+                        aria-label="Збільшити кількість «{{ item.product.name }}»">+</button>
+            </div>
+
+            {# Видно лише без JS: із JS зміна застосовується одразу. #}
+            <button type="submit" class="btn btn--quiet cart-row__apply">Оновити</button>
         </form>
     </div>
 
     <div class="cart-row__side">
         <span class="cart-row__total">{{ item.total_price|money }} ₴</span>
-        <form method="post" action="{% url 'cart:cart_remove' item.product.id %}">
+
+        <form method="post" action="{% url 'cart:cart_remove' item.product.id %}" data-remove-form>
             {% csrf_token %}
-            <button type="submit" class="cart-row__remove" aria-label="Видалити «{{ item.product.name }}»">
+            <button type="submit" class="cart-row__remove"
+                    aria-label="Видалити «{{ item.product.name }}» з кошика">
                 Видалити
             </button>
         </form>

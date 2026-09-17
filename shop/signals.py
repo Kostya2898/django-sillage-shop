@@ -4,7 +4,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Brand, Category, Note, Product
-from .services import invalidate_facets
+from .services import invalidate_facets, invalidate_navigation_tree
 
 
 @receiver(post_save, sender=Brand)
@@ -19,6 +19,8 @@ def reset_catalogue_facets(sender, **kwargs):
     """Фасети містять лічильники товарів, тож застарівають від будь-якої зміни.
 
     Дешевше скинути кеш і перерахувати раз, ніж показувати «Деревні (12)»,
-    коли їх насправді одинадцять.
+    коли їх насправді одинадцять. Те саме стосується дерева мега-меню: воно
+    теж із лічильниками і теж застаріває від будь-якої зміни каталогу.
     """
     invalidate_facets()
+    invalidate_navigation_tree()

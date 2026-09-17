@@ -30,7 +30,13 @@
         {% if product.is_in_stock %}
             <p class="text-success">В наявності: {{ product.stock }} шт.</p>
 
-            <form method="post" action="{% url 'cart:cart_add' product.id %}" class="row g-2 align-items-end mb-3">
+            {% comment %}
+            `data-add-form` — вмикає перехоплення в `app.js`: товар іде в
+            кошик запитом, drawer відкривається на місці. Без JS та сама
+            форма відправляється звичайно й веде на сторінку кошика.
+            {% endcomment %}
+            <form method="post" action="{% url 'cart:cart_add' product.id %}"
+                  class="row g-2 align-items-end mb-3" data-add-form>
                 {% csrf_token %}
                 <div class="col-auto">
                     <label class="form-label" for="quantity">Кількість</label>

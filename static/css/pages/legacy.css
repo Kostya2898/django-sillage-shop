@@ -787,3 +787,595 @@ main {
     padding-inline: var(--space-5);
   }
 }
+
+/* ===========================================================================
+   Шим Bootstrap-класів
+   ===========================================================================
+
+   Bootstrap прибраний з CDN, але двадцять шаблонів ще написані на його
+   класах: `.row`, `.col-md-6`, `.card`, `.btn-primary`, `.mb-3`. Переносити
+   їх усі на систему — окрема робота; викинути зараз означає лишити половину
+   сайту без компонування.
+
+   Тому тут відтворено рівно ті класи, які справді зустрічаються в шаблонах
+   (перевірено grep-ом, не «на всяк випадок»), і **всі значення взяті з
+   токенів**. Це не «залишили Bootstrap», а «залишили імена, віддавши вигляд
+   системі»: палітра, відступи й криві тут ті самі, що в `components.css`.
+
+   Сітка лишається за умовою етапу F0 — «сітку можна, вигляд — ні» — і вона
+   тут своя, на flexbox, у сорок рядків замість двохсот кілобайтів з CDN.
+   =========================================================================== */
+
+/* --- сітка --- */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-inline: calc(var(--space-4) * -0.5);
+}
+
+.row > * {
+  padding-inline: calc(var(--space-4) * 0.5);
+  width: 100%;
+}
+
+.col {
+  flex: 1 0 0%;
+}
+
+.col-3 { width: 25%; }
+.col-4 { width: 33.3333%; }
+.col-6 { width: 50%; }
+.col-8 { width: 66.6667%; }
+.col-9 { width: 75%; }
+.col-12 { width: 100%; }
+
+.row-cols-1 > * { width: 100%; }
+.row-cols-2 > * { width: 50%; }
+.row-cols-3 > * { width: 33.3333%; }
+
+.g-0 { margin-inline: 0; }
+.g-0 > * { padding-inline: 0; }
+.g-3 > * { padding-block: calc(var(--space-4) * 0.5); }
+.g-4 > * { padding-block: calc(var(--space-6) * 0.5); }
+
+@media (min-width: 576px) {
+  .col-sm-6 { width: 50%; }
+  .row-cols-sm-2 > * { width: 50%; }
+}
+
+@media (min-width: 768px) {
+  .col-md-3 { width: 25%; }
+  .col-md-4 { width: 33.3333%; }
+  .col-md-5 { width: 41.6667%; }
+  .col-md-6 { width: 50%; }
+  .col-md-7 { width: 58.3333%; }
+  .col-md-8 { width: 66.6667%; }
+  .col-md-9 { width: 75%; }
+  .row-cols-md-2 > * { width: 50%; }
+  .row-cols-md-3 > * { width: 33.3333%; }
+}
+
+@media (min-width: 992px) {
+  .col-lg-3 { width: 25%; }
+  .col-lg-4 { width: 33.3333%; }
+  .col-lg-5 { width: 41.6667%; }
+  .col-lg-6 { width: 50%; }
+  .col-lg-7 { width: 58.3333%; }
+  .col-lg-8 { width: 66.6667%; }
+  .col-lg-9 { width: 75%; }
+  .row-cols-lg-3 > * { width: 33.3333%; }
+  .row-cols-lg-4 > * { width: 25%; }
+}
+
+/* --- утиліти компонування --- */
+
+.d-flex { display: flex; }
+.d-inline-flex { display: inline-flex; }
+.d-grid { display: grid; }
+.d-block { display: block; }
+.d-inline { display: inline; }
+.d-none { display: none; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-column { flex-direction: column; }
+.flex-grow-1 { flex-grow: 1; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.align-items-center { align-items: center; }
+.align-items-baseline { align-items: baseline; }
+.align-items-start { align-items: flex-start; }
+.align-items-end { align-items: flex-end; }
+.align-middle { vertical-align: middle; }
+.ms-auto { margin-left: auto; }
+.me-auto { margin-right: auto; }
+.mx-auto { margin-inline: auto; }
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+.text-center { text-align: center; }
+.text-end { text-align: right; }
+.text-nowrap { white-space: nowrap; }
+.text-decoration-none { text-decoration: none; }
+.table-responsive { overflow-x: auto; }
+.position-relative { position: relative; }
+
+@media (min-width: 768px) {
+  .d-md-flex { display: flex; }
+  .d-md-none { display: none; }
+}
+
+/* --- відступи ---
+   Крок той самий, що в шкалі простору: bootstrap-івські 1..5 відповідають
+   4 / 8 / 16 / 24 / 48 px, а це рівно наші токени. */
+
+.m-0 { margin: 0; }
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: var(--space-1); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-4); }
+.mb-4 { margin-bottom: var(--space-6); }
+.mb-5 { margin-bottom: var(--space-12); }
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: var(--space-1); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-4); }
+.mt-4 { margin-top: var(--space-6); }
+.mt-5 { margin-top: var(--space-12); }
+.my-3 { margin-block: var(--space-4); }
+.my-4 { margin-block: var(--space-6); }
+.my-5 { margin-block: var(--space-12); }
+.me-1 { margin-right: var(--space-1); }
+.me-2 { margin-right: var(--space-2); }
+.me-3 { margin-right: var(--space-4); }
+.ms-1 { margin-left: var(--space-1); }
+.ms-2 { margin-left: var(--space-2); }
+.ms-3 { margin-left: var(--space-4); }
+.p-0 { padding: 0; }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-4); }
+.p-4 { padding: var(--space-6); }
+.px-0 { padding-inline: 0; }
+.px-3 { padding-inline: var(--space-4); }
+.py-2 { padding-block: var(--space-2); }
+.py-3 { padding-block: var(--space-4); }
+.py-4 { padding-block: var(--space-6); }
+.py-5 { padding-block: var(--space-12); }
+.pt-3 { padding-top: var(--space-4); }
+.pb-3 { padding-bottom: var(--space-4); }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-4); }
+.gap-4 { gap: var(--space-6); }
+
+/* --- текст --- */
+
+.text-muted { color: var(--text-secondary); }
+.text-secondary { color: var(--text-secondary); }
+.text-danger { color: var(--text-danger); }
+.text-success { color: var(--text-accent); }
+.text-dark { color: var(--text-primary); }
+.text-body { color: var(--text-primary); }
+.small { font-size: var(--text-sm); }
+.fs-5 { font-size: var(--text-lg); }
+.fs-6 { font-size: var(--text-md); }
+.fw-bold,
+.fw-semibold { font-weight: var(--weight-bold); }
+.fw-medium { font-weight: var(--weight-medium); }
+.fw-normal { font-weight: var(--weight-regular); }
+.text-uppercase { text-transform: uppercase; }
+
+.lead {
+  font-size: var(--text-lg);
+  line-height: var(--leading-body);
+  color: var(--text-secondary);
+  max-width: var(--measure);
+}
+
+.display-5,
+.display-6 {
+  font-family: var(--font-display);
+  font-size: var(--text-display-2);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.h3,
+.h4 {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+}
+
+.h5,
+.h6 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+}
+
+/* --- картка ---
+   Без тіней і без заокруглень: те саме рішення, що в `.card` системи —
+   межа замість підкладки. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: var(--line-hair) solid var(--card-border);
+  border-radius: var(--radius-none);
+  background: var(--card-bg);
+}
+
+.card-header {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: var(--line-hair) solid var(--border-default);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.card-body {
+  padding: var(--space-5);
+  flex: 1 1 auto;
+}
+
+.card-footer {
+  padding: var(--space-4) var(--space-5);
+  border-top: var(--line-hair) solid var(--border-default);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+  margin-bottom: var(--space-2);
+}
+
+.card-text { color: var(--text-secondary); }
+.card-img-top { width: 100%; display: block; }
+
+/* --- список --- */
+
+.list-group {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-group-item {
+  display: block;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: var(--line-hair) solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.list-group-item:last-child { border-bottom: 0; }
+.list-group-flush { border: 0; }
+.list-unstyled { list-style: none; padding: 0; }
+
+/* --- значок ---
+   Bootstrap-івські `bg-*` тут не заливки, а межі: заливка кольором на смолі
+   світилася б плямою, а межа читається як позначка. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: var(--line-hair) solid var(--border-default);
+  border-radius: var(--radius-none);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.bg-primary,
+.bg-secondary,
+.text-bg-secondary {
+  background: var(--bg-surface-active);
+  color: var(--text-primary);
+}
+
+.bg-success,
+.bg-warning,
+.text-bg-success {
+  border-color: var(--border-brass);
+  color: var(--text-accent);
+  background: transparent;
+}
+
+.bg-danger,
+.text-bg-danger {
+  border-color: var(--danger);
+  color: var(--text-danger);
+  background: transparent;
+}
+
+.bg-light,
+.bg-body-tertiary { background: var(--bg-surface); }
+
+/* --- таблиця --- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--line-hair) solid var(--border-default);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th,
+.table-light th,
+.table-light td {
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* --- форми --- */
+
+.form-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.form-control,
+.form-select {
+  display: block;
+  width: 100%;
+  min-height: var(--field-height);
+  padding: 0 var(--space-4);
+  background: var(--field-bg);
+  border: var(--line-hair) solid var(--field-border);
+  border-radius: var(--radius-tight);
+  color: var(--field-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  transition: border-color var(--dur-hover) var(--ease-out);
+}
+
+textarea.form-control {
+  min-height: calc(var(--field-height) * 2.5);
+  padding-block: var(--space-3);
+  line-height: var(--leading-body);
+}
+
+.form-control::placeholder { color: var(--field-placeholder); }
+
+.form-control:hover,
+.form-select:hover { border-color: var(--field-border-hover); }
+
+.form-control:focus-visible,
+.form-select:focus-visible {
+  border-color: var(--field-border-focus);
+  outline: none;
+}
+
+.form-text {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-min);
+}
+
+.form-check-input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.form-check-label { color: var(--text-secondary); }
+
+.input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.invalid-feedback {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-danger);
+}
+
+/* --- кнопки ---
+   Імена bootstrap-івські, вигляд системний: рівно той самий, що в `.btn--*`.
+   Через це `.btn.btn-primary` і `.btn--primary` виглядають однаково, і
+   перенесення шаблону на нові класи нічого візуально не змінює. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--btn-height);
+  padding: var(--btn-padding);
+  border: var(--line-hair) solid transparent;
+  border-radius: var(--radius-none);
+  font-family: var(--btn-font);
+  font-size: var(--btn-size);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--btn-tracking);
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out),
+    color var(--dur-hover) var(--ease-out);
+}
+
+.btn-primary,
+.btn-success {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.btn-primary:hover,
+.btn-success:hover { background: var(--btn-primary-bg-hover); }
+
+.btn-primary:active,
+.btn-success:active { background: var(--btn-primary-bg-active); }
+
+.btn-secondary,
+.btn-outline-secondary,
+.btn-outline-dark,
+.btn-outline-primary,
+.btn-light {
+  border-color: var(--btn-ghost-border);
+  color: var(--btn-ghost-text);
+  background: transparent;
+}
+
+.btn-secondary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-dark:hover,
+.btn-outline-primary:hover,
+.btn-light:hover {
+  border-color: var(--border-brass);
+  color: var(--btn-ghost-text-hover);
+  background: var(--btn-ghost-bg-hover);
+}
+
+.btn-danger,
+.btn-outline-danger {
+  border-color: var(--danger);
+  color: var(--text-danger);
+  background: transparent;
+}
+
+.btn-danger:hover,
+.btn-outline-danger:hover { background: var(--danger-wash); }
+
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-body);
+  text-transform: none;
+  color: var(--btn-quiet-text);
+}
+
+.btn-link:hover { color: var(--btn-quiet-text-hover); }
+
+.btn-sm {
+  min-height: 36px;
+  padding-inline: var(--space-4);
+  font-size: var(--text-label);
+}
+
+.btn-lg {
+  min-height: 52px;
+  padding-inline: var(--space-10);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- сповіщення (стара розмітка messages, де вона ще лишилась) --- */
+
+.alert {
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-4);
+  border: var(--line-hair) solid var(--border-default);
+  border-left-width: var(--line-bold);
+  border-radius: var(--radius-none);
+  color: var(--text-primary);
+}
+
+.alert-success { border-left-color: var(--brass); }
+.alert-danger { border-left-color: var(--danger); }
+.alert-warning { border-left-color: var(--rose); }
+.alert-info { border-left-color: var(--border-strong); }
+
+/* --- решта дрібного --- */
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+}
+
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  border: var(--line-hair) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+}
+
+.page-link:hover {
+  border-color: var(--border-brass);
+  color: var(--text-accent);
+}
+
+.page-item.active .page-link {
+  border-color: var(--border-brass);
+  color: var(--text-accent);
+  background: var(--brass-wash);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -8,12 +8,15 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_safe
 
+from cart.services import format_price
+
 from .design_tokens import palette_report
 from .models import Category, Product, ProductImage
 from .photo_rejects import REJECTED_HASHES, REJECTED_URLS, add_rejection
 from .services import (
     PRODUCTS_PER_PAGE,
     CatalogueQuery,
+    fallback_suggestions,
     get_facets,
     search_suggestions,
     similar_by_notes,
@@ -90,20 +93,39 @@ def product_search(request):
     клавіші — рендерити заради нього HTML було б марно.
     """
     term = (request.GET.get('q') or '').strip()
-    suggestions = search_suggestions(term)
+    results = [_suggestion(product) for product in search_suggestions(term)]
 
-    results = [
+    # Порожній результат — не порожній екран. Коли нічого не знайшлося,
+    # віддаємо кураторський вибір: дропдаун має лишити куди клікнути, інакше
+    # це глухий кут, з якого виходять закриванням вкладки.
+    fallback = [] if results else [_suggestion(product) for product in fallback_suggestions()]
+
+    return JsonResponse(
         {
-            'name': product.name,
-            'brand': product.brand.name,
-            'price': str(product.price),
-            'url': product.get_absolute_url(),
-            'image': product.main_image.url if product.main_image else '',
+            'query': term,
+            'count': len(results),
+            'results': results,
+            'fallback': fallback,
         }
-        for product in suggestions
-    ]
+    )
 
-    return JsonResponse({'query': term, 'count': len(results), 'results': results})
+
+def _suggestion(product):
+    """Один рядок підказки.
+
+    Ціна форматується тут, а не на фронтенді: той самий формат уже віддає
+    кошик (`cart.services.format_price`), і два незалежні форматувальники
+    розійшлися б — у дропдауні «4200.00», а в кошику «4 200 ₴».
+    """
+    image = product.main_image
+
+    return {
+        'name': product.name,
+        'brand': product.brand.name,
+        'price': format_price(product.price),
+        'url': product.get_absolute_url(),
+        'image': image.url if image else '',
+    }
 
 
 def product_detail(request, slug):

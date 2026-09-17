@@ -22,6 +22,15 @@ SEARCH_SUGGESTIONS = 6
 FACETS_CACHE_KEY = 'shop:catalogue-facets'
 FACETS_CACHE_TIMEOUT = 60 * 15
 
+# Дерево для мега-меню. Окремий ключ, а не частина фасетів: меню є на кожній
+# сторінці сайту, а фасети потрібні лише каталогу — тягнути повний набір
+# брендів і нот у підвал і на checkout немає сенсу.
+NAV_CACHE_KEY = 'shop:navigation-tree'
+NAV_CACHE_TIMEOUT = 60 * 15
+
+# Скільком ароматам показувати дорогу, коли пошук нічого не знайшов.
+FALLBACK_SUGGESTIONS = 3
+
 # Порядок сортування: значення в URL → (підпис, поля для order_by).
 SORT_OPTIONS = {
     'featured': ('Спершу кураторський вибір', ['-is_featured', 'name']),
@@ -220,6 +229,73 @@ def build_facets():
         'genders': list(Product.GENDER_CHOICES),
         'sorts': [(key, label) for key, (label, _) in SORT_OPTIONS.items()],
     }
+
+
+def build_navigation_tree():
+    """Три колонки мега-меню з лічильниками товарів.
+
+    Лічильники беруться одним запитом із `annotate`, а не циклом по
+    категоріях: на тринадцяти категоріях цикл дав би тринадцять запитів на
+    кожну сторінку сайту, і саме шапка стала б найдорожчою її частиною.
+
+    Лічильник кореня — сума по дітях, а не окремий запит: товари висять на
+    листках, тож корінь без дітей завжди порожній.
+    """
+    children = (
+        Category.objects.filter(is_active=True, parent__isnull=False)
+        # `available_count`, не `product_count`: останнє — вже property
+        # моделі, і annotate під тим самим імʼям не має куди записатись.
+        .annotate(
+            available_count=Count('products', filter=Q(products__is_available=True), distinct=True)
+        )
+        .select_related('parent')
+        .order_by('sort_order', 'name')
+    )
+
+    grouped = {}
+    for child in children:
+        grouped.setdefault(child.parent_id, []).append(
+            {
+                'name': child.name,
+                'slug': child.slug,
+                'count': child.available_count,
+            }
+        )
+
+    roots = Category.objects.filter(is_active=True, parent__isnull=True).order_by(
+        'sort_order', 'name'
+    )
+
+    return [
+        {
+            'name': root.name,
+            'slug': root.slug,
+            'children': grouped.get(root.id, []),
+            'count': sum(item['count'] for item in grouped.get(root.id, [])),
+        }
+        for root in roots
+    ]
+
+
+def get_navigation_tree():
+    """Дерево меню з кешу. Інвалідується тими ж сигналами, що й фасети."""
+    return cache.get_or_set(NAV_CACHE_KEY, build_navigation_tree, NAV_CACHE_TIMEOUT)
+
+
+def invalidate_navigation_tree():
+    cache.delete(NAV_CACHE_KEY)
+
+
+def fallback_suggestions(limit=FALLBACK_SUGGESTIONS):
+    """Що показати, коли пошук нічого не знайшов.
+
+    Порожній екран із «0 результатів» — глухий кут, з якого виходять
+    закриванням вкладки. Кураторський вибір дає куди клікнути, і це
+    правило UX: порожній результат мусить пропонувати, куди йти далі.
+    """
+    return Product.objects.available().with_relations().order_by('-is_featured', '-sold_count')[
+        :limit
+    ]
 
 
 def get_facets():

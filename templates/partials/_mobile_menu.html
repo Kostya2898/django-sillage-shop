@@ -1,0 +1,55 @@
+{% comment %}
+Повноекранне мобільне меню.
+
+Показується лише коли є JS: без нього працює `<details>` у шапці, і два
+паралельні способи розкрити одне меню лише заплутували б. Тому контейнер
+має `hidden`, який знімає `app.js`.
+
+Фокус замикається всередині (`SILLAGE.trapFocus`), `body` не скролиться, а
+ширина скролбару компенсується — інакше при відкритті сторінка стрибає
+вбік на 15-17 px, і це найпомітніший дефект мобільного меню взагалі.
+{% endcomment %}
+
+<div class="mobile-menu" id="mobile-menu" data-mobile-menu hidden>
+    <div class="mobile-menu__head">
+        <span class="header__wordmark">Sillage</span>
+        <button type="button" class="mobile-menu__close" data-menu-close aria-label="Закрити меню">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+    </div>
+
+    <nav class="mobile-menu__nav" aria-label="Мобільна навігація">
+        {% for column in nav_tree %}
+            <div class="mobile-menu__group" data-menu-item>
+                <a class="mobile-menu__root" href="{% url 'shop:product_list' %}?category={{ column.slug }}">
+                    {{ column.name }}<span class="mega__count">{{ column.count }}</span>
+                </a>
+                <ul class="mobile-menu__list">
+                    {% for child in column.children %}
+                        <li>
+                            <a class="mobile-menu__link" href="{% url 'shop:product_list' %}?category={{ child.slug }}">
+                                {{ child.name }}<span class="mega__count">{{ child.count }}</span>
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li class="mega__empty">Поки порожньо</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% empty %}
+            <p class="mega__empty">Категорії ще не заведені.</p>
+        {% endfor %}
+
+        <div class="mobile-menu__group" data-menu-item>
+            <a class="mobile-menu__root" href="{% url 'cart:cart_detail' %}">Кошик</a>
+            {% if user.is_authenticated %}
+                <a class="mobile-menu__link" href="{% url 'orders:order_list' %}">Мої замовлення</a>
+                <a class="mobile-menu__link" href="{% url 'accounts:profile' %}">{{ user.username }}</a>
+            {% else %}
+                <a class="mobile-menu__link" href="{% url 'accounts:login' %}">Увійти</a>
+                <a class="mobile-menu__link" href="{% url 'accounts:signup' %}">Створити акаунт</a>
+            {% endif %}
+        </div>
+    </nav>
+</div>

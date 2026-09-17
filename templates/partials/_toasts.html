@@ -1,0 +1,26 @@
+{% comment %}
+Django messages → тости. Класи `toast--*` приходять із `MESSAGE_TAGS`
+(`settings/base.py`, налаштовано в B1).
+
+`aria-live="polite"`, а не `assertive`: тост повідомляє про успіх дії, яку
+користувач сам щойно зробив, і перебивати ним читання поточного рядка
+не потрібно.
+
+Стек обмежений трьома — `app.js` прибирає найстаріший. Автозникнення 5 с,
+при наведенні пауза: інакше тост із важливим текстом зникає саме тоді, коли
+його почали читати.
+{% endcomment %}
+
+<div class="toast-stack" data-toast-stack role="status" aria-live="polite">
+    {% for message in messages %}
+        <div class="toast {{ message.tags|default:'toast--info' }}" data-toast>
+            <span class="toast__text">{{ message }}</span>
+            <button type="button" class="toast__close" data-toast-close
+                    aria-label="Закрити повідомлення">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+    {% empty %}
+    {% endfor %}
+</div>

@@ -1,11 +1,20 @@
+{% load catalogue %}
 {% comment %}
-Висувна панель кошика. Саме цей фрагмент повертає JSON у полі cart_html,
-тож фронтенду достатньо підмінити розмітку одним присвоєнням.
+Висувна панель кошика. Саме цей фрагмент повертає JSON у полі `cart_html`
+(`docs/frontend-api.md`), тож фронтенду достатньо підмінити розмітку одним
+присвоєнням — і той самий фрагмент рендериться на сервері при завантаженні
+сторінки.
+
+Через це тут **не може бути стану, який живе лише в JS**: після підміни
+розмітки він зникне. Усе, що потрібно drawer-у, приходить із сервера.
 {% endcomment %}
-<div class="cart-drawer" id="cart-drawer" data-count="{{ cart|length }}">
+<div class="cart-drawer" data-count="{{ cart|length }}">
     <header class="cart-drawer__header">
         <h2 class="cart-drawer__title">Кошик</h2>
-        <button type="button" class="cart-drawer__close" data-cart-close aria-label="Закрити кошик">×</button>
+        <button type="button" class="drawer__close" data-overlay-close aria-label="Закрити кошик">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
     </header>
 
     {% if cart|length %}
@@ -18,19 +27,22 @@
         {% include 'cart/_summary.html' %}
 
         <div class="cart-drawer__actions">
-            <a href="{% url 'orders:checkout' %}" class="btn btn-primary w-100">Оформити замовлення</a>
-            <a href="{% url 'cart:cart_detail' %}" class="btn btn-link w-100">Перейти в кошик</a>
+            <a href="{% url 'orders:checkout' %}" class="btn btn--primary btn--block">
+                Оформити замовлення
+            </a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn btn--quiet btn--block">
+                Перейти в кошик
+            </a>
         </div>
     {% else %}
         {# Порожній кошик — не глухий кут: даємо куди піти. #}
         <div class="cart-drawer__empty">
-            <p>У кошику поки порожньо.</p>
-            <p class="text-muted small">
-                Почніть з discovery-сета — вісім слідів по 2 мл.
+            <p class="empty__title">У кошику поки порожньо</p>
+            <p class="empty__text">
+                Почніть з discovery-сета — вісім слідів по 2 мл, приблизно
+                на десять нанесень кожен.
             </p>
-            <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary btn-sm">
-                До каталогу
-            </a>
+            <a href="{% url 'shop:product_list' %}" class="btn btn--ghost">До каталогу</a>
         </div>
     {% endif %}
 </div>

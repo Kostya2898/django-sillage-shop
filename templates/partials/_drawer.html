@@ -1,0 +1,20 @@
+{% comment %}
+Оболонка drawer-а кошика. Вміст — фрагмент `cart/_drawer.html`, той самий,
+який бекенд віддає в полі `cart_html` JSON-відповіді (`docs/frontend-api.md`).
+
+Тому вміст рендериться і тут, на сервері: drawer відкривається одразу з
+актуальним кошиком, без запиту на відкриття. JSON потрібен лише для оновлень
+після дій — додав, змінив кількість, видалив.
+
+Підкладка (`.scrim`) лежить поза `.app-shell`: вона не має розмиватись разом
+із контентом, який сама ж і розмиває.
+{% endcomment %}
+
+<div class="scrim" data-overlay-close hidden></div>
+
+<aside class="drawer" id="cart-drawer-panel" data-drawer
+       aria-label="Кошик" aria-hidden="true" hidden>
+    <div data-drawer-content>
+        {% include 'cart/_drawer.html' %}
+    </div>
+</aside>
