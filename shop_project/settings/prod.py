@@ -9,8 +9,15 @@
     python manage.py check --deploy
 """
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F403
 from .base import BASE_DIR, LOG_LEVEL, LOGGING, env
+
+# Ключ із base.py — дефолт для розробки. У production він означає, що змінну
+# забули задати, а `.env` із машини розробника підставив свій.
+DEV_SECRET_KEY = 'dev-only-insecure-key-change-me'
+MIN_SECRET_KEY_LENGTH = 50
 
 # ---------------------------------------------------------------------------
 # Основне
@@ -18,11 +25,34 @@ from .base import BASE_DIR, LOG_LEVEL, LOGGING, env
 
 DEBUG = False
 
-# Без дефолту: якщо змінної немає — падаємо на старті, а не тихо працюємо
-# з ключем, який лежить у git.
-SECRET_KEY = env('SECRET_KEY')
+# Відсутність змінної `environ` ловить сам, а **порожню** — ні: `SECRET_KEY=`,
+# створена на хостингу й не заповнена, проходила перевірку мовчки. Django
+# скаржиться на порожній ключ лише при першому зверненні до нього, тобто
+# вже на живому трафіку. Слабкий ключ `check --deploy` лише попереджає
+# (W009), а gunicorn `check --deploy` не запускає взагалі. Тому все це —
+# помилка старту, а не попередження, яке ніхто не прочитає.
+SECRET_KEY = env('SECRET_KEY').strip()
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('SECRET_KEY порожній. Згенеруйте ключ і задайте його в оточенні.')
+
+if (
+    SECRET_KEY == DEV_SECRET_KEY
+    or SECRET_KEY.startswith('django-insecure-')
+    or len(SECRET_KEY) < MIN_SECRET_KEY_LENGTH
+):
+    raise ImproperlyConfigured(
+        f'SECRET_KEY слабкий: потрібно щонайменше {MIN_SECRET_KEY_LENGTH} випадкових символів, '
+        'не ключ розробки. Згенерувати: python -c "from django.core.management.utils '
+        'import get_random_secret_key as k; print(k())"'
+    )
+
+# Порожній список — не «дозволено все», а навпаки: з DEBUG=False кожен запит
+# отримає 400. Сайт при цьому «стартує», і помилку шукають не там.
+ALLOWED_HOSTS = [host for host in env.list('ALLOWED_HOSTS') if host.strip()]
+
+if not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('ALLOWED_HOSTS порожній: з DEBUG=False сайт відповідатиме 400.')
 
 # Домени, яким довіряємо для CSRF (потрібно за проксі/HTTPS).
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
@@ -47,8 +77,20 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False  # шаблони читають токен із cookie для fetch-запитів
 X_FRAME_OPTIONS = 'DENY'
 
-# Якщо додаток стоїть за reverse-proxy (nginx, Traefik), який термінує TLS.
-if env.bool('USE_X_FORWARDED_PROTO', default=False):
+# `same-origin`: на чужі сайти Referer не йде зовсім. Посилання на гостьове
+# замовлення несе підписаний токен прямо в шляху, і політика, що віддає
+# чужому сайту повну адресу, віддала б разом з нею доступ до замовлення.
+SECURE_REFERRER_POLICY = 'same-origin'
+
+# За проксі, який термінує TLS (Railway, Render, nginx у compose), Django
+# бачить звичайний HTTP. Без цього заголовка `SECURE_SSL_REDIRECT` щоразу
+# відправляє на https, проксі знову приносить http — і сайт падає в
+# нескінченний редирект. Тому за замовчуванням увімкнено: саме так проєкт
+# і розгортається.
+#
+# Вимикати (`USE_X_FORWARDED_PROTO=False`) — лише якщо gunicorn дивиться в
+# інтернет напряму без проксі: тоді заголовок може підробити будь-хто.
+if env.bool('USE_X_FORWARDED_PROTO', default=True):
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
