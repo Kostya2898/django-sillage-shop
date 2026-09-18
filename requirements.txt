@@ -6,25 +6,24 @@
 #     pip install -r requirements.txt
 #
 # Для розробки додатково: pip install -r requirements-dev.txt
+# Для наповнення каталогу: pip install -r requirements-tools.txt
 # Джерело істини — pyproject.toml; цей файл згенеровано з нього.
+#
+# numpy тут НЕМАЄ — він переїхав у requirements-tools.txt. Попередній
+# коментар твердив, ніби Django імпортує модуль рейтрейсера на старті, і це
+# неправда: `get_commands()` лише перелічує імена файлів у
+# management/commands, а сам модуль імпортується тільки при виклику команди.
+# Перевірено запуском check / check --deploy / collectstatic / migrate
+# --plan і імпортом WSGI-застосунку з прихованим від import numpy — усе
+# чисто, у sys.modules його немає. Взамін образ легший приблизно на 51 МБ.
 
 Django==6.0.7
 django-environ==0.14.0
 pillow==12.3.0
 
-# Рейтрейсер зображень товарів (shop/management/commands/_render.py).
-# У головних залежностях навмисно: модуль лежить усередині застосунку,
-# і якщо Django його імпортує, середовище без numpy впаде на ImportError.
-numpy==2.5.2
-
 # Генерація PDF-рахунку (orders/pdf.py). WeasyPrint свідомо не використано:
 # він тягне GTK, який на Windows не ставиться без окремого інсталятора.
 xhtml2pdf==0.2.17
-
-# Завантаження зображень у fetch_product_photos --from-urls.
-# Оголошено явно, хоч воно й приходить транзитивно з xhtml2pdf: код імпортує
-# його напряму, а транзитивна залежність може зникнути з чужим релізом.
-requests==2.34.2
 
 # Ліміти частоти запитів: вхід, реєстрація, живий пошук, промокод
 # (shop_project/ratelimit.py). У prod потребує спільного кешу — Redis.
@@ -61,6 +60,10 @@ pyhanko-certvalidator==0.31.4
 pypdf==6.16.2
 python-bidi==0.6.11
 reportlab==4.5.1
+# Не опційний: pyhanko і pyhanko-certvalidator імпортують requests на рівні
+# модуля, тож orders/pdf.py тягне його при першому старті. Спроба прибрати
+# закінчується ImportError у pyhanko_certvalidator/fetchers/requests_fetchers.
+requests==2.34.2
 six==1.17.0
 svglib==2.2.0
 tinycss2==1.5.1

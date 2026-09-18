@@ -4,6 +4,12 @@
 
 -r requirements.txt
 
+# Тягне numpy. Він у проді не потрібен і тому переїхав з requirements.txt в
+# інструменти, але shop/tests/test_render.py і shop/tests/test_photo_pipeline.py
+# імпортують його на рівні модуля — без цього рядка `manage.py test` падає ще
+# на збиранні тестів.
+-r requirements-tools.txt
+
 # Інспекція запитів, шаблонів і кешу в браузері.
 django-debug-toolbar==7.1.1
 

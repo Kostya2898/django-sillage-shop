@@ -1,0 +1,27 @@
+# SILLAGE — інструменти наповнення каталогу.
+#
+# Ставиться ПОВЕРХ requirements.txt і лише на машині, де готують контент:
+#     pip install -r requirements.txt -r requirements-tools.txt
+#
+# У production-образ це НЕ потрапляє: команди нижче ніколи не запускаються на
+# хостингу, а numpy — найважчий пакет проєкту (~51 МБ на диску разом із
+# власним OpenBLAS у numpy.libs). Доведено, що застосунок його не торкається:
+# Django на старті лише перелічує імена команд (`get_commands()`), а імпортує
+# модуль команди тільки тоді, коли її справді викликали.
+#
+# Без цього файлу НЕ ПРАЦЮЮТЬ:
+#     manage.py render_product_images   рейтрейсер флаконів (_render.py)
+#     manage.py fetch_product_photos    забір фото, грейд (_photos.py)
+#     manage.py photo_contact_sheet     контактний лист для відбору кадрів
+# Решта проєкту — каталог, кошик, checkout, PDF-рахунок, адмінка — працює.
+
+-r requirements.txt
+
+# Рейтрейсер і колірний грейд фото: shop/management/commands/_render.py,
+# _photos.py, render_product_images.py.
+numpy==2.5.2
+
+# requests тут НЕМАЄ навмисно, хоч його й імпортує fetch_product_photos.
+# Він потрібен і в проді: xhtml2pdf -> pyhanko -> pyhanko-certvalidator
+# імпортує requests на рівні модуля, тобто orders/pdf.py тягне його при
+# першому ж старті. Пін лишається в requirements.txt.

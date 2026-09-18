@@ -7,10 +7,23 @@
 db.sqlite3
 db.sqlite3-journal
 *.bak
+# Дамп бази з користувачами: у git лежить як страховка перед міграцією на
+# CustomUser, в образі йому робити нічого.
+db-backup-before-customuser.json
 
 # Завантажені фото й результати грейду. У git їх теж немає; у контейнері
 # медіа живуть у томі, а не в шарі образу.
 media/
+
+# Вхідна тека для `fetch_product_photos --from-folder`. Ця команда в проді не
+# запускається (numpy лишився в requirements-tools.txt), а вихідні кадри
+# важать 5 МБ.
+photos_in/
+
+# Скріншоти для README. Потрібні тільки в git — їх дивляться на GitHub, а не
+# в контейнері. Текстові docs/ лишаються: вони важать 160 КБ і на захисті
+# зручно мати deploy.md під рукою всередині образу.
+docs/screenshots/
 
 # Згенероване: образ збирає статику сам.
 staticfiles/
@@ -33,3 +46,13 @@ __pycache__/
 .idea/
 .vscode/
 node_modules/
+
+# Планувальні документи й dev-обгортки. README.md лишається — його читають;
+# решта описує процес роботи, а не роботу сайту.
+AUDIT.md
+ROADMAP.md
+PROJECT_VISION.md
+ART_DIRECTION.md
+data_plan.txt
+Makefile
+scripts/

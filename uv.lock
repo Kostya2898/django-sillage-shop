@@ -515,7 +515,6 @@ dependencies = [
     { name = "django-ratelimit" },
     { name = "django-redis" },
     { name = "gunicorn" },
-    { name = "numpy" },
     { name = "pillow" },
     { name = "psycopg", extra = ["binary"] },
     { name = "requests" },
@@ -530,7 +529,11 @@ dev = [
     { name = "django-debug-toolbar" },
     { name = "django-extensions" },
     { name = "factory-boy" },
+    { name = "numpy" },
     { name = "ruff" },
+]
+tools = [
+    { name = "numpy" },
 ]
 
 [package.metadata]
@@ -545,7 +548,8 @@ requires-dist = [
     { name = "django-redis", specifier = ">=6.0" },
     { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3.3" },
     { name = "gunicorn", specifier = ">=23.0" },
-    { name = "numpy", specifier = ">=2.0" },
+    { name = "numpy", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "numpy", marker = "extra == 'tools'", specifier = ">=2.0" },
     { name = "pillow", specifier = ">=12.3.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "requests", specifier = ">=2.32" },
@@ -553,7 +557,7 @@ requires-dist = [
     { name = "whitenoise", specifier = ">=6.9" },
     { name = "xhtml2pdf", specifier = ">=0.2.17" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["dev", "tools"]
 
 [[package]]
 name = "django-ratelimit"
