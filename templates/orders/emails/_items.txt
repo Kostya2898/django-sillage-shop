@@ -2,15 +2,15 @@
 від {{ order.created_at|date:"j E Y, H:i" }}
 {% for item in items %}
   {{ item.product_name }}
-  {{ item.quantity }} × {{ item.price|money }} ₴ = {{ item.get_total_price|money }} ₴
+  {{ item.quantity }} × {{ item.price|money }} = {{ item.get_total_price|money }}
 {% empty %}
   (у замовленні немає позицій)
 {% endfor %}
 --------------------------------------------------
-Товари:      {{ order.items_total|money }} ₴{% if order.has_discount %}
-Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}: −{{ order.discount_amount|money }} ₴{% endif %}
-Доставка{% if order.delivery_name %} ({{ order.delivery_name }}){% endif %}: {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
-ДО СПЛАТИ:   {{ order.total_amount|money }} ₴
+Товари:      {{ order.items_total|money }}{% if order.has_discount %}
+Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}: −{{ order.discount_amount|money }}{% endif %}
+Доставка{% if order.delivery_name %} ({{ order.delivery_name }}){% endif %}: {% if order.delivery_price %}{{ order.delivery_price|money }}{% else %}безкоштовно{% endif %}
+ДО СПЛАТИ:   {{ order.total_amount|money }}
 --------------------------------------------------
 
 ДОСТАВКА

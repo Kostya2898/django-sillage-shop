@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalogue %}
 
 {% block title %}Оплата замовлення {{ order.order_number }}{% endblock %}
 
@@ -8,7 +9,7 @@
         <div class="card">
             <div class="card-header">Оплата замовлення {{ order.order_number }}</div>
             <div class="card-body">
-                <p>Сума до сплати: <strong>{{ transaction.amount }} {{ transaction.currency }}</strong></p>
+                <p>Сума до сплати: <strong class="nums">{{ transaction.amount|money }}</strong></p>
                 <p class="text-muted small">
                     Референс транзакції: <code>{{ transaction.reference }}</code><br>
                     Після оплати шлюз поверне вас на <code>{{ redirect_url }}</code>.

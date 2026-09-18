@@ -741,28 +741,42 @@ body.has-overlay .app-shell {
 .stepper {
   display: inline-flex;
   align-items: stretch;
-  border: var(--line-hair) solid var(--border-default);
+  border: var(--line-hair) solid var(--stepper-border);
 }
 
+/* Знаки «−» і «+» — SVG, не текстові символи.
+   Гліф «+» має вертикальний штрих товщиною в один піксель, і субпіксельне
+   згладжування тексту розкладає такий штрих по каналах RGB: з одного боку
+   лишається синя облямівка, з іншого — оранжева. На нуарному тлі синя читається
+   як колір кнопки, тому «+» виглядав синім, хоч `color` в обох кнопок один.
+   Векторний штрих згладжується у відтінках сірого — облямівки немає. */
 .stepper__btn {
   width: var(--tap-min);
   min-height: var(--tap-min);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  appearance: none;
+  background: transparent;
+  color: var(--stepper-btn-text);
   transition:
     background-color var(--dur-hover) var(--ease-out),
     color var(--dur-hover) var(--ease-out);
 }
 
+/* Клік по іконці мусить долітати до кнопки: `app.js` шукає `.stepper__btn`
+   через `closest` від `event.target`. */
+.stepper__btn svg {
+  pointer-events: none;
+}
+
 .stepper__btn:hover:not(:disabled) {
-  background: var(--bg-surface-hover);
-  color: var(--text-primary);
+  background: var(--stepper-btn-bg-hover);
+  color: var(--stepper-btn-text-hover);
 }
 
 .stepper__btn:active:not(:disabled) {
-  background: var(--bg-surface-active);
+  background: var(--stepper-btn-bg-active);
 }
 
 .stepper__btn:disabled {
@@ -774,12 +788,12 @@ body.has-overlay .app-shell {
   width: calc(var(--tap-min) + var(--space-2));
   min-height: var(--tap-min);
   border: 0;
-  border-inline: var(--line-hair) solid var(--border-default);
+  border-inline: var(--line-hair) solid var(--stepper-border);
   background: transparent;
   text-align: center;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
+  color: var(--stepper-value-text);
   -moz-appearance: textfield;
 }
 

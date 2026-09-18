@@ -36,9 +36,9 @@
         {% endif %}
 
         <p class="product-card__price mb-2">
-            {{ product.price|money }} ₴
+            {{ product.price|money }}
             {% if product.has_discount %}
-                <span class="product-card__old">{{ product.old_price|money }} ₴</span>
+                <span class="product-card__old">{{ product.old_price|money }}</span>
             {% endif %}
         </p>
 

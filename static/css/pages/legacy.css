@@ -84,7 +84,7 @@
 }
 
 .product-card__placeholder {
-  height: 200px;
+  aspect-ratio: 4 / 5;
   background: var(--bg-surface);
 }
 
@@ -138,8 +138,13 @@
   color: var(--text-danger);
 }
 
+/* Кадр — у пропорції самих зображень (600x750, 4:5), а не фіксованої
+   висоти. Висота 200 px лишилась із часів вузьких карток: у сітці на три
+   колонки картка стала 344 px завширшки, і cover вирізав зі флакона смугу
+   посередині — без кришки й без дна. */
 .card-img-top {
-  height: 200px;
+  aspect-ratio: 4 / 5;
+  height: auto;
   object-fit: cover;
 }
 
@@ -265,17 +270,11 @@
   gap: var(--space-2);
 }
 
-.cart-row__qty input {
-  width: 4.2rem;
-  min-height: var(--tap-min);
-  padding: var(--space-1) var(--space-2);
-  background: var(--field-bg);
-  border: var(--line-hair) solid var(--field-border);
-  border-radius: var(--radius-tight);
-  color: var(--field-text);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
+/* `.cart-row__qty input` тут колись малював окреме поле кількості. Тепер
+   усередині живе `.stepper__value`, і цей шим його перебивав: специфічність
+   вища (клас + тип), підключення пізніше за `components.css`. Через це степер
+   розпадався на рамку і вкладену в неї другу рамку. Вигляд поля належить
+   компоненту, не шиму. */
 
 .cart-row__side {
   text-align: right;
@@ -821,6 +820,15 @@ main {
 
 .col {
   flex: 1 0 0%;
+}
+
+/* row-cols-* задають ширину дітям і водночас скасовують їм розтягування —
+   у Bootstrap це `flex: 0 0 auto` поруч із шириною. Шим спершу переніс лише
+   ширину, і `.col { flex: 1 0 0% }` її перемагав: картки каталогу ставали в
+   один ряд, стискались до 120 px, а восьма падала рядком нижче й
+   розтягувалась на всю сторінку. Специфічність (0,2,0) — вище за `.col`. */
+.row[class*='row-cols-'] > * {
+  flex: 0 0 auto;
 }
 
 .col-3 { width: 25%; }

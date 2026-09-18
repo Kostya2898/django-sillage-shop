@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 
+from cart.services import format_price
 from shop.models import Product
 
 # Скільки часу після оформлення покупець може скасувати замовлення сам.
@@ -183,7 +184,11 @@ class Coupon(models.Model):
         else:
             value = f'{self.discount_value:.2f}'
 
-        return f'−{value}%' if self.discount_type == self.TYPE_PERCENT else f'−{value} ₴'
+        if self.discount_type == self.TYPE_PERCENT:
+            return f'−{value}%'
+        # Грошова знижка — це ціна на екрані, тому тільки через спільний
+        # форматувальник: інакше купон показує «−1500 ₴» біля «1 500 ₴» у підсумку.
+        return f'−{format_price(self.discount_value)}'
 
     @property
     def uses_left(self):

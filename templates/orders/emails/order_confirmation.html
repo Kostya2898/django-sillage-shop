@@ -1,8 +1,9 @@
 {% extends 'orders/emails/_base.html' %}
+{% load catalogue %}
 
 {% block subject %}Замовлення {{ order.order_number }} підтверджено{% endblock %}
 
-{% block preheader %}Ми прийняли ваше замовлення на {{ order.total_amount }} ₴. Рахунок — у вкладенні.{% endblock %}
+{% block preheader %}Ми прийняли ваше замовлення на {{ order.total_amount|money }}. Рахунок — у вкладенні.{% endblock %}
 
 {% block heading %}Дякуємо. Замовлення прийнято.{% endblock %}
 

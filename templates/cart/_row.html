@@ -30,7 +30,10 @@
                 <button type="submit" class="stepper__btn" name="quantity"
                         value="{{ item.quantity|add:'-1' }}"
                         aria-label="Зменшити кількість «{{ item.product.name }}»"
-                        {% if item.quantity <= 1 %}data-removes{% endif %}>−</button>
+                        {% if item.quantity <= 1 %}data-removes{% endif %}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                         stroke-width="1.5" aria-hidden="true"><path d="M3 8h10"/></svg>
+                </button>
 
                 <input class="stepper__value" type="number" name="quantity"
                        value="{{ item.quantity }}" min="0" max="{{ max_quantity|default:99 }}"
@@ -38,7 +41,10 @@
 
                 <button type="submit" class="stepper__btn" name="quantity"
                         value="{{ item.quantity|add:'1' }}"
-                        aria-label="Збільшити кількість «{{ item.product.name }}»">+</button>
+                        aria-label="Збільшити кількість «{{ item.product.name }}»">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                         stroke-width="1.5" aria-hidden="true"><path d="M3 8h10M8 3v10"/></svg>
+                </button>
             </div>
 
             {# Видно лише без JS: із JS зміна застосовується одразу. #}
@@ -47,7 +53,7 @@
     </div>
 
     <div class="cart-row__side">
-        <span class="cart-row__total">{{ item.total_price|money }} ₴</span>
+        <span class="cart-row__total">{{ item.total_price|money }}</span>
 
         <form method="post" action="{% url 'cart:cart_remove' item.product.id %}" data-remove-form>
             {% csrf_token %}

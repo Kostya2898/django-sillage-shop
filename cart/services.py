@@ -16,6 +16,19 @@ MAX_QUANTITY_PER_PRODUCT = getattr(settings, 'CART_MAX_QUANTITY_PER_PRODUCT', 99
 NBSP = chr(0xA0)
 
 
+def format_amount(value):
+    """Лише число: «4 850», нерозривні пробіли між розрядами, без копійок.
+
+    Окремо від `format_price`, щоб розрядка була написана один раз: її треба
+    і там, де символ валюти вже стоїть у заголовку колонки (PDF-рахунок).
+    """
+    try:
+        number = int(round(float(value)))
+    except (TypeError, ValueError):
+        return f'{value}'
+    return f'{number:,}'.replace(',', NBSP)
+
+
 def format_price(value):
     """Гроші у вигляді «4 850 ₴» з нерозривними пробілами.
 
@@ -23,11 +36,7 @@ def format_price(value):
     розділювач тисяч і позицію символу валюти, і вони б розʼїхались між
     сторінкою кошика, drawer-ом і checkout-ом.
     """
-    try:
-        number = int(round(float(value)))
-    except (TypeError, ValueError):
-        return f'{value}{NBSP}₴'
-    return f'{number:,}'.replace(',', NBSP) + NBSP + '₴'
+    return f'{format_amount(value)}{NBSP}₴'
 
 
 def quoted(name):

@@ -17,10 +17,10 @@
         <tr>
             <td style="padding:14px 12px 14px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:20px; color:#16131B; border-bottom:1px solid #F0EDE7;">
                 {{ item.product_name }}<br>
-                <span style="font-size:12px; color:#6E6878;">{{ item.quantity }} × {{ item.price|money }} ₴</span>
+                <span style="font-size:12px; color:#6E6878;">{{ item.quantity }} × {{ item.price|money }}</span>
             </td>
             <td align="right" valign="top" style="padding:14px 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:20px; color:#16131B; white-space:nowrap; border-bottom:1px solid #F0EDE7;">
-                {{ item.get_total_price|money }} ₴
+                {{ item.get_total_price|money }}
             </td>
         </tr>
     {% empty %}
@@ -33,7 +33,7 @@
 
     <tr>
         <td style="padding:12px 12px 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878;">Товари</td>
-        <td align="right" style="padding:12px 0 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878; white-space:nowrap;">{{ order.items_total|money }} ₴</td>
+        <td align="right" style="padding:12px 0 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878; white-space:nowrap;">{{ order.items_total|money }}</td>
     </tr>
 
     {% if order.has_discount %}
@@ -41,7 +41,7 @@
             <td style="padding:4px 12px 4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#B8615A;">
                 Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
             </td>
-            <td align="right" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#B8615A; white-space:nowrap;">−{{ order.discount_amount|money }} ₴</td>
+            <td align="right" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#B8615A; white-space:nowrap;">−{{ order.discount_amount|money }}</td>
         </tr>
     {% endif %}
 
@@ -50,7 +50,7 @@
             Доставка{% if order.delivery_name %} — {{ order.delivery_name }}{% endif %}
         </td>
         <td align="right" style="padding:4px 0; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:18px; color:#6E6878; white-space:nowrap;">
-            {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+            {% if order.delivery_price %}{{ order.delivery_price|money }}{% else %}безкоштовно{% endif %}
         </td>
     </tr>
 
@@ -59,7 +59,7 @@
             <strong>До сплати</strong>
         </td>
         <td align="right" style="padding:14px 0 0 0; font-family:Arial,Helvetica,sans-serif; font-size:18px; line-height:22px; color:#16131B; white-space:nowrap; border-top:2px solid #0A090C;">
-            <strong>{{ order.total_amount|money }} ₴</strong>
+            <strong>{{ order.total_amount|money }}</strong>
         </td>
     </tr>
 </table>

@@ -232,6 +232,14 @@
   --chip-border-on: var(--accent);
   --chip-text-on: var(--accent);
 
+  /* степер кількості — «−» і «+» беруть колір з одного джерела */
+  --stepper-border: var(--border-default);
+  --stepper-btn-text: var(--text-secondary);
+  --stepper-btn-text-hover: var(--text-primary);
+  --stepper-btn-bg-hover: var(--bg-surface-hover);
+  --stepper-btn-bg-active: var(--bg-surface-active);
+  --stepper-value-text: var(--text-primary);
+
   /* оверлеї */
   --drawer-width: 420px;
   --drawer-bg: var(--bg-glass);

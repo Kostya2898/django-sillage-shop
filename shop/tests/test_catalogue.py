@@ -1,14 +1,19 @@
 """Каталог: головна, фільтри, сортування, пошук, пагінація, бюджет запитів."""
 
+import re
 from decimal import Decimal
+from pathlib import Path
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
+from cart.services import NBSP
 from shop.models import Note, Product, ProductNote
 from shop.services import SORT_OPTIONS, build_facets, get_facets
+from shop.templatetags.catalogue import money, money_amount
 from testing import ShopTestCase
 from testing.factories import (
     BrandFactory,
@@ -432,3 +437,59 @@ class ProductDetailTests(CatalogueTestCase):
         ]
 
         self.assertEqual(crumbs, ['Аромати', 'Деревні'])
+
+
+def _price_templates():
+    """Шаблони, у яких може зустрітись ціна — разом із листами та PDF."""
+    root = Path(settings.BASE_DIR) / 'templates'
+    return sorted([*root.rglob('*.html'), *root.rglob('*.txt')])
+
+
+class MoneyFormatTests(CatalogueTestCase):
+    """Ціна на всьому сайті виглядає однаково: «1 800 ₴».
+
+    Формат тримається тестом, бо ламається тихо: шаблон, який рендерить
+    ціну повз фільтр, у коді виглядає нормально — і дає «1800,00 грн» на екрані.
+    """
+
+    def test_money_gives_non_breaking_spaces_and_hryvnia(self):
+        self.assertEqual(money(Decimal('1800.00')), f'1{NBSP}800{NBSP}₴')
+
+    def test_money_has_no_kopecks_and_no_ordinary_space(self):
+        rendered = money(Decimal('1800.49'))
+
+        self.assertEqual(rendered, f'1{NBSP}800{NBSP}₴')
+        self.assertNotIn(' ', rendered)
+        self.assertNotIn(',', rendered)
+
+    def test_money_amount_has_no_currency_sign(self):
+        self.assertEqual(money_amount(Decimal('1800.00')), f'1{NBSP}800')
+
+    def test_product_page_shows_the_site_format(self):
+        product = ProductFactory(price=Decimal('1800.00'))
+
+        response = self.client.get(product.get_absolute_url())
+
+        self.assertContains(response, f'1{NBSP}800{NBSP}₴')
+        self.assertNotContains(response, '1800,00')
+
+    def test_no_template_says_hryvnia_in_words(self):
+        offenders = [
+            str(path.relative_to(settings.BASE_DIR))
+            for path in _price_templates()
+            if 'грн' in path.read_text(encoding='utf-8')
+        ]
+
+        self.assertEqual(offenders, [], f'«грн» замість ₴: {offenders}')
+
+    def test_no_template_doubles_the_currency_sign(self):
+        """Фільтр додає ₴ сам — ручний символ поряд дав би «1 800 ₴ ₴»."""
+        offenders = []
+
+        for path in _price_templates():
+            source = path.read_text(encoding='utf-8')
+            for match in re.finditer(r'\|\s*money\s*\}\}[  ]*₴', source):
+                line = source[: match.start()].count('\n') + 1
+                offenders.append(f'{path.relative_to(settings.BASE_DIR)}:{line}')
+
+        self.assertEqual(offenders, [], f'Подвоєна гривня: {offenders}')

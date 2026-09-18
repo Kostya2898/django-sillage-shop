@@ -19,7 +19,7 @@
                     {{ item.product.name }}
                     <span class="order-summary__qty">× {{ item.quantity }}</span>
                 </span>
-                <span class="order-summary__sum">{{ item.total_price|money }} ₴</span>
+                <span class="order-summary__sum">{{ item.total_price|money }}</span>
             </li>
         {% empty %}
             <li class="order-summary__item text-muted">У кошику порожньо</li>
@@ -59,26 +59,26 @@
     <div class="order-summary__totals">
         <div class="order-summary__line">
             <span>Товари</span>
-            <span>{{ totals.items_total|money }} ₴</span>
+            <span class="nums">{{ totals.items_total|money }}</span>
         </div>
 
         {% if totals.discount %}
             <div class="order-summary__line order-summary__line--discount">
                 <span>Знижка{% if coupon %} «{{ coupon.code }}»{% endif %}</span>
-                <span>−{{ totals.discount|money }} ₴</span>
+                <span class="nums">−{{ totals.discount|money }}</span>
             </div>
         {% endif %}
 
         <div class="order-summary__line">
             <span>Доставка{% if delivery %} — {{ delivery.name }}{% endif %}</span>
-            <span>
-                {% if totals.delivery %}{{ totals.delivery|money }} ₴{% else %}безкоштовно{% endif %}
+            <span class="nums">
+                {% if totals.delivery %}{{ totals.delivery|money }}{% else %}безкоштовно{% endif %}
             </span>
         </div>
 
         <div class="order-summary__line order-summary__line--total">
             <span>Разом</span>
-            <span>{{ totals.total|money }} ₴</span>
+            <span class="nums">{{ totals.total|money }}</span>
         </div>
     </div>
 

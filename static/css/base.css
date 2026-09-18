@@ -207,6 +207,14 @@ strong {
   white-space: nowrap;
 }
 
+/* Цифри в колонку — для сум у таблицях і списках замовлень, де акцентний
+   колір `.price` зруйнував би ієрархію: підсумок мусить лишатись тихішим
+   за «Разом». Без tabular-nums стовпчик їде на кожній вузькій одиниці. */
+.nums {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .text-secondary {
   color: var(--text-secondary);
 }

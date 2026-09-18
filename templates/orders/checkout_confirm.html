@@ -49,9 +49,9 @@
                                     </span>
                                 </span>
                                 <span class="delivery-option__price">
-                                    {% if method.price %}{{ method.price|money }} ₴{% else %}безкоштовно{% endif %}
+                                    {% if method.price %}{{ method.price|money }}{% else %}безкоштовно{% endif %}
                                     {% if method.free_from %}
-                                        <span class="delivery-option__free">від {{ method.free_from|money }} ₴ — безкоштовно</span>
+                                        <span class="delivery-option__free">від {{ method.free_from|money }} — безкоштовно</span>
                                     {% endif %}
                                 </span>
                             </label>
@@ -92,7 +92,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg">
-                        Підтвердити замовлення на {{ totals.total|money }} ₴
+                        Підтвердити замовлення на {{ totals.total|money }}
                     </button>
                 </div>
             </div>

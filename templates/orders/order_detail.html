@@ -15,7 +15,7 @@
     <div class="alert alert-warning d-flex justify-content-between align-items-center">
         <span>Замовлення очікує онлайн-оплати.</span>
         <a href="{% url 'payments:initiate_payment' order.order_number %}" class="btn btn-success btn-sm">
-            Оплатити {{ order.total_amount|money }} ₴
+            Оплатити {{ order.total_amount|money }}
         </a>
     </div>
 {% endif %}
@@ -32,9 +32,9 @@
                     {% for item in order.items.all %}
                         <tr>
                             <td>{{ item.product_name }}</td>
-                            <td>{{ item.price|money }} ₴</td>
+                            <td class="nums">{{ item.price|money }}</td>
                             <td>{{ item.quantity }}</td>
-                            <td class="text-end">{{ item.get_total_price|money }} ₴</td>
+                            <td class="text-end nums">{{ item.get_total_price|money }}</td>
                         </tr>
                     {% empty %}
                         <tr><td colspan="4" class="text-muted">У замовленні немає позицій</td></tr>
@@ -43,27 +43,27 @@
                 <tfoot class="table-light">
                     <tr>
                         <td colspan="3" class="text-end text-muted">Товари</td>
-                        <td class="text-end text-muted">{{ order.items_total|money }} ₴</td>
+                        <td class="text-end text-muted nums">{{ order.items_total|money }}</td>
                     </tr>
                     {% if order.has_discount %}
                         <tr>
                             <td colspan="3" class="text-end order-discount">
                                 Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
                             </td>
-                            <td class="text-end order-discount">−{{ order.discount_amount|money }} ₴</td>
+                            <td class="text-end order-discount nums">−{{ order.discount_amount|money }}</td>
                         </tr>
                     {% endif %}
                     <tr>
                         <td colspan="3" class="text-end text-muted">
                             Доставка{% if order.delivery_name %} — {{ order.delivery_name }}{% endif %}
                         </td>
-                        <td class="text-end text-muted">
-                            {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+                        <td class="text-end text-muted nums">
+                            {% if order.delivery_price %}{{ order.delivery_price|money }}{% else %}безкоштовно{% endif %}
                         </td>
                     </tr>
                     <tr>
                         <td colspan="3" class="text-end"><strong>Разом</strong></td>
-                        <td class="text-end"><strong>{{ order.total_amount|money }} ₴</strong></td>
+                        <td class="text-end nums"><strong>{{ order.total_amount|money }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

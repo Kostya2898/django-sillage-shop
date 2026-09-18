@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalogue %}
 
 {% block title %}{{ product.name }}{% endblock %}
 
@@ -25,7 +26,7 @@
     <div class="col-md-6">
         <h1 class="h3">{{ product.name }}</h1>
         <p class="text-muted">{{ product.category }}</p>
-        <p class="fs-3 fw-bold">{{ product.price }} грн</p>
+        <p class="price fs-3">{{ product.price|money }}</p>
 
         {% if product.is_in_stock %}
             <p class="text-success">В наявності: {{ product.stock }} шт.</p>
@@ -99,7 +100,7 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h6 class="card-title">{{ item.name }}</h6>
-                        <p class="fw-bold mb-2">{{ item.price }} грн</p>
+                        <p class="price mb-2">{{ item.price|money }}</p>
                         <a href="{{ item.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Переглянути</a>
                     </div>
                 </div>

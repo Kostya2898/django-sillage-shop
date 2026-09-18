@@ -20,6 +20,8 @@ from django.core.mail import EmailMultiAlternatives, mail_admins
 from django.template.loader import render_to_string
 from django.urls import reverse
 
+from cart.services import format_price
+
 logger = logging.getLogger(__name__)
 
 
@@ -144,7 +146,7 @@ def notify_admins_about_order(order):
             subject=f'Нове замовлення {order.order_number}',
             message=(
                 f'Покупець: {customer} ({order.customer_email})\n'
-                f'Сума: {order.total_amount} грн\n'
+                f'Сума: {format_price(order.total_amount)}\n'
                 f'Спосіб оплати: {order.get_payment_method_display()}\n'
                 f'Доставка: {order.delivery_name or "—"}\n'
                 f'Промокод: {order.coupon_code or "—"}\n'

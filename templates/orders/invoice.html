@@ -200,8 +200,8 @@ xhtml2pdf не має ані flexbox, ані grid, ані змінних — у�
                 <td class="center">{{ forloop.counter }}</td>
                 <td>{{ item.product_name }}</td>
                 <td class="center">{{ item.quantity }}</td>
-                <td class="num">{{ item.price|money }}</td>
-                <td class="num">{{ item.get_total_price|money }}</td>
+                <td class="num">{{ item.price|money_amount }}</td>
+                <td class="num">{{ item.get_total_price|money_amount }}</td>
             </tr>
         {% empty %}
             <tr><td colspan="5" class="center muted">У замовленні немає позицій</td></tr>
@@ -227,25 +227,25 @@ xhtml2pdf не має ані flexbox, ані grid, ані змінних — у�
             <table class="totals">
                 <tr>
                     <td class="label">Товари</td>
-                    <td class="value">{{ order.items_total|money }} ₴</td>
+                    <td class="value">{{ order.items_total|money }}</td>
                 </tr>
                 {% if order.has_discount %}
                     <tr class="discount">
                         <td class="label">
                             Знижка{% if order.coupon_code %} «{{ order.coupon_code }}»{% endif %}
                         </td>
-                        <td class="value">−{{ order.discount_amount|money }} ₴</td>
+                        <td class="value">−{{ order.discount_amount|money }}</td>
                     </tr>
                 {% endif %}
                 <tr>
                     <td class="label">Доставка</td>
                     <td class="value">
-                        {% if order.delivery_price %}{{ order.delivery_price|money }} ₴{% else %}безкоштовно{% endif %}
+                        {% if order.delivery_price %}{{ order.delivery_price|money }}{% else %}безкоштовно{% endif %}
                     </td>
                 </tr>
                 <tr class="grand">
                     <td class="label">До сплати</td>
-                    <td class="value">{{ order.total_amount|money }} ₴</td>
+                    <td class="value">{{ order.total_amount|money }}</td>
                 </tr>
             </table>
         </td>
