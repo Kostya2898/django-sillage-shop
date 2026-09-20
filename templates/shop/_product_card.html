@@ -1,59 +1,61 @@
 {% load catalogue %}
-{# Картка товару. Один файл на всі сітки: головна, каталог, «схожі за нотами». #}
-<article class="card h-100 product-card">
-    <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
-        {% if product.main_image %}
-            <img src="{{ product.main_image.url }}" class="card-img-top" loading="lazy"
-                 width="600" height="750"
-                 alt="{{ product.main_image_alt }}">
-        {% else %}
-            <div class="card-img-top product-card__placeholder"></div>
-        {% endif %}
-    </a>
+{% comment %}
+Картка товару. Один файл на всі сітки: головна, каталог, «схожі за нотами».
 
-    <div class="card-body d-flex flex-column">
-        <div class="d-flex gap-1 mb-2">
-            {% if product.is_new %}<span class="badge product-badge">Новинка</span>{% endif %}
-            {% if product.is_featured %}<span class="badge product-badge">Вибір SILLAGE</span>{% endif %}
-            {% if product.has_discount %}
-                <span class="badge product-badge product-badge--sale">−{{ product.discount_percent }}%</span>
-            {% endif %}
-        </div>
+Це компонент `.card-product` із дизайн-системи, а не бутстрапівська `.card`:
+рамка-волосінь, кадр 4:5, бренд моношрифтом над назвою, ціна праворуч у
+тому самому рядку, що й формат. Уся картка — одне посилання, тому
+всередині не може бути другого: назва не обгортається в `<a>`.
 
-        <p class="product-card__brand mb-1">{{ product.brand.name }}</p>
-        <h3 class="h6 mb-2">
-            <a href="{{ product.get_absolute_url }}" class="stretched-link text-decoration-none text-reset">
-                {{ product.name }}
-            </a>
-        </h3>
+Скла на кадрі немає навмисно (див. стайлгайд): `backdrop-filter` поверх
+фотографії зʼїдає саме те, за що покупець платить.
+{% endcomment %}
+<a class="card-product{% if not product.is_in_stock %} card-product--out{% endif %}"
+   href="{{ product.get_absolute_url }}">
 
-        {% if product.volume_ml or product.concentration %}
-            <p class="product-card__meta mb-2">
-                {% if product.volume_ml %}{{ product.volume_ml }} мл{% endif %}
-                {% if product.volume_ml and product.concentration %} · {% endif %}
-                {{ product.get_concentration_display }}
-            </p>
-        {% endif %}
-
-        <p class="product-card__price mb-2">
-            {{ product.price|money }}
-            {% if product.has_discount %}
-                <span class="product-card__old">{{ product.old_price|money }}</span>
-            {% endif %}
-        </p>
-
-        <div class="mt-auto">
-            {% if product.is_in_stock %}
-                {% if product.stock < 5 %}
-                    <span class="product-card__stock product-card__stock--low">
-                        Залишилось {{ product.stock }}
-                    </span>
-                {% else %}
-                    <span class="product-card__stock">В наявності</span>
-                {% endif %}
+    <div class="card-product__frame">
+        {% comment %}
+        Бейджі за важливістю: спершу те, що заважає купити, потім те, що
+        підштовхує. Більше двох на кадрі не буває — інакше вони перестають
+        читатись як позначки.
+        {% endcomment %}
+        <div class="card-product__badges">
+            {% if not product.is_in_stock %}
+                <span class="tag">Немає</span>
             {% else %}
-                <span class="product-card__stock product-card__stock--out">Немає в наявності</span>
+                {% if product.has_discount %}
+                    <span class="tag tag--sale">−{{ product.discount_percent }}%</span>
+                {% endif %}
+                {% if product.is_new %}
+                    <span class="tag tag--accent">Новинка</span>
+                {% elif product.is_featured %}
+                    <span class="tag">Вибір SILLAGE</span>
+                {% endif %}
             {% endif %}
         </div>
+
+        {% if product.main_image %}
+            <img src="{{ product.main_image.url }}" alt="{{ product.main_image_alt }}"
+                 width="600" height="750" loading="lazy" decoding="async">
+        {% else %}
+            <span class="card-product__empty" aria-hidden="true"></span>
+        {% endif %}
     </div>
-</article>
+
+    <div class="card-product__brand">{{ product.brand.name }}</div>
+    <div class="card-product__name">{{ product.name }}</div>
+
+    <div class="card-product__row">
+        <span class="card-product__meta">
+            {% if product.volume_ml %}{{ product.volume_ml }} мл{% endif %}
+            {% if product.volume_ml and product.concentration %} · {% endif %}
+            {{ product.get_concentration_display }}
+        </span>
+        <span class="price">
+            {% if product.has_discount %}
+                <span class="card-product__old">{{ product.old_price|money }}</span>
+            {% endif %}
+            {{ product.price|money }}
+        </span>
+    </div>
+</a>

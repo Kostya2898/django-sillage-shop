@@ -1,34 +1,65 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Реєстрація{% endblock %}
+{% block title %}Реєстрація — SILLAGE{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Реєстрація</div>
-            <div class="card-body">
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text|safe }}</div>
-                            {% endif %}
-                            {% if field.errors %}
-                                <div class="text-danger small">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-primary w-100">Зареєструватися</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                Вже маєте акаунт? <a href="{% url 'accounts:login' %}">Увійти</a>
-            </div>
-        </div>
+<section class="auth">
+    <div class="auth__aside">
+        <p class="auth__label">Реєстрація</p>
+        <h1 class="auth__title">Тридцять ароматів, обраних за те, що вони розповідають</h1>
+        <ul class="auth__perks">
+            <li>Історія замовлень і рахунки — в кабінеті, а не в пошуку по листах</li>
+            <li>Адреси доставки зберігаються й підставляються самі</li>
+            <li>Замовлення, зроблені гостем на цю пошту, приєднаються до акаунта</li>
+        </ul>
+        <p class="auth__note">
+            Пошта потрібна для листів про замовлення — підтвердження, рахунок,
+            зміна статусу. Телефон лишається необов'язковим.
+        </p>
     </div>
-</div>
+
+    <div class="auth__panel">
+        <h2 class="auth__panel-title">Створити акаунт</h2>
+
+        {% if form.non_field_errors %}
+            <p class="auth__alert">{{ form.non_field_errors|striptags }}</p>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="field">
+                    <label class="field__label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                        {% if not field.field.required %}
+                            <span class="field__optional">необов'язково</span>
+                        {% endif %}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <p class="field__hint">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    {% if field.errors %}
+                        <p class="field__error">{{ field.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn--primary btn--block">Зареєструватися</button>
+        </form>
+
+        <p class="auth__switch">
+            Уже маєте акаунт?
+            <a href="{% url 'accounts:login' %}">Увійти</a>
+        </p>
+    </div>
+</section>
 {% endblock %}

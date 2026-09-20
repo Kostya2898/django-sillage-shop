@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <p class="catalogue__count mb-0" aria-live="polite">
             {% if total %}
-                Знайдено {{ total }} {{ total|pluralize:"аромат,аромати,ароматів" }}
+                Знайдено {{ total }} {{ total|plural:"аромат,аромати,ароматів" }}
             {% else %}
                 Нічого не знайшлося
             {% endif %}

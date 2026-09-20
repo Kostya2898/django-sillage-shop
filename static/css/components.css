@@ -356,6 +356,14 @@ textarea.field__control {
   transform: scale(1.03);
 }
 
+/* Товар без кадру: порожня поверхня замість битої картинки. */
+.card-product__empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface);
+}
+
 .card-product__badges {
   position: absolute;
   top: var(--space-3);
@@ -383,7 +391,16 @@ textarea.field__control {
   margin-bottom: var(--space-3);
 }
 
+/* Кадр лишається на всю ширину картки, а текст під ним отримує поля:
+   бренд і ціна, що торкаються рамки, читаються як недоведена верстка. */
+.card-product__brand,
+.card-product__name,
 .card-product__row {
+  padding-inline: var(--space-5);
+}
+
+.card-product__row {
+  padding-bottom: var(--space-5);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -406,6 +423,57 @@ textarea.field__control {
 
 .card-product--out .card-product__frame img {
   opacity: 0.45;
+}
+
+/* ===========================================================================
+   .page-error — сторінки 404 і 500
+   =========================================================================== */
+
+/* Код помилки великим моношрифтом, а не малюнком: він потрібен тому, хто
+   прийшов зі старого посилання й хоче зрозуміти, що саме сталось. */
+.page-error {
+  padding: var(--space-30) var(--space-8);
+  max-width: var(--container);
+  margin-inline: auto;
+}
+
+.page-error__code {
+  font-family: var(--font-mono);
+  font-size: var(--text-display-2);
+  letter-spacing: 0.18em;
+  color: var(--text-accent);
+  margin-bottom: var(--space-5);
+}
+
+.page-error__title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-1);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--space-5);
+}
+
+.page-error__text {
+  color: var(--text-secondary);
+  max-width: var(--measure);
+  margin-bottom: var(--space-8);
+}
+
+.page-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .page-error {
+    padding: var(--space-16) var(--space-5);
+  }
+
+  .page-error__title {
+    font-size: var(--text-display-2);
+  }
 }
 
 /* ===========================================================================

@@ -1,111 +1,279 @@
 {% extends 'base.html' %}
-{% load catalogue %}
+{% load static catalogue %}
 
-{% block title %}{{ product.name }}{% endblock %}
+{% block title %}{{ product.name }} — {{ product.brand.name }} — SILLAGE{% endblock %}
+
+{% block meta %}
+    <meta name="description" content="{{ product.short_description|striptags|truncatechars:160 }}">
+    <meta property="og:type" content="product">
+    <meta property="og:title" content="{{ product.name }} — {{ product.brand.name }}">
+    <meta property="og:description" content="{{ product.short_description|striptags|truncatechars:200 }}">
+    {% if product.main_image %}
+        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.main_image.url }}">
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/product.css' %}">
+{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">Каталог</a></li>
-        <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
-        <li class="breadcrumb-item active">{{ product.name }}</li>
-    </ol>
-</nav>
+<ol class="breadcrumbs">
+    <li><a href="{% url 'shop:product_list' %}">Каталог</a></li>
+    {% for crumb in breadcrumbs %}
+        <li><a href="{{ crumb.get_absolute_url }}">{{ crumb.name }}</a></li>
+    {% endfor %}
+    <li><span aria-current="page">{{ product.name }}</span></li>
+</ol>
 
-<div class="row">
-    <div class="col-md-6">
-        {% if product.images.first %}
-            <img src="{{ product.images.first.image.url }}" class="img-fluid rounded" alt="{{ product.images.first.alt_text|default:product.name }}">
+<article class="product">
+
+    {% comment %}
+    Галерея без жодного рядка JS: кадри лежать один на одному, видно перший,
+    а мініатюри — звичайні посилання-анкори. Клік робить кадр `:target`, і
+    CSS показує саме його. Працює однаково з JS і без нього.
+
+    Чому не колонка з усіх кадрів одразу: макро-кроп у цьому каталозі на
+    89 % складається з пікселів темніших за 24/255 (зміряно), і на весь кадр
+    4:5 він читається як порожнеча. Мініатюра — правильний для нього розмір.
+    {% endcomment %}
+    <div class="product__gallery">
+        <div class="product__shots">
+            {% for image in product.images.all %}
+                <figure class="product__cover" id="shot-{{ forloop.counter }}">
+                    <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.name }}"
+                         width="1200" height="1500"
+                         {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+                         decoding="async">
+                </figure>
+            {% empty %}
+                <figure class="product__cover product__cover--empty">
+                    <figcaption class="product__no-shot">Кадр готується</figcaption>
+                </figure>
+            {% endfor %}
+        </div>
+
+        {% if product.images.all|length > 1 %}
+            <nav class="product__thumbs" aria-label="Кадри товару">
+                {% for image in product.images.all %}
+                    <a class="product__thumb" href="#shot-{{ forloop.counter }}"
+                       aria-label="Кадр {{ forloop.counter }} з {{ product.images.all|length }}">
+                        <img src="{{ image.image.url }}" alt="" width="144" height="180" loading="lazy">
+                    </a>
+                {% endfor %}
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="product__info">
+        <p class="product__brand">
+            <a href="{% url 'shop:product_list' %}?brand={{ product.brand.slug }}">{{ product.brand.name }}</a>
+        </p>
+
+        <h1 class="product__title">{{ product.name }}</h1>
+
+        {% if product.reviews_count %}
+            <a class="product__rating" href="#reviews">
+                <span class="rating">
+                    {% for star in "12345" %}
+                        <svg class="rating__star{% if forloop.counter <= product.average_rating %} rating__star--on{% endif %}"
+                             viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/>
+                        </svg>
+                    {% endfor %}
+                    <span class="rating__value">
+                        {{ product.average_rating|floatformat:1 }} · {{ product.reviews_count }}
+                    </span>
+                </span>
+            </a>
+        {% endif %}
+
+        <p class="product__lead">{{ product.short_description }}</p>
+
+        <div class="product__price">
+            {% if product.has_discount %}
+                <span class="product__price-old">{{ product.old_price|money }}</span>
+            {% endif %}
+            {{ product.price|money }}
+            {% if product.has_discount %}
+                <span class="tag tag--sale">−{{ product.discount_percent }}%</span>
+            {% endif %}
+        </div>
+
+        {% if product.is_in_stock %}
+            {% comment %}
+            Залишок показуємо числом лише коли він малий: «14 шт.» на вітрині
+            нішевого магазину виглядає як склад, а «лишилось 3» — як причина
+            не відкладати.
+            {% endcomment %}
+            <p class="product__stock">
+                {% if product.stock <= 5 %}
+                    <span class="product__stock-dot product__stock-dot--low"></span>
+                    Лишилось {{ product.stock }} — потім чекати на партію
+                {% else %}
+                    <span class="product__stock-dot"></span>
+                    В наявності, відправляємо наступного робочого дня
+                {% endif %}
+            </p>
+
+            {% comment %}
+            `data-add-form` — перехоплення в `app.js`: товар іде в кошик
+            запитом, drawer відкривається на місці. Без JS та сама форма
+            відправляється звичайно й веде на сторінку кошика.
+            {% endcomment %}
+            <form class="product__buy" method="post"
+                  action="{% url 'cart:cart_add' product.id %}" data-add-form>
+                {% csrf_token %}
+
+                <div class="field product__qty">
+                    <label class="field__label" for="quantity">Кількість</label>
+                    <input class="field__control" type="number" id="quantity" name="quantity"
+                           value="1" min="1" max="{{ product.stock }}" inputmode="numeric">
+                </div>
+
+                <button type="submit" class="btn btn--primary product__submit">Додати в кошик</button>
+            </form>
+
+            <p class="product__promise">
+                Відправка з Києва · обмін 14 днів, якщо флакон не відкритий
+            </p>
         {% else %}
-            <div class="product-figure product-figure--empty">
-                <span class="text-muted">Немає зображення</span>
+            <p class="product__stock product__stock--out">
+                <span class="product__stock-dot product__stock-dot--out"></span>
+                Зараз немає. Партія буває раз на кілька місяців
+            </p>
+            <a class="btn btn--ghost" href="{% url 'shop:product_list' %}?category={{ product.category.slug }}">
+                Подивитись схожі
+            </a>
+        {% endif %}
+    </div>
+</article>
+
+{% comment %}
+Характеристики й піраміда — окремою секцією під двоколонковим блоком, а не
+в правій колонці. Причина в компонуванні: липку колонку, вищу за екран,
+браузер притискає до верху не початком, а кінцем, і на прокрутці праворуч
+зяяла порожнеча. Тут ці дані читають не «замість» кадру, а після рішення
+подивитись уважніше.
+{% endcomment %}
+<section class="composition">
+    <div class="composition__grid">
+        <div>
+            <h2 class="story__title" id="composition-title">Характеристики</h2>
+            <dl class="specs">
+                {% if product.volume_ml %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Обʼєм</dt>
+                        <dd class="specs__value">{{ product.volume_ml }} мл</dd>
+                    </div>
+                {% endif %}
+                {% if product.concentration %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Концентрація</dt>
+                        <dd class="specs__value">{{ product.get_concentration_display }}</dd>
+                    </div>
+                {% endif %}
+                {% if product.longevity_hours %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Стійкість</dt>
+                        <dd class="specs__value">
+                            {{ product.longevity_hours }} {{ product.longevity_hours|plural:"година,години,годин" }}
+                        </dd>
+                    </div>
+                {% endif %}
+                {% if product.sillage %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Шлейф</dt>
+                        <dd class="specs__value">{{ product.get_sillage_display }}</dd>
+                    </div>
+                {% endif %}
+                {% if product.gender %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Для кого</dt>
+                        <dd class="specs__value">{{ product.get_gender_display }}</dd>
+                    </div>
+                {% endif %}
+                {% if product.sku %}
+                    <div class="specs__row">
+                        <dt class="specs__key">Артикул</dt>
+                        <dd class="specs__value">{{ product.sku }}</dd>
+                    </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        {% if product.top_notes or product.heart_notes or product.base_notes %}
+            <div class="pyramid">
+                <h2 class="story__title">Піраміда нот</h2>
+                {% for layer, notes in pyramid %}
+                    {% if notes %}
+                        <div class="pyramid__row">
+                            <span class="pyramid__layer">{{ layer }}</span>
+                            <span class="pyramid__notes">
+                                {% for note in notes %}
+                                    <a href="{% url 'shop:product_list' %}?note={{ note.slug }}">{{ note.name }}</a>{% if not forloop.last %} · {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         {% endif %}
     </div>
+</section>
 
-    <div class="col-md-6">
-        <h1 class="h3">{{ product.name }}</h1>
-        <p class="text-muted">{{ product.category }}</p>
-        <p class="price fs-3">{{ product.price|money }}</p>
+{% if product.description %}
+    <section class="story" aria-labelledby="story-title">
+        <h2 class="story__title" id="story-title">Про аромат</h2>
+        <div class="story__text">{{ product.description|linebreaks }}</div>
+    </section>
+{% endif %}
 
-        {% if product.is_in_stock %}
-            <p class="text-success">В наявності: {{ product.stock }} шт.</p>
-
-            {% comment %}
-            `data-add-form` — вмикає перехоплення в `app.js`: товар іде в
-            кошик запитом, drawer відкривається на місці. Без JS та сама
-            форма відправляється звичайно й веде на сторінку кошика.
-            {% endcomment %}
-            <form method="post" action="{% url 'cart:cart_add' product.id %}"
-                  class="row g-2 align-items-end mb-3" data-add-form>
-                {% csrf_token %}
-                <div class="col-auto">
-                    <label class="form-label" for="quantity">Кількість</label>
-                    <input type="number" id="quantity" name="quantity" value="1"
-                           min="1" max="{{ product.stock }}" class="qty-input">
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Додати в кошик</button>
-                </div>
-            </form>
-        {% else %}
-            <p class="text-danger">Товару немає в наявності</p>
-        {% endif %}
-
-        <hr>
-        <p>{{ product.description|linebreaks }}</p>
-    </div>
-</div>
-
-<section class="mt-5">
-    <h2 class="h5">
-        Відгуки
+<section class="reviews" id="reviews" aria-labelledby="reviews-title">
+    <div class="reviews__head">
+        <h2 class="story__title" id="reviews-title">Відгуки</h2>
         {% if product.reviews_count %}
-            <span class="text-muted">
-                — {{ product.average_rating|floatformat:1 }} з 5, {{ product.reviews_count }}
+            <span class="reviews__score">
+                {{ product.average_rating|floatformat:1 }} з 5
+                · {{ product.reviews_count }} {{ product.reviews_count|plural:"відгук,відгуки,відгуків" }}
             </span>
         {% endif %}
-    </h2>
+    </div>
 
-    <ul class="list-group list-group-flush">
+    <ul class="reviews__list">
         {% for review in reviews %}
-            <li class="list-group-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>{{ review.title|default:'Без заголовка' }}</strong>
-                        <div class="text-muted small">
-                            {{ review.user.get_display_name }} · {{ review.created_at|date:'d.m.Y' }}
-                            {% if review.is_verified_purchase %}
-                                · <span class="text-success">підтверджена покупка</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <span class="fw-bold">{{ review.rating }}/5</span>
+            <li class="review">
+                <div class="review__head">
+                    <h3 class="review__title">{{ review.title|default:'Без заголовка' }}</h3>
+                    <span class="review__rating">{{ review.rating }}<span class="review__rating-max">/5</span></span>
                 </div>
-                <p class="mb-0 mt-2">{{ review.text }}</p>
+                <p class="review__meta">
+                    {{ review.user.get_display_name }} · {{ review.created_at|date:'d.m.Y' }}
+                    {% if review.is_verified_purchase %}
+                        · <span class="review__verified">підтверджена покупка</span>
+                    {% endif %}
+                </p>
+                <p class="review__text">{{ review.text }}</p>
             </li>
         {% empty %}
-            <li class="list-group-item text-muted">
-                Про цей аромат ще ніхто не написав. Станьте першим.
+            <li class="empty">
+                <p class="empty__title">Про цей аромат ще ніхто не написав</p>
+                <p class="empty__text">
+                    Відгуки лишають після покупки — і ми публікуємо їх, навіть коли вони не схвальні.
+                </p>
             </li>
         {% endfor %}
     </ul>
 </section>
 
 {% if related_products %}
-    <h2 class="h5 mt-5">Схожі товари</h2>
-    <div class="row row-cols-2 row-cols-md-4 g-3">
-        {% for item in related_products %}
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">{{ item.name }}</h6>
-                        <p class="price mb-2">{{ item.price|money }}</p>
-                        <a href="{{ item.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Переглянути</a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+    <section class="related" aria-labelledby="related-title">
+        <h2 class="story__title" id="related-title">Схожі за нотами</h2>
+        <div class="related__grid">
+            {% for product in related_products %}
+                {% include 'shop/_product_card.html' %}
+            {% endfor %}
+        </div>
+    </section>
 {% endif %}
 {% endblock %}

@@ -1,10 +1,23 @@
-/* Картка товару: повітря з напряму A, дані як опис експоната з напряму B. */
+/* ===========================================================================
+   Сторінка товару
+   ===========================================================================
+   Картка експоната: повітря з напряму «Вітрина», дані як опис у каталозі
+   виставки з напряму «Аркуш». Кадр тримає ліву колонку, рішення про покупку
+   живе в правій і не тікає при прокрутці, а склад і характеристики
+   починаються нижче — коли покупець уже захотів подивитись уважніше.
+   =========================================================================== */
+
+.breadcrumbs {
+  padding: var(--space-6) var(--space-8) 0;
+}
 
 .product {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
   border-bottom: var(--line-hair) solid var(--border-default);
 }
+
+/* --- галерея ----------------------------------------------------------- */
 
 .product__gallery {
   padding: var(--space-12) var(--space-8);
@@ -26,13 +39,25 @@
   );
 }
 
+/* Кадри лежать один на одному в одній клітинці сітки: висота колонки не
+   стрибає при перемиканні, бо всі кадри однакової пропорції. */
+.product__shots {
+  display: grid;
+  position: relative;
+  z-index: var(--z-content);
+}
+
 .product__cover {
+  grid-area: 1 / 1;
+  margin: 0;
   aspect-ratio: 4 / 5;
   background: var(--bg-surface);
   overflow: hidden;
   box-shadow: var(--card-shadow);
-  position: relative;
-  z-index: var(--z-content);
+  scroll-margin-top: var(--space-22);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-enter) var(--ease-out);
 }
 
 .product__cover img {
@@ -41,8 +66,42 @@
   object-fit: cover;
 }
 
+/* Видно перший кадр; коли якийсь став `:target` — видно саме його.
+   Порядок цих правил і є логікою перемикача, іншої немає. */
+.product__cover:first-child,
+.product__cover:target {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product__shots:has(.product__cover:target) .product__cover:first-child {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.product__shots:has(.product__cover:target) .product__cover:target {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product__cover--empty {
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  visibility: visible;
+}
+
+.product__no-shot {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .product__thumbs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-4);
   position: relative;
@@ -58,13 +117,37 @@
   transition: border-color var(--dur-hover) var(--ease-out);
 }
 
-.product__thumb:hover,
-.product__thumb[aria-current="true"] {
+.product__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product__thumb:hover {
+  border-color: var(--border-brass);
+}
+
+/* Активна мініатюра — та, чий кадр зараз `:target`; поки не клікали,
+   активна перша. Без JS інакше не показати, який кадр відкритий. */
+.product__gallery:not(:has(.product__cover:target)) .product__thumb:first-child,
+.product__gallery:has(#shot-1:target) .product__thumb:nth-child(1),
+.product__gallery:has(#shot-2:target) .product__thumb:nth-child(2),
+.product__gallery:has(#shot-3:target) .product__thumb:nth-child(3),
+.product__gallery:has(#shot-4:target) .product__thumb:nth-child(4) {
   border-color: var(--accent);
 }
 
+/* --- рішення про покупку ---------------------------------------------- */
+
+/* Колонка коротка навмисно — рівно те, що потрібно для рішення. Тоді вона
+   вміщається в екран, і `sticky` тримає її цілою; якби тут лишались
+   характеристики, браузер притискав би до верху кінець колонки, і
+   праворуч зяяла б порожнеча. */
 .product__info {
   padding: var(--space-12) var(--space-8);
+  position: sticky;
+  top: var(--space-22);
+  align-self: start;
 }
 
 .product__brand {
@@ -76,34 +159,175 @@
   margin-bottom: var(--space-4);
 }
 
+.product__brand a {
+  color: inherit;
+  transition: color var(--dur-hover) var(--ease-out);
+}
+
+.product__brand a:hover {
+  color: var(--text-accent);
+}
+
+/* Дисплейний кегль на щабель менший за h1 сторінки: у колонці на 560 px
+   «Лімончелло опівдні» в display-1 ламається на три рядки й з'їдає екран. */
 .product__title {
+  font-size: var(--text-display-2);
+  margin-bottom: var(--space-4);
+}
+
+.product__rating {
+  display: inline-flex;
   margin-bottom: var(--space-5);
 }
 
+.product__lead {
+  color: var(--text-secondary);
+  max-width: var(--measure-narrow);
+  margin-bottom: var(--space-8);
+}
+
+/* Ціна, стара ціна й розмір знижки — одним рядком по базовій лінії: так
+   видно різницю, а не три окремі повідомлення. */
 .product__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--text-xl);
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
   color: var(--text-accent);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-4);
+}
+
+.product__price-old {
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-body);
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.product__stock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+/* Крапка-індикатор: колір несе стан, а текст поруч його називає — на колір
+   самотужки покладатись не можна. */
+.product__stock-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.product__stock-dot--low {
+  background: var(--rose);
+}
+
+.product__stock-dot--out {
+  background: var(--ash-dim);
+}
+
+.product__stock--out {
+  margin-bottom: var(--space-5);
 }
 
 .product__buy {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
   gap: var(--space-3);
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-5);
 }
 
-/* Піраміда нот — таблиця, а не мальована піраміда: читають тут склад,
-   а не розглядають схему. */
-.pyramid__row {
+.product__qty {
+  width: 112px;
+  margin-bottom: 0;
+}
+
+.product__submit {
+  flex: 1 1 200px;
+}
+
+.product__promise {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  max-width: var(--measure-narrow);
+}
+
+/* --- характеристики і піраміда ---------------------------------------- */
+
+.composition,
+.story,
+.reviews,
+.related {
+  padding: var(--space-18) var(--space-8);
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.related {
+  border-bottom: 0;
+}
+
+.composition__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16);
+}
+
+.story__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-5);
+}
+
+.specs {
+  border-top: var(--line-hair) solid var(--border-default);
+}
+
+.specs__row {
   display: grid;
   grid-template-columns: 140px 1fr;
   gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.specs__key {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.specs__value {
+  color: var(--text-primary);
+}
+
+/* Піраміда нот — таблиця, а не мальована піраміда: тут читають склад,
+   а не розглядають схему. */
+.pyramid__row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: var(--space-4);
   padding: var(--space-4) 0;
   border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.pyramid__row:first-of-type {
+  border-top: var(--line-hair) solid var(--border-default);
 }
 
 .pyramid__layer {
@@ -118,7 +342,126 @@
   color: var(--text-secondary);
 }
 
+.pyramid__notes a {
+  color: inherit;
+  border-bottom: var(--line-hair) solid transparent;
+  transition:
+    color var(--dur-hover) var(--ease-out),
+    border-color var(--dur-hover) var(--ease-out);
+}
+
+.pyramid__notes a:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-brass);
+}
+
+/* --- історія, відгуки, схожі ------------------------------------------ */
+
+.story__text {
+  max-width: var(--measure);
+  color: var(--text-secondary);
+}
+
+/* Абзаци опису відділені повітрям, а не порожнім рядком: опис читають від
+   початку до кінця, і йому потрібен ритм, а не сходинки. */
+.story__text p + p {
+  margin-top: var(--space-4);
+}
+
+.reviews__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.reviews__score {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  margin-bottom: var(--space-5);
+}
+
+.reviews__list {
+  display: grid;
+  gap: var(--space-6);
+  max-width: var(--measure);
+}
+
+.review {
+  padding-top: var(--space-5);
+  border-top: var(--line-hair) solid var(--border-subtle);
+}
+
+.review:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.review__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.review__title {
+  font-family: var(--font-ui);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-body);
+}
+
+.review__rating {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+  flex: none;
+}
+
+.review__rating-max {
+  color: var(--text-muted);
+}
+
+.review__meta {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-block: var(--space-1) var(--space-3);
+}
+
+.review__verified {
+  color: var(--text-accent);
+}
+
+.review__text {
+  color: var(--text-secondary);
+}
+
+.related__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-8);
+}
+
+/* --- вузькі екрани ---------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .related__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .composition__grid {
+    gap: var(--space-10);
+  }
+}
+
 @media (max-width: 900px) {
+  .breadcrumbs {
+    padding: var(--space-5) var(--space-5) 0;
+  }
+
   .product {
     grid-template-columns: 1fr;
   }
@@ -129,10 +472,36 @@
     padding: var(--space-6) var(--space-5);
   }
 
+  /* На телефоні липкий блок займав би весь екран — сенсу немає. */
   .product__info {
+    position: static;
     padding: var(--space-8) var(--space-5);
   }
 
+  .product__title {
+    font-size: var(--text-display-3);
+  }
+
+  .composition,
+  .story,
+  .reviews,
+  .related {
+    padding: var(--space-12) var(--space-5);
+  }
+
+  .composition__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+
+  .related__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .specs__row,
   .pyramid__row {
     grid-template-columns: 1fr;
     gap: var(--space-1);

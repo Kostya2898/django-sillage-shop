@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% comment %}
+Сторінка «не знайдено». Без цього файлу Django показує свою службову
+сторінку — білий аркуш із «Not Found», і виглядає це як зламаний сайт, а не
+як помилковий шлях.
+
+Тут вона робить те, що мусить: називає причину й дає три виходи, якими
+справді користуються.
+{% endcomment %}
+
+{% block title %}Сторінку не знайдено — SILLAGE{% endblock %}
+
+{% block content %}
+<section class="page-error">
+    <p class="page-error__code">404</p>
+    <h1 class="page-error__title">Такої сторінки немає</h1>
+    <p class="page-error__text">
+        Можливо, аромат зняли з продажу або адреса набрана з помилкою.
+        Каталог на місці — тридцять ароматів нікуди не поділись.
+    </p>
+    <div class="page-error__actions">
+        <a class="btn btn--primary" href="{% url 'shop:product_list' %}">До каталогу</a>
+        <a class="btn btn--ghost" href="{% url 'shop:home' %}">На головну</a>
+    </div>
+</section>
+{% endblock %}

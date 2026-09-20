@@ -58,6 +58,29 @@ def toggle_param(context, key, value):
 
 
 @register.filter
+def plural(value, forms):
+    """Українська множина: «1 аромат, 2 аромати, 5 ароматів».
+
+    Вбудований `pluralize` знає лише дві форми й на трьох тихо віддає
+    порожній рядок — через це в каталозі стояло «Знайдено 30» без слова,
+    а на сторінці товару «Стійкість 6» без «годин».
+    """
+    try:
+        one, few, many = (form.strip() for form in str(forms).split(','))
+        number = abs(int(value))
+    except (TypeError, ValueError):
+        return ''
+
+    if number % 100 in range(11, 15):
+        return many
+    if number % 10 == 1:
+        return one
+    if number % 10 in (2, 3, 4):
+        return few
+    return many
+
+
+@register.filter
 def money(value):
     """Ціна в єдиному форматі сайту: «4 200 ₴».
 

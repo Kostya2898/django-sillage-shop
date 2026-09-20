@@ -19,30 +19,30 @@ ADDRESS_FIELDS = [
 ADDRESS_WIDGETS = {
     'full_name': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': 'Прізвище Імʼя По батькові',
             'autocomplete': 'name',
         }
     ),
     'phone': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': '+380...',
             'autocomplete': 'tel',
             'inputmode': 'tel',
         }
     ),
-    'country': forms.TextInput(attrs={'class': 'form-control', 'autocomplete': 'country-name'}),
+    'country': forms.TextInput(attrs={'class': 'field__control', 'autocomplete': 'country-name'}),
     'city': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': 'Місто',
             'autocomplete': 'address-level2',
         }
     ),
     'postal_code': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': '01001',
             'autocomplete': 'postal-code',
             'inputmode': 'numeric',
@@ -50,14 +50,14 @@ ADDRESS_WIDGETS = {
     ),
     'address_line1': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': 'Вулиця, будинок, квартира',
             'autocomplete': 'address-line1',
         }
     ),
     'address_line2': forms.TextInput(
         attrs={
-            'class': 'form-control',
+            'class': 'field__control',
             'placeholder': 'Додаткова інформація (необовʼязково)',
             'autocomplete': 'address-line2',
         }
@@ -100,7 +100,7 @@ class GuestCheckoutForm(forms.Form):
         label='Email',
         widget=forms.EmailInput(
             attrs={
-                'class': 'form-control',
+                'class': 'field__control',
                 'placeholder': 'name@example.com',
                 'autocomplete': 'email',
                 'inputmode': 'email',
@@ -151,7 +151,7 @@ class OrderCheckoutForm(forms.Form):
         required=False,
         widget=forms.Textarea(
             attrs={
-                'class': 'form-control',
+                'class': 'field__control',
                 'rows': 3,
                 'placeholder': 'Додаткова інформація для курʼєра...',
             }
@@ -186,7 +186,7 @@ class CouponForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                'class': 'form-control',
+                'class': 'field__control',
                 'placeholder': 'Промокод',
                 'autocapitalize': 'characters',
                 'autocomplete': 'off',

@@ -1,0 +1,171 @@
+/* ===========================================================================
+   Вхід і реєстрація
+   ===========================================================================
+   Форма на весь екран посеред порожнього аркуша виглядає як службова
+   сторінка адмінки. Тут вона — праворуч, а ліворуч причина її заповнювати:
+   що саме дає акаунт і що купити можна й без нього. Та сама двоколонкова
+   логіка, що на сторінці товару: аргумент і дія.
+   =========================================================================== */
+
+.auth {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  min-height: 70vh;
+  border-bottom: var(--line-hair) solid var(--border-default);
+}
+
+.auth__aside {
+  padding: var(--space-18) var(--space-8);
+  border-right: var(--line-hair) solid var(--border-default);
+  position: relative;
+}
+
+/* Те саме світло зверху-зліва, що в героєві головної. */
+.auth__aside::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-base);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 40% at 25% 15%,
+    var(--accent-wash),
+    transparent 70%
+  );
+}
+
+.auth__label {
+  position: relative;
+  z-index: var(--z-content);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-accent);
+  margin-bottom: var(--space-5);
+}
+
+.auth__title {
+  position: relative;
+  z-index: var(--z-content);
+  font-family: var(--font-display);
+  font-size: var(--text-display-2);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  max-width: var(--measure-narrow);
+  margin-bottom: var(--space-8);
+}
+
+.auth__perks {
+  position: relative;
+  z-index: var(--z-content);
+  list-style: none;
+  max-width: var(--measure-narrow);
+  margin-bottom: var(--space-8);
+}
+
+/* Замість маркерів — риска латунню: список читається як перелік умов, а не
+   як побажання. */
+.auth__perks li {
+  position: relative;
+  padding-left: var(--space-6);
+  padding-block: var(--space-3);
+  border-bottom: var(--line-hair) solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.auth__perks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: calc(var(--space-3) + 0.7em);
+  width: 12px;
+  height: var(--line-hair);
+  background: var(--accent);
+}
+
+.auth__note {
+  position: relative;
+  z-index: var(--z-content);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  max-width: var(--measure-narrow);
+}
+
+.auth__panel {
+  padding: var(--space-18) var(--space-8);
+  background: var(--bg-surface);
+}
+
+.auth__panel-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-mono);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+}
+
+/* Помилка входу — не червона плашка на весь блок, а рядок із рискою:
+   вона й так перше, що читають після невдалої спроби. */
+.auth__alert {
+  padding: var(--space-3) var(--space-4);
+  border-left: var(--line-bold) solid var(--danger);
+  background: var(--danger-wash);
+  color: var(--text-primary);
+  margin-bottom: var(--space-6);
+}
+
+.auth__panel .field {
+  margin-bottom: var(--space-5);
+}
+
+.auth__panel .btn {
+  margin-top: var(--space-2);
+}
+
+.auth__switch {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: var(--line-hair) solid var(--border-default);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.auth__switch a {
+  color: var(--text-accent);
+  border-bottom: var(--line-hair) solid transparent;
+  transition: border-color var(--dur-hover) var(--ease-out);
+}
+
+.auth__switch a:hover {
+  border-bottom-color: var(--border-brass);
+}
+
+@media (max-width: 900px) {
+  .auth {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  /* Аргумент лишається, але коротшає: на телефоні спершу дія. */
+  .auth__aside {
+    border-right: 0;
+    border-bottom: var(--line-hair) solid var(--border-default);
+    padding: var(--space-10) var(--space-5);
+  }
+
+  .auth__title {
+    font-size: var(--text-display-3);
+  }
+
+  .auth__perks {
+    margin-bottom: var(--space-5);
+  }
+
+  .auth__panel {
+    padding: var(--space-10) var(--space-5);
+  }
+}

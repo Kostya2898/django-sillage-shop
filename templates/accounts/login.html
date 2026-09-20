@@ -1,37 +1,72 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Вхід{% endblock %}
+{% block title %}Вхід — SILLAGE{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header">Вхід</div>
-            <div class="card-body">
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">{{ form.non_field_errors|striptags }}</div>
-                {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            <input type="{% if field.name == 'password' %}password{% else %}text{% endif %}"
-                                   name="{{ field.name }}" id="{{ field.id_for_label }}"
-                                   class="form-control" value="{{ field.value|default:'' }}" required>
-                            {% if field.errors %}
-                                <div class="text-danger small">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-primary w-100">Увійти</button>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                Немає акаунта? <a href="{% url 'accounts:signup' %}">Зареєструватися</a>
-            </div>
-        </div>
+<section class="auth">
+    <div class="auth__aside">
+        <p class="auth__label">Акаунт</p>
+        <h1 class="auth__title">Магазин, який пам'ятає ваш вибір</h1>
+        <ul class="auth__perks">
+            <li>Адреси й історія замовлень — без повторного введення</li>
+            <li>Кошик переїжджає між телефоном і ноутбуком</li>
+            <li>Один лист на місяць про нові аромати, і той можна вимкнути</li>
+        </ul>
+        <p class="auth__note">
+            Купити можна й без акаунта: гостьове замовлення проходить так само —
+            з листом, рахунком і посиланням на замовлення.
+        </p>
     </div>
-</div>
+
+    <div class="auth__panel">
+        <h2 class="auth__panel-title">Вхід</h2>
+
+        {% if form.non_field_errors %}
+            <p class="auth__alert">{{ form.non_field_errors|striptags }}</p>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% comment %}
+            Поля збираються вручну, а не через `{{ field }}`: `AuthenticationForm`
+            — форма самої Django, і класів нашої системи її віджети не знають.
+
+            Головне тут — `value` для пароля не підставляється. Раніше шаблон
+            підставляв його всім полям підряд, і після невдалого входу пароль
+            повертався у HTML сторінки (AUDIT, борг #13).
+            {% endcomment %}
+            {% for field in form %}
+                <div class="field">
+                    <label class="field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                    {% if field.name == 'password' %}
+                        <input class="field__control" type="password" name="{{ field.name }}"
+                               id="{{ field.id_for_label }}" autocomplete="current-password" required>
+                    {% else %}
+                        <input class="field__control" type="text" name="{{ field.name }}"
+                               id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}"
+                               autocomplete="username" required>
+                    {% endif %}
+
+                    {% if field.errors %}
+                        <p class="field__error">{{ field.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn--primary btn--block">Увійти</button>
+        </form>
+
+        <p class="auth__switch">
+            Немає акаунта?
+            <a href="{% url 'accounts:signup' %}">Зареєструватися</a>
+        </p>
+    </div>
+</section>
 {% endblock %}

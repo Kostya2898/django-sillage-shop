@@ -13,7 +13,7 @@ from django.urls import reverse
 from cart.services import NBSP
 from shop.models import Note, Product, ProductNote
 from shop.services import SORT_OPTIONS, build_facets, get_facets
-from shop.templatetags.catalogue import money, money_amount
+from shop.templatetags.catalogue import money, money_amount, plural
 from testing import ShopTestCase
 from testing.factories import (
     BrandFactory,
@@ -493,3 +493,106 @@ class MoneyFormatTests(CatalogueTestCase):
                 offenders.append(f'{path.relative_to(settings.BASE_DIR)}:{line}')
 
         self.assertEqual(offenders, [], f'Подвоєна гривня: {offenders}')
+
+
+class PluralFilterTests(CatalogueTestCase):
+    """Українська множина має три форми, а вбудований `pluralize` — дві.
+
+    На трьох формах `pluralize` тихо віддає порожній рядок, і слово просто
+    зникає: у каталозі стояло «Знайдено 30» без «ароматів», а на сторінці
+    товару — «Стійкість 6» без «годин». Тому фільтр свій, і його правила
+    закріплені тут разом із межовими числами.
+    """
+
+    FORMS = 'аромат,аромати,ароматів'
+
+    def test_picks_the_right_form_including_teens_and_hundreds(self):
+        expected = {
+            1: 'аромат',
+            2: 'аромати',
+            4: 'аромати',
+            5: 'ароматів',
+            11: 'ароматів',
+            14: 'ароматів',
+            21: 'аромат',
+            22: 'аромати',
+            25: 'ароматів',
+            100: 'ароматів',
+            101: 'аромат',
+            111: 'ароматів',
+            0: 'ароматів',
+        }
+
+        for number, form in expected.items():
+            with self.subTest(number=number):
+                self.assertEqual(plural(number, self.FORMS), form)
+
+    def test_broken_input_gives_empty_string_instead_of_an_error(self):
+        """Шаблон не має падати через зіпсований аргумент."""
+        self.assertEqual(plural(None, self.FORMS), '')
+        self.assertEqual(plural(5, 'одна,дві'), '')
+
+    def test_catalogue_page_says_the_noun_out_loud(self):
+        response = self.client.get(reverse('shop:product_list'))
+
+        self.assertContains(response, 'ароматів')
+
+
+class ProductPageTests(CatalogueTestCase):
+    """Сторінка товару показує те, що модель справді знає про аромат.
+
+    До перебудови шаблон не показував ні бренду, ні обʼєму, ні концентрації,
+    ні піраміди нот — усе це лежало в базі й не доходило до екрана.
+    """
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.addCleanup(cache.clear)
+
+    def product_with_pyramid(self):
+        product = ProductFactory(
+            name='Тестовий аромат',
+            volume_ml=50,
+            concentration=Product.CONCENTRATION_EDP,
+            longevity_hours=6,
+        )
+        for layer, note_name in (
+            (ProductNote.LAYER_TOP, 'бергамот'),
+            (ProductNote.LAYER_HEART, 'ірис'),
+            (ProductNote.LAYER_BASE, 'ветивер'),
+        ):
+            ProductNoteFactory(product=product, note=NoteFactory(name=note_name), layer=layer)
+        return product
+
+    def test_page_shows_brand_specs_and_the_note_pyramid(self):
+        product = self.product_with_pyramid()
+
+        response = self.client.get(product.get_absolute_url())
+
+        self.assertContains(response, product.brand.name)
+        self.assertContains(response, 'Піраміда нот')
+        self.assertContains(response, 'Характеристики')
+        for layer in ('Верхні', 'Серце', 'База'):
+            self.assertContains(response, layer)
+        for note in ('бергамот', 'ірис', 'ветивер'):
+            self.assertContains(response, note)
+
+    def test_specs_show_volume_concentration_and_longevity(self):
+        product = self.product_with_pyramid()
+
+        response = self.client.get(product.get_absolute_url())
+
+        self.assertContains(response, '50 мл')
+        self.assertContains(response, 'Стійкість')
+        # Три форми множини — саме те, на чому мовчки ламався `pluralize`.
+        self.assertContains(response, '6 годин')
+
+    def test_notes_link_to_the_catalogue_filter(self):
+        """Нота в піраміді — вхід у каталог, а не просто слово."""
+        product = self.product_with_pyramid()
+        note = product.top_notes[0]
+
+        response = self.client.get(product.get_absolute_url())
+
+        self.assertContains(response, f'?note={note.slug}')

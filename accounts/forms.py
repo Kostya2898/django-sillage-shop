@@ -8,7 +8,11 @@ from .models import UserProfile
 
 User = get_user_model()
 
-BOOTSTRAP_INPUT = {'class': 'form-control'}
+# Клас із дизайн-системи, а не з Bootstrap: `.field__control` — це
+# компонент поля з `components.css`. Через цей один словник системний
+# вигляд отримують усі форми проєкту — вхід, реєстрація, кабінет і
+# checkout, — бо всі вони рендерять `{{ field }}`.
+SYSTEM_INPUT = {'class': 'field__control'}
 
 
 class SignUpForm(UserCreationForm):
@@ -17,16 +21,14 @@ class SignUpForm(UserCreationForm):
     email = forms.EmailField(
         label='Email',
         required=True,
-        widget=forms.EmailInput(
-            attrs={**BOOTSTRAP_INPUT, 'type': 'email', 'autocomplete': 'email'}
-        ),
+        widget=forms.EmailInput(attrs={**SYSTEM_INPUT, 'type': 'email', 'autocomplete': 'email'}),
     )
     phone = forms.CharField(
         label='Телефон',
         required=False,
         widget=forms.TextInput(
             attrs={
-                **BOOTSTRAP_INPUT,
+                **SYSTEM_INPUT,
                 'type': 'tel',
                 'autocomplete': 'tel',
                 'placeholder': '+380...',
@@ -41,7 +43,7 @@ class SignUpForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.setdefault('class', 'form-control')
+            field.widget.attrs.setdefault('class', 'field__control')
 
     def clean_email(self):
         """Email унікальний на рівні моделі — тут даємо людське повідомлення."""
@@ -61,16 +63,16 @@ class UserAccountForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'email', 'phone', 'is_subscribed']
         widgets = {
-            'first_name': forms.TextInput(attrs={**BOOTSTRAP_INPUT, 'autocomplete': 'given-name'}),
-            'last_name': forms.TextInput(attrs={**BOOTSTRAP_INPUT, 'autocomplete': 'family-name'}),
+            'first_name': forms.TextInput(attrs={**SYSTEM_INPUT, 'autocomplete': 'given-name'}),
+            'last_name': forms.TextInput(attrs={**SYSTEM_INPUT, 'autocomplete': 'family-name'}),
             # type='email' і type='tel' піднімають правильну клавіатуру на
             # мобільному і вмикають автозаповнення браузера.
             'email': forms.EmailInput(
-                attrs={**BOOTSTRAP_INPUT, 'type': 'email', 'autocomplete': 'email'}
+                attrs={**SYSTEM_INPUT, 'type': 'email', 'autocomplete': 'email'}
             ),
             'phone': forms.TextInput(
                 attrs={
-                    **BOOTSTRAP_INPUT,
+                    **SYSTEM_INPUT,
                     'type': 'tel',
                     'autocomplete': 'tel',
                     'placeholder': '+380...',
@@ -98,7 +100,7 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['date_of_birth', 'avatar', 'favourite_family']
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={**BOOTSTRAP_INPUT, 'type': 'date'}),
-            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'favourite_family': forms.Select(attrs={'class': 'form-select'}),
+            'date_of_birth': forms.DateInput(attrs={**SYSTEM_INPUT, 'type': 'date'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'field__control'}),
+            'favourite_family': forms.Select(attrs={'class': 'field__control'}),
         }

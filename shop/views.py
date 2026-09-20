@@ -154,6 +154,13 @@ def product_detail(request, slug):
         'shop/product_detail.html',
         {
             'product': product,
+            # Піраміда готується тут, а не в шаблоні: шаблон не має знати,
+            # що шарів рівно три і як вони називаються.
+            'pyramid': [
+                ('Верхні', product.top_notes),
+                ('Серце', product.heart_notes),
+                ('База', product.base_notes),
+            ],
             'related_products': similar_by_notes(product),
             'reviews': product.reviews.filter(is_approved=True).select_related('user'),
             'breadcrumbs': product.category.get_ancestors(include_self=True),
