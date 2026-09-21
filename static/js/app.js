@@ -190,12 +190,9 @@
 
     // Повертаємо позицію без плавності: інакше сторінка після закриття
     // меню сама їде вгору-вниз, і це читається як збій, а не як рух.
-    var lenis = window.SILLAGE && window.SILLAGE.motion && window.SILLAGE.motion.lenis;
-    if (lenis) {
-      lenis.scrollTo(lockedAt, { immediate: true });
-    } else {
-      window.scrollTo(0, lockedAt);
-    }
+    // `behavior: 'instant'` обовʼязковий: у `html` стоїть `scroll-behavior:
+    // smooth`, і звичайний `scrollTo` теж поїхав би анімацією.
+    window.scrollTo({ top: lockedAt, behavior: 'instant' });
 
     lockedAt = 0;
   }

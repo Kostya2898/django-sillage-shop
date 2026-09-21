@@ -3,12 +3,18 @@
    ===========================================================================
 
    Порядок у файлі не випадковий: **перша ж перевірка — `prefers-reduced-motion`**,
-   і при ній нічого не ініціалізується взагалі. Ні Lenis, ні ScrollTrigger, ні
+   і при ній нічого не ініціалізується взагалі. Ні ScrollTrigger, ні
    спостерігач. Елементи просто ставляться у видимий стан, і сторінка виглядає
    завершеною, а не порожньою.
 
    Числа — з `docs/REFERENCE_TEARDOWN.md`: поява 640 мс, секція 800 мс,
-   каскад 70 мс, максимум 8 позицій, паралакс не більше 0.2, Lenis lerp 0.09.
+   каскад 70 мс, максимум 8 позицій, паралакс не більше 0.2.
+
+   Бібліотеки «плавного скролу» тут немає свідомо. Спершу був Lenis, і він
+   підміняв рідну прокрутку: разом із `scroll-behavior: smooth` сторінку
+   згладжували двічі, і три оберти колеса давали 108 px замість ~300 та
+   доїжджали 640 мс (зміряно). Магазин гортають, щоб знайти, а не щоб
+   милуватись інерцією, — тому скрол рідний, а рух лише в появах і паралаксі.
 
    SplitText із GSAP тут не використовується навмисно: це платний плагін
    GSAP Club. Розбиття написане своє — і воно **зберігає пробіли й переноси**,
@@ -45,7 +51,6 @@
 
   var hasGsap = typeof window.gsap !== 'undefined';
   var hasScrollTrigger = hasGsap && typeof window.ScrollTrigger !== 'undefined';
-  var hasLenis = typeof window.Lenis !== 'undefined';
 
   if (hasScrollTrigger) {
     window.gsap.registerPlugin(window.ScrollTrigger);
@@ -274,42 +279,11 @@
           start: 'top bottom',
           end: 'bottom top',
           // `scrub: true`, а не число: рух прив'язаний до скролбару без
-          // власної інерції, інакше він конфліктує з Lenis.
+          // власної інерції — інакше предмет доїжджає вже після зупинки скролу.
           scrub: true,
         },
       });
     });
-  }
-
-  /* =======================================================================
-     Плавний скрол
-     ======================================================================= */
-
-  function initLenis() {
-    if (!hasLenis) {
-      return null;
-    }
-
-    var lenis = new window.Lenis({ lerp: 0.09 });
-
-    // Lenis і ScrollTrigger мають ходити по одному тику. Два незалежні
-    // цикли дають розсинхрон: паралакс відстає від скролу на кадр-два, і це
-    // видно як дрібне дрижання.
-    if (hasScrollTrigger) {
-      lenis.on('scroll', window.ScrollTrigger.update);
-      window.gsap.ticker.add(function (time) {
-        lenis.raf(time * 1000);
-      });
-      window.gsap.ticker.lagSmoothing(0);
-    } else {
-      var loop = function (time) {
-        lenis.raf(time);
-        requestAnimationFrame(loop);
-      };
-      requestAnimationFrame(loop);
-    }
-
-    return lenis;
   }
 
   /* =======================================================================
@@ -319,7 +293,6 @@
   initReveal();
   initSplit();
   initParallax();
-  var lenis = initLenis();
 
   /* `refresh()` після `load`: до завантаження шрифтів і зображень висоти
      ще не остаточні, і всі тригери порахувались би не там, де опиняться. */
@@ -341,9 +314,6 @@
       return;
     }
 
-    if (lenis) {
-      lenis.destroy();
-    }
     if (hasScrollTrigger) {
       window.ScrollTrigger.getAll().forEach(function (trigger) {
         trigger.kill();
@@ -354,7 +324,6 @@
 
   window.SILLAGE = window.SILLAGE || {};
   window.SILLAGE.motion = {
-    lenis: lenis,
     split: split,
     refresh: function () {
       if (hasScrollTrigger) {

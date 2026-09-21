@@ -24,7 +24,7 @@
 | Статика | WhiteNoise, хешовані імена, gzip |
 | Сервер | gunicorn |
 | PDF | xhtml2pdf + reportlab, шрифт DejaVu Sans (кирилиця) |
-| Фронтенд | власні CSS-токени й компоненти, ванільний JS, Lenis + GSAP для руху |
+| Фронтенд | власні CSS-токени й компоненти, ванільний JS, GSAP для появ і паралаксу (скрол рідний) |
 | Тести | Django TestCase, factory_boy, coverage |
 
 Без DRF, Celery і SPA: серверний рендеринг і точковий `fetch` там, де
