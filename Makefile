@@ -30,10 +30,10 @@ migrate:  ## застосувати міграції
 makemigrations:  ## створити міграції
 	$(MANAGE) makemigrations
 
-seed:  ## migrate + каталог SILLAGE + рендер зображень
+seed:  ## migrate + каталог SILLAGE + фото товарів
 	$(MANAGE) migrate
 	$(MANAGE) seed_shop --flush
-	$(MANAGE) render_product_images --force
+	$(MANAGE) load_product_photos
 
 seed-fast:  ## каталог без рендеру зображень
 	$(MANAGE) migrate

@@ -82,6 +82,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 copy .env.example .env
 python manage.py migrate
 python manage.py seed_shop --flush
+python manage.py load_product_photos
 python manage.py createsuperuser
 python manage.py runserver
 ```
@@ -94,6 +95,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env
 python manage.py migrate
 python manage.py seed_shop --flush
+python manage.py load_product_photos
 python manage.py createsuperuser
 python manage.py runserver
 ```
@@ -102,8 +104,10 @@ python manage.py runserver
 Листи в розробці друкуються в консоль `runserver`.
 
 `seed_shop` створює 30 товарів, демо-покупців (логін `olena` … `sofiia`,
-пароль `sillage-demo-2026`), замовлення, промокоди й відгуки. Зображення
-товарів генерує окрема команда `render_product_images`.
+пароль `sillage-demo-2026`), замовлення, промокоди й відгуки.
+`load_product_photos` ставить товарам справжні фото з Unsplash, уже
+відібрані й скадровані: вони лежать у `shop/photos/catalogue/`. Як їх
+відбирали, хто автори й як замінити — у [shop/photos/README.md](shop/photos/README.md).
 
 ---
 
@@ -190,7 +194,8 @@ accounts/            CustomUser, профіль, реєстрація, кабі�
 shop/                каталог: товари, бренди, ноти, відгуки, пошук, кеш
   cache.py           ключі кешу й invalidate_catalog_cache()
   services.py        фільтри, фасети, дерево меню, підказки пошуку
-  management/        seed_shop, render_product_images, fetch_product_photos
+  management/        seed_shop, fetch/export/load_product_photos, render_product_images
+  photos/            фото каталогу з Unsplash: джерела, готові кадри, автори
 cart/                SessionCart / DatabaseCart з одним інтерфейсом, JSON API
 orders/              checkout, замовлення, промокоди, доставка, листи, PDF
 payments/            мок платіжного шлюзу з HMAC-підписом callback
@@ -230,10 +235,10 @@ docs/                захист, деплой, арт-дирекшен, пок
   збереться на Render — див. [docs/deploy.md](docs/deploy.md).
 - **Каркас навігації (F1) не закритий**: не перевірені ширина 360 px, покупка
   без JS, `prefers-reduced-motion`; немає профілю продуктивності.
-- **Зображення товарів.** Частина зведених фотографій має WebP-блочність,
-  помітну на сторінці товару в масштабі 1:1; у сітці каталогу її не видно.
-  Для скріншотів обрано чисті кадри. На деплої фото немає зовсім — вони не
-  входять у репозиторій.
+- **Фото товарів — стокові, а не власна зйомка.** Бренди в каталозі
+  вигадані, тож на фото чужі флакони, відібрані так, щоб на них не читався
+  жоден справжній бренд. На одному товарі — один знімок: другий ракурс і
+  макро в галереї є кропами того самого кадру.
 - **Медіа** в prod віддає сам Django (`SERVE_MEDIA`) — прийнятно для
   навчального деплою, для справжнього потрібне S3 чи nginx.
 - **Поки Redis недоступний**, ліміти частоти не діють (свідомо: інакше

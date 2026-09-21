@@ -56,14 +56,14 @@ try {
         }
 
         'seed' {
-            # Повний цикл: схема -> каталог -> зображення. Саме в такому
-            # порядку, бо рендерер бере товари з бази.
+            # Повний цикл: схема -> каталог -> фото. Саме в такому порядку,
+            # бо фото заводяться до товарів, яких до сиду ще немає.
             Write-Host '→ migrate' -ForegroundColor Cyan
             & $Python $Manage migrate
             Write-Host '→ наповнення каталогу SILLAGE' -ForegroundColor Cyan
             & $Python $Manage seed_shop --flush @Args
-            Write-Host '→ рендер зображень (це надовго)' -ForegroundColor Cyan
-            & $Python $Manage render_product_images --force
+            Write-Host '→ фото товарів (shop/photos/catalogue)' -ForegroundColor Cyan
+            & $Python $Manage load_product_photos
         }
 
         'seed-fast' {

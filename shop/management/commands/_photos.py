@@ -234,11 +234,17 @@ def screen(data):
 
 
 def flat_background_share(image):
-    """Частка кадру, зайнята найпоширенішим тоном.
+    """Частка кадру, зайнята найпоширенішим тоном — крім чорного.
 
     Дешевий детектор графіки: у фотографії навіть рівний фон має градієнт і
     шум, тож жоден окремий тон не займає більшої частини кадру. У логотипа чи
     рекламного банера — займає.
+
+    Чорний не рахується. Нуарну предметку знімають на фоні, свідомо
+    придавленому в нуль, і там один тон займає три чверті кадру — фільтр
+    відсіював саме ті кадри, які найкраще лягають у каталог. Графіку на
+    чорному це не пропускає: у логотипа кілька кольорів, і його ловить
+    `MIN_UNIQUE_COLORS` у `screen()`.
     """
     small = image.resize((128, 160), Image.LANCZOS)
     # Огрубляємо до 32 рівнів на канал, щоб шум не рахувався за різні кольори.
@@ -249,7 +255,12 @@ def flat_background_share(image):
         | quantised[:, 2].astype(np.int32)
     )
 
-    _, counts = np.unique(packed, return_counts=True)
+    # «Чорний» — нижні два рівні з 32 у кожному каналі, тобто темніше 16/255.
+    lit = packed[~(quantised <= 1).all(axis=1)]
+    if lit.size == 0:
+        return 0.0
+
+    _, counts = np.unique(lit, return_counts=True)
     return counts.max() / packed.size
 
 
@@ -613,16 +624,35 @@ def encode_webp(image, size):
     return buffer.getvalue()
 
 
-def process(image, seed=0):
-    """Кандидат → (обкладинка, мініатюра, макро) у байтах WebP."""
-    cropped = crop_to_ratio(image)
-    graded = grade(cropped, seed=seed)
+def is_catalogue_ratio(image, tolerance=0.01):
+    """Чи кадр уже в пропорції каталогу 4:5 — тоді кропати його нема чого."""
+    width, height = image.size
+    return abs(width / height - ASPECT) <= ASPECT * tolerance
 
-    detail = grade(macro_crop(cropped), seed=seed + 1)
+
+def process(image, seed=0, graded=True):
+    """Кандидат → (обкладинка, мініатюра, макро) у байтах WebP.
+
+    `graded=False` — для кадрів, уже відібраних під каталог вручну: без
+    тонування, без затемнення тла, а готовий кадр 4:5 ще й без перекропу.
+    Грейд писався під синтетичні рендери з кольоровим тлом; на живих фото
+    затемнення за маскою предмета малює сірі овальні ореоли, а тональна
+    крива постеризує фактури — мох, кавові зерна. Відібраному кадру він
+    лише шкодить.
+    """
+    if graded:
+        cropped = crop_to_ratio(image)
+        frame = grade(cropped, seed=seed)
+        detail = grade(macro_crop(cropped), seed=seed + 1)
+    else:
+        frame = image.convert('RGB')
+        if not is_catalogue_ratio(frame):
+            frame = crop_to_ratio(frame)
+        detail = macro_crop(frame)
 
     return {
-        'full': encode_webp(graded, FULL_SIZE),
-        'thumb': encode_webp(graded, THUMB_SIZE),
+        'full': encode_webp(frame, FULL_SIZE),
+        'thumb': encode_webp(frame, THUMB_SIZE),
         'macro': encode_webp(detail, FULL_SIZE),
     }
 

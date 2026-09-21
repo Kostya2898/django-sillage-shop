@@ -100,6 +100,37 @@ class ScreeningTests(SimpleTestCase):
         self.assertIsNone(image)
         self.assertEqual(rejection.reason, 'банер')
 
+    def test_low_key_studio_shot_on_black_is_accepted(self):
+        """Предмет на придавленому до чорного тлі — це зйомка, а не заливка.
+
+        Так знімають нуарну предметку: фон свідомо зрізаний у нуль, і один
+        тон займає три чверті кадру. Фільтр заливки відсіював саме такі кадри
+        — свічки, флакон на чорному, — хоча вони якраз у стилі каталогу.
+        """
+        rng = np.random.default_rng(7)
+        pixels = np.zeros((1750, 1400, 3), dtype=np.uint8)
+        # Предмет — чверть кадру з живою фактурою: шум дає тисячі кольорів.
+        pixels[500:1250, 450:950] = rng.integers(40, 220, size=(750, 500, 3), dtype=np.uint8)
+
+        image, rejection = _photos.screen(as_jpeg(Image.fromarray(pixels)))
+
+        self.assertIsNone(rejection)
+        self.assertIsNotNone(image)
+
+    def test_white_logo_on_black_is_still_rejected(self):
+        """Послаблення для чорного тла не пропускає графіку.
+
+        Логотип на чорному має кілька кольорів — його ловить перевірка на
+        кількість кольорів, а не на заливку.
+        """
+        flat = Image.new('RGB', (1400, 1400), (0, 0, 0))
+        flat.paste(Image.new('RGB', (400, 400), (250, 250, 250)), (500, 500))
+
+        image, rejection = _photos.screen(as_jpeg(flat))
+
+        self.assertIsNone(image)
+        self.assertIn(rejection.reason, {'плаский кадр', 'заливка'})
+
     def test_flat_logo_is_rejected(self):
         """Двоколірна картинка — це логотип, а не предметна зйомка."""
         flat = Image.new('RGB', (1400, 1400), (255, 255, 255))
@@ -232,6 +263,44 @@ class GradeConvergenceTests(SimpleTestCase):
         self.assertEqual(np.asarray(first).tobytes(), np.asarray(second).tobytes())
 
 
+class AsIsProcessingTests(SimpleTestCase):
+    """Режим без грейду: кадри, відібрані під каталог вручну, лишаються собою.
+
+    Грейд писався під синтетичні рендери з кольоровим тлом. На живих фото
+    затемнення тла за маскою предмета малювало сірі овальні ореоли, а крива
+    постеризувала мох і кавові зерна. Для відібраних кадрів він шкодить.
+    """
+
+    def test_ready_4_5_frame_is_not_recropped_or_toned(self):
+        source = synthetic_bottle(size=(1200, 1500), tint=(1.2, 0.9, 0.7))
+
+        result = _photos.process(source, graded=False)
+        full = Image.open(io.BytesIO(result['full'])).convert('RGB')
+
+        # Той самий кадр, лише перекодований: середній колір не зсунувся.
+        before = np.asarray(source.convert('RGB'), dtype=np.float32).mean(axis=(0, 1))
+        after = np.asarray(full, dtype=np.float32).mean(axis=(0, 1))
+        self.assertLess(float(np.abs(before - after).max()), 3.0)
+        self.assertEqual(full.size, _photos.FULL_SIZE)
+
+    def test_graded_mode_still_changes_the_frame(self):
+        """Звичайний режим не зачеплено: грейд і далі зводить кадр до палітри."""
+        source = synthetic_bottle(size=(1200, 1500), tint=(1.2, 0.9, 0.7))
+
+        result = _photos.process(source)
+        full = Image.open(io.BytesIO(result['full'])).convert('RGB')
+
+        before = np.asarray(source.convert('RGB'), dtype=np.float32).mean(axis=(0, 1))
+        after = np.asarray(full, dtype=np.float32).mean(axis=(0, 1))
+        self.assertGreater(float(np.abs(before - after).max()), 3.0)
+
+    def test_non_4_5_frame_is_still_cropped(self):
+        result = _photos.process(synthetic_bottle(size=(2000, 1400)), graded=False)
+
+        full = Image.open(io.BytesIO(result['full']))
+        self.assertEqual(full.size, _photos.FULL_SIZE)
+
+
 class CropTests(SimpleTestCase):
     def test_output_is_four_by_five(self):
         cropped = _photos.crop_to_ratio(synthetic_bottle(size=(2000, 1500)))
@@ -264,6 +333,20 @@ class CropTests(SimpleTestCase):
                 image = Image.open(io.BytesIO(payload))
                 expected = _photos.THUMB_SIZE if name == 'thumb' else _photos.FULL_SIZE
                 self.assertEqual(image.size, expected)
+
+
+class UserAgentTests(SimpleTestCase):
+    """Заголовок, з яким команда ходить у мережу, мусить бути латиницею."""
+
+    def test_user_agent_is_encodable_as_an_http_header(self):
+        """HTTP-заголовки — latin-1; кирилиця тут валила кожен запит.
+
+        Решта тестів підміняє `requests.get`, і до кодування заголовка справа
+        в них не доходить. Тому саме значення перевіряємо окремо.
+        """
+        from shop.management.commands.fetch_product_photos import USER_AGENT
+
+        USER_AGENT.encode('latin-1')
 
 
 class CommandTests(ShopTestCase):

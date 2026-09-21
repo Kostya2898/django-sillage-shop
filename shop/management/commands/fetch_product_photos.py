@@ -36,7 +36,12 @@ ORIGINALS_DIR = 'media/_originals'
 REQUEST_TIMEOUT = 15
 REQUEST_PAUSE = 1.5
 MAX_ATTEMPTS = 2
-USER_AGENT = 'SILLAGE-catalogue/1.0 (навчальний проєкт; завантаження зображень товарів)'
+# Лише ASCII. Заголовки HTTP кодуються в latin-1, і кирилиця тут валила
+# кожен запит ще до виходу в мережу: `requests` кидав UnicodeEncodeError,
+# команда записувала його як «мережа» і відкидала всіх кандидатів підряд.
+# Тести підміняють `requests.get`, тож до справжнього прогону цього ніхто
+# не бачив.
+USER_AGENT = 'SILLAGE-catalogue/1.0 (course project; product image download)'
 
 # Скільки зображень на товар: обкладинка, другий ракурс, макро-кроп.
 IMAGES_PER_PRODUCT = 3
@@ -72,10 +77,16 @@ class Command(BaseCommand):
             help='показати таблицю відсіву, нічого не зберігаючи',
         )
         parser.add_argument('--limit', type=int, metavar='N', help='обробити не більше N товарів')
+        parser.add_argument(
+            '--as-is',
+            action='store_true',
+            help='без грейду: для кадрів, уже відібраних під каталог вручну',
+        )
 
     def handle(self, *args, **options):
         self.dry_run = options['dry_run']
         self.force = options['force']
+        self.graded = not options['as_is']
 
         sources = self._load_sources(options)
         products = self._select_products(options, sources)
@@ -326,19 +337,18 @@ class Command(BaseCommand):
         primary = accepted[0]
         secondary = accepted[1] if len(accepted) > 1 else None
 
-        rendered = _photos.process(primary['image'], seed=product.id)
+        rendered = _photos.process(primary['image'], seed=product.id, graded=self.graded)
 
         if secondary is not None:
-            angle = _photos.process(secondary['image'], seed=product.id + 1)['full']
+            angle = _photos.process(secondary['image'], seed=product.id + 1, graded=self.graded)[
+                'full'
+            ]
             angle_source = secondary
         else:
-            angle = _photos.encode_webp(
-                _photos.grade(
-                    _photos.crop_to_ratio(primary['image'], headroom=0.02),
-                    seed=product.id + 2,
-                ),
-                _photos.FULL_SIZE,
-            )
+            wider = _photos.crop_to_ratio(primary['image'], headroom=0.02)
+            if self.graded:
+                wider = _photos.grade(wider, seed=product.id + 2)
+            angle = _photos.encode_webp(wider.convert('RGB'), _photos.FULL_SIZE)
             angle_source = primary
 
         # Файли прибираємо явно. `delete()` на моделі зносить лише рядки:
@@ -353,7 +363,13 @@ class Command(BaseCommand):
         if product.cover:
             product.cover.delete(save=False)
 
-        product.cover.save(f'{product.slug}-photo.webp', ContentFile(rendered['full']), save=False)
+        # Хеш джерела в імені — щоб новий кадр мав нову адресу. З тим самим
+        # іменем браузер віддавав зі свого кешу стару картинку: файл на диску
+        # уже інший, а адреса та сама.
+        tag = f'{primary["hash"]:016x}'[:8]
+        product.cover.save(
+            f'{product.slug}-photo-{tag}.webp', ContentFile(rendered['full']), save=False
+        )
         product.save(update_fields=['cover', 'modified_at'])
 
         alt = _alt_text(product)
@@ -373,7 +389,10 @@ class Command(BaseCommand):
                 source_query=source['query'],
                 source_hash=f'{source["hash"]:016x}',
             )
-            image.image.save(f'{product.slug}-{suffix}.webp', ContentFile(payload), save=False)
+            source_tag = f'{source["hash"]:016x}'[:8]
+            image.image.save(
+                f'{product.slug}-{suffix}-{source_tag}.webp', ContentFile(payload), save=False
+            )
             image.save()
 
     # --- звіт ------------------------------------------------------------
