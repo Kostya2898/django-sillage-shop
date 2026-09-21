@@ -5,10 +5,13 @@
 тут перевіряється саме інвалідація, а не лише те, що кеш «щось зберігає».
 """
 
+import io
+
 from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from PIL import Image
 
 from shop.cache import (
     BRANDS_KEY,
@@ -16,6 +19,7 @@ from shop.cache import (
     HOME_FEATURED_KEY,
     invalidate_catalog_cache,
 )
+from shop.models import ProductImage
 from shop.services import get_brands, get_facets, get_home_featured, get_navigation_tree
 from testing import ShopTestCase
 from testing.factories import BrandFactory, ProductFactory, ReviewFactory
@@ -78,6 +82,22 @@ class CatalogCacheTests(ShopTestCase):
 
         self.assertIsNone(cache.get(HOME_FEATURED_KEY))
         self.assertEqual(get_home_featured()[0].average_rating, 4)
+
+    def test_new_product_photo_resets_home_cards(self):
+        """Картки головної кешуються разом із головним фото.
+
+        Без `ProductImage` серед моделей, що скидають кеш, нове фото
+        з'являлося б на головній лише через чверть години.
+        """
+        get_home_featured()
+        buffer = io.BytesIO()
+        Image.new('RGB', (40, 50), (30, 30, 30)).save(buffer, format='WEBP')
+
+        image = ProductImage(product=self.product, is_main=True)
+        image.image.save('photo.webp', buffer, save=True)
+        self.addCleanup(image.image.delete, False)
+
+        self.assertIsNone(cache.get(HOME_FEATURED_KEY))
 
     def test_invalidate_catalog_cache_removes_every_key(self):
         self.fill_cache()

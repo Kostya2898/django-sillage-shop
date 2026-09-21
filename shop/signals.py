@@ -3,11 +3,13 @@
 from django.db.models.signals import post_delete, post_save
 
 from .cache import invalidate_catalog_cache
-from .models import Brand, Category, Note, Product, Review
+from .models import Brand, Category, Note, Product, ProductImage, Review
 
 # `Review` тут через головну: картки кураторського вибору показують середню
-# оцінку, і новий відгук інакше з'явився б там лише через TTL.
-CATALOG_MODELS = (Brand, Category, Note, Product, Review)
+# оцінку, і новий відгук інакше з'явився б там лише через TTL. `ProductImage`
+# — з тієї ж причини: картки на головній кешуються разом із головним фото, і
+# нове фото без цього з'являлося б там лише за чверть години.
+CATALOG_MODELS = (Brand, Category, Note, Product, ProductImage, Review)
 
 
 def reset_catalog_cache(sender, **kwargs):
