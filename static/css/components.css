@@ -431,10 +431,9 @@ textarea.field__control {
 
 /* Код помилки великим моношрифтом, а не малюнком: він потрібен тому, хто
    прийшов зі старого посилання й хоче зрозуміти, що саме сталось. */
+/* Ширину й бокові поля дає `<main>` — власні тут дали б подвійний відступ. */
 .page-error {
-  padding: var(--space-30) var(--space-8);
-  max-width: var(--container);
-  margin-inline: auto;
+  padding-block: var(--space-30);
 }
 
 .page-error__code {
@@ -468,7 +467,7 @@ textarea.field__control {
 
 @media (max-width: 900px) {
   .page-error {
-    padding: var(--space-16) var(--space-5);
+    padding-block: var(--space-16);
   }
 
   .page-error__title {
