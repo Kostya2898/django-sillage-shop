@@ -395,16 +395,18 @@ textarea.field__control {
    бренд і ціна, що торкаються рамки, читаються як недоведена верстка. */
 .card-product__brand,
 .card-product__name,
+/* `flex-wrap` тут не косметика: на 360 px рядок «100 мл · Eau de Parfum»
+   разом із ціною не вміщався, і ціна виносила сторінку за край — з'являлась
+   горизонтальна прокрутка на всю висоту документа. Тепер ціна просто
+   переходить на наступний рядок. */
 .card-product__row {
   padding-inline: var(--space-5);
-}
-
-.card-product__row {
   padding-bottom: var(--space-5);
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-1) var(--space-3);
 }
 
 .card-product__meta {
