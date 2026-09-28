@@ -1,6 +1,6 @@
 """Рейтрейсер флаконів на numpy: SDF-геометрія, скло, студійне світло.
 
-Реалізує `ART_DIRECTION.md`. Без сторонніх 3D-бібліотек і без мережі —
+Без сторонніх 3D-бібліотек і без мережі —
 проєкт має підніматись із нуля будь-де.
 
 Модуль починається з підкреслення, тому Django не вважає його командою.
@@ -25,7 +25,7 @@ SMOLA = srgb_to_linear('#16131B')
 BRASS = srgb_to_linear('#C8A45C')
 BONE = srgb_to_linear('#EFE9E1')
 
-# Колір рідини за ольфакторною родиною (ART_DIRECTION.md).
+# Колір рідини за ольфакторною родиною.
 LIQUID_COLORS = {
     'amber': np.array([0.72, 0.38, 0.10], dtype=np.float32),
     'gourmand': np.array([0.66, 0.34, 0.12], dtype=np.float32),
@@ -183,7 +183,7 @@ class Bottle:
 # Освітлення
 # ---------------------------------------------------------------------------
 
-# Три точки з ART_DIRECTION.md.
+# Триточкове світло: ключове, заповнювальне й контурне.
 KEY_DIR = normalize(np.array([-0.62, 0.58, 0.53], dtype=np.float32))
 FILL_DIR = normalize(np.array([0.78, 0.12, 0.42], dtype=np.float32))
 RIM_DIR = normalize(np.array([0.18, 0.52, -0.86], dtype=np.float32))

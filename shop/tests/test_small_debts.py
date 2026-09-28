@@ -1,4 +1,4 @@
-"""Дрібні борги з AUDIT.md, які видно користувачу або адміністратору."""
+"""Дрібні борги, які видно користувачу або адміністратору."""
 
 from django.apps import apps
 from django.urls import reverse
@@ -8,7 +8,7 @@ from testing.factories import ProductFactory
 
 
 class AppVerboseNameTests(ShopTestCase):
-    """AUDIT #17: бічне меню адмінки було наполовину англійською."""
+    """Бічне меню адмінки було наполовину англійською."""
 
     def test_every_app_has_ukrainian_verbose_name(self):
         for label in ('accounts', 'shop', 'cart', 'orders', 'payments'):
@@ -22,7 +22,7 @@ class AppVerboseNameTests(ShopTestCase):
 
 
 class ImageAltTextTests(ShopTestCase):
-    """AUDIT #20: поле alt_text існувало, а шаблони писали назву товару."""
+    """Поле alt_text існувало, а шаблони писали назву товару."""
 
     def _product_with_image(self, alt_text):
         product = ProductFactory()
@@ -56,7 +56,7 @@ class ImageAltTextTests(ShopTestCase):
 
 
 class NoEmojiIconsTests(ShopTestCase):
-    """AUDIT #22: емодзі рендеряться по-різному в різних ОС і не масштабуються."""
+    """Емодзі рендеряться по-різному в різних ОС і не масштабуються."""
 
     def test_layout_has_no_emoji_icons(self):
         response = self.client.get(reverse('shop:product_list'))

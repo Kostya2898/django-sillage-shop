@@ -1,6 +1,6 @@
 """Callback мок-шлюзу не має вірити параметрам з URL.
 
-Баг з AUDIT.md #3: `payment_callback` збирав словник `verification`
+Баг: `payment_callback` збирав словник `verification`
 з `request.GET['status']` і полів самої транзакції, після чого сам себе
 перевіряв. Тобто будь-хто, маючи власну транзакцію, міг відкрити
 `/payments/callback/?status=successful&tx_ref=<свій>` і зробити замовлення

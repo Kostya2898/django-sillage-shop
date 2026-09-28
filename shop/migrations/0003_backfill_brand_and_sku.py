@@ -15,7 +15,7 @@ from django.db import migrations
 from django.utils.text import slugify
 
 # Куди складаємо товари, які існували до появи брендів. Прибрати руками
-# в адмінці після того, як seed_demo наповнить каталог SILLAGE (ROADMAP B2.7).
+# в адмінці після того, як seed_demo наповнить каталог SILLAGE.
 PLACEHOLDER_BRAND = {
     'name': 'Без бренду',
     'slug': 'bez-brendu',

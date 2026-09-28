@@ -122,7 +122,7 @@ class MoneyIsDecimalTests(ShopTestCase):
 
 
 class LegacyCleanupTests(ShopTestCase):
-    """Бренд-заглушка з міграції B3 і legacy-товари мають зникнути."""
+    """Бренд-заглушка з міграції 0003 і legacy-товари мають зникнути."""
 
     def test_placeholder_brand_is_removed(self):
         placeholder = Brand.objects.create(name='Без бренду', slug='bez-brendu')

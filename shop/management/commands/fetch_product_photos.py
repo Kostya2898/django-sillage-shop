@@ -10,7 +10,7 @@
 задарма. Схема інша: конкретний список адрес → точкове завантаження кожної,
 з паузою і в один потік.
 
-Рейтрейсер із B5 лишається: товари, для яких придатного кадру не знайшлося,
+Рейтрейсер лишається: товари, для яких придатного кадру не знайшлося,
 зберігають рендер, і команда перелічує їх окремо. Мовчазних дірок у каталозі
 бути не повинно.
 """
@@ -211,7 +211,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.MIGRATE_HEADING(f'{product.brand.name} — {product.name}'))
 
         if not candidates:
-            self.stdout.write('  кандидатів немає — лишається рендер B5')
+            self.stdout.write('  кандидатів немає — лишається рендер')
             return line
 
         for candidate in candidates:
@@ -405,7 +405,7 @@ class Command(BaseCommand):
         left = [line for line in report if not line['accepted']]
 
         self.stdout.write(f'  фотографії заведено: {len(done)}')
-        self.stdout.write(f'  лишились на рендері B5: {len(left)}')
+        self.stdout.write(f'  лишились на рендері: {len(left)}')
 
         if left:
             self.stdout.write('')

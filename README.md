@@ -164,8 +164,7 @@ docker compose cp media/. web:/app/media/
 python manage.py test
 ```
 
-560 тестів. Покриття — 88.5 % з урахуванням гілок
-([звіт](docs/coverage-report.txt)):
+582 тести. Покриття — 88.5 % з урахуванням гілок:
 
 ```bash
 coverage run manage.py test
@@ -233,8 +232,9 @@ docs/                захист, деплой, арт-дирекшен, пок
 - **Docker** перевірено по частинах (prod-налаштування, `collectstatic`,
   міграції, сторінки, заголовки, старт без numpy); сам образ уперше
   збереться на Render — див. [docs/deploy.md](docs/deploy.md).
-- **Каркас навігації (F1) не закритий**: не перевірені ширина 360 px, покупка
-  без JS, `prefers-reduced-motion`; немає профілю продуктивності.
+- **Профіль продуктивності не знімався.** Сторінки перевірені на ширині
+  360 px, без JavaScript і з `prefers-reduced-motion`, але Lighthouse не
+  проганявся.
 - **Фото товарів — стокові, а не власна зйомка.** Бренди в каталозі
   вигадані, тож на фото чужі флакони, відібрані так, щоб на них не читався
   жоден справжній бренд. На одному товарі — один знімок: другий ракурс і
@@ -248,9 +248,6 @@ docs/                захист, деплой, арт-дирекшен, пок
 
 | Файл | Про що |
 |---|---|
-| [docs/DEFENCE.md](docs/DEFENCE.md) | Конспект для захисту: рішення і чому саме так |
 | [docs/deploy.md](docs/deploy.md) | Деплой покроково, чекліст змінних |
-| [AUDIT.md](AUDIT.md) | Аудит коду: вимоги ТЗ, борги, ризики міграцій |
-| [PROJECT_VISION.md](PROJECT_VISION.md) | Концепція бренду, палітра, типографіка |
-| [docs/ART_DIRECTION.md](docs/ART_DIRECTION.md) | Арт-дирекшен і дизайн-система |
-| [docs/course-notes.md](docs/course-notes.md) | Конспект курсу |
+| [docs/frontend-api.md](docs/frontend-api.md) | JSON-API кошика, яким користується JavaScript |
+| [shop/photos/README.md](shop/photos/README.md) | Фото каталогу: звідки, автори, як замінити |

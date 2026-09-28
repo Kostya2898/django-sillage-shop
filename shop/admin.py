@@ -17,7 +17,7 @@ from django.utils.text import Truncator
 
 from .models import Brand, Category, Note, Product, ProductImage, ProductNote, Review
 
-# Кольори станів. Беремо з палітри SILLAGE (PROJECT_VISION.md), щоб адмінка
+# Кольори станів. Беремо з палітри SILLAGE, щоб адмінка
 # не заводила власного набору кольорів: латунь — попередження, вуглиста
 # троянда — проблема.
 COLOR_DANGER = '#b8615a'

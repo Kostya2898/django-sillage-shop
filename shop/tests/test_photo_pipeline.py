@@ -246,7 +246,7 @@ class GradeConvergenceTests(SimpleTestCase):
                 self.assertLess(int(array.max()), 255, 'з’явився чистий білий')
 
     def test_output_matches_the_reference_range(self):
-        """Фото мають лягти в діапазон рендерів B5, а не поруч із ним."""
+        """Фото мають лягти в діапазон рендерів, а не поруч із ним."""
         curve = _photos.REFERENCE_TONE_CURVE
 
         for index, image in enumerate(self.outputs):
@@ -470,7 +470,7 @@ class CommandTests(ShopTestCase):
             )
 
     def test_renders_are_left_alone(self):
-        """Товар без кандидатів зберігає рендер B5, а не лишається без фото."""
+        """Товар без кандидатів зберігає рендер, а не лишається без фото."""
         product = ProductFactory(slug='no-candidates')
         ProductImage.objects.create(product=product, is_main=True, sort_order=0)
         self.put('kedrova-tysha')

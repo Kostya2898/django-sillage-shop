@@ -7,9 +7,7 @@
 db.sqlite3
 db.sqlite3-journal
 *.bak
-# Дамп бази з користувачами: у git лежить як страховка перед міграцією на
-# CustomUser, в образі йому робити нічого.
-db-backup-before-customuser.json
+db-backup-*.json
 
 # Завантажені фото й результати грейду. У git їх теж немає; у контейнері
 # медіа живуть у томі, а не в шарі образу.
@@ -40,19 +38,11 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 
-# Інструменти й службове, що в роботі сайту не бере участі.
+# Службове, що в роботі сайту не бере участі.
 .git/
 .github/
 .idea/
 .vscode/
 node_modules/
-
-# Планувальні документи й dev-обгортки. README.md лишається — його читають;
-# решта описує процес роботи, а не роботу сайту.
-AUDIT.md
-ROADMAP.md
-PROJECT_VISION.md
-ART_DIRECTION.md
-data_plan.txt
 Makefile
 scripts/

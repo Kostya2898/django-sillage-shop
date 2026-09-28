@@ -1,4 +1,4 @@
-"""Дрібні борги кошика з AUDIT.md, які легко перетворюються на справжні баги."""
+"""Дрібні борги кошика, які легко перетворюються на справжні баги."""
 
 from django.urls import reverse
 
@@ -8,7 +8,7 @@ from testing.factories import ProductFactory
 
 
 class SessionCartClearTests(ShopTestCase):
-    """AUDIT #19: після clear() кошик відвʼязувався від сесії.
+    """Після clear() кошик відвʼязувався від сесії.
 
     `clear()` робив `session.pop(...)`, а потім клав у `self.cart` новий dict,
     якого в сесії немає. Наступний `add()` на тому самому обʼєкті писав у нікуди.
@@ -52,7 +52,7 @@ class SessionCartClearTests(ShopTestCase):
 
 
 class AnonymousVisitorCostsNothingTests(ShopTestCase):
-    """AUDIT #1: перегляд сторінки не має створювати сесію анонімові.
+    """Перегляд сторінки не має створювати сесію анонімові.
 
     Раніше `SessionCart.__init__` писав ключ у сесію, а конструктор викликає
     context processor на кожному рендері. Наслідок: кожен випадковий

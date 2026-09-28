@@ -38,7 +38,7 @@ class SlugTransliterationTests(TestCase):
     def test_required_example_from_the_task(self):
         self.assertEqual(ukrainian_slugify('Амброве серце'), 'ambrove-sertse')
 
-    def test_matches_slugs_fixed_in_data_plan(self):
+    def test_matches_slugs_fixed_in_seed_data(self):
         cases = {
             'Кедрова тиша': 'kedrova-tysha',
             'Ветивер Обскюр': 'vetyver-obskiur',

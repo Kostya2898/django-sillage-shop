@@ -99,7 +99,7 @@ class LightingTests(ShopTestCase):
 
 class FilmTests(ShopTestCase):
     def test_frame_stays_inside_the_brand_palette(self):
-        """Ані чистого чорного, ані чистого білого — вимога ART_DIRECTION.md."""
+        """Ані чистого чорного, ані чистого білого — так задано для всього каталогу."""
         linear = np.abs(np.random.default_rng(3).normal(size=(40, 32, 3))).astype(np.float32) * 6
 
         frame = R.apply_film(linear, np.random.default_rng(4))

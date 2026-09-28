@@ -9,7 +9,7 @@
 рендериться близько двох хвилин, тому ганяти краще партіями (`--limit=10`),
 а не одним запуском на годину: довгий фоновий процес не переживає кінець сесії.
 
-Специфікація кадру — в `ART_DIRECTION.md`. Ніякої мережі й сторонніх
+Ніякої мережі й сторонніх
 3D-бібліотек: проєкт має підніматись із нуля будь-де.
 """
 
@@ -26,7 +26,7 @@ from shop.models import Product, ProductImage, ProductNote
 
 from ._render import LIQUID_COLORS, Bottle, apply_film, render_frame
 
-# Фінальні розміри з ART_DIRECTION.md.
+# Фінальні розміри кадру.
 FULL_SIZE = (1200, 1500)
 THUMB_SIZE = (600, 750)
 SUPERSAMPLE = 2
@@ -50,7 +50,7 @@ CATEGORY_LIQUID = {
     'refily': 'amber',
 }
 
-# Концентрація → пропорції корпусу (ART_DIRECTION.md).
+# Концентрація → пропорції корпусу.
 CONCENTRATION_SHAPES = {
     Product.CONCENTRATION_EXTRAIT: {'width': 1.06, 'height': 0.80, 'cap': 1.20},
     Product.CONCENTRATION_EDP: {'width': 0.96, 'height': 1.00, 'cap': 1.00},

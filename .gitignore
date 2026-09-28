@@ -34,7 +34,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-
 # Бекапи бази
 *.bak
 db-backup-*.json
@@ -43,9 +42,7 @@ db-backup-*.json
 /media/_originals/
 /photos_in/
 
-
-
-# Coverage: сирі дані й HTML-звіт (текстовий звіт лежить у docs/)
+# Coverage: сирі дані й HTML-звіт
 .coverage
 .coverage.*
 htmlcov/

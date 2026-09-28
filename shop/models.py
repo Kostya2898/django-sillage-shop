@@ -1,6 +1,6 @@
 """Моделі каталогу: бренди, категорії, товари, ольфакторні ноти, відгуки.
 
-Модель проєктується під картку товару з `PROJECT_VISION.md`: не таблиця
+Модель проєктується під картку товару: не таблиця
 характеристик, а історія аромату. Тому тут є парфумер, рік, стійкість,
 шлейф і піраміда нот у трьох шарах — усе, що людина справді питає про
 парфум, перш ніж купити.
@@ -35,7 +35,7 @@ def validate_image_size(value):
 
 
 class Brand(models.Model):
-    """Парфумерний дім. Усі бренди каталогу вигадані (див. `data_plan.txt`)."""
+    """Парфумерний дім. Усі бренди каталогу вигадані."""
 
     name = models.CharField('Назва', max_length=150)
     slug = models.SlugField('Slug', max_length=160, unique=True, blank=True)
@@ -73,9 +73,7 @@ class Brand(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        # Окремого URL бренду ще немає — фільтр каталогу зʼявиться на етапі
-        # B3.1 (ROADMAP.md). Параметр уже закладено, тож посилання не
-        # доведеться переписувати.
+        # Окремої сторінки бренду немає: бренд — це фільтр каталогу.
         return f'{reverse("shop:product_list")}?brand={self.slug}'
 
 
@@ -213,7 +211,7 @@ class Note(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        # Те саме, що й у Brand: фільтр за нотою — етап B3.1.
+        # Те саме, що й у Brand: нота — це фільтр каталогу.
         return f'{reverse("shop:product_list")}?note={self.slug}'
 
 
@@ -451,7 +449,7 @@ class Product(models.Model):
             models.Index(fields=['price']),
         ]
         # Індекс на slug свідомо не додано: `unique=True` вже створює його,
-        # а другий такий самий лише сповільнює запис (див. AUDIT.md, борг #16).
+        # а другий такий самий лише сповільнює запис.
 
     def __str__(self):
         return self.name
@@ -526,7 +524,7 @@ class Product(models.Model):
         """Alt головного фото: з `ProductImage.alt_text`, а не з назви товару.
 
         Поле alt_text існує саме для цього; підставляти назву — гірша
-        доступність (AUDIT.md, борг #20). Назва лишається запасним варіантом.
+        доступність. Назва лишається запасним варіантом.
         """
         prefetched = getattr(self, 'main_images', None)
         if prefetched is not None:
@@ -576,7 +574,7 @@ class ProductImage(models.Model):
     is_main = models.BooleanField('Головне', default=False)
     sort_order = models.PositiveSmallIntegerField('Порядок', default=0)
 
-    # Слід походження. Порожньо — отже, це рендер рейтрейсера з B5.
+    # Слід походження. Порожньо — отже, це рендер рейтрейсера.
     #
     # `source_query` потрібен не менше за адресу: коли кадр виявиться
     # невдалим, видно буде, яке формулювання дало сміття, і можна виправити

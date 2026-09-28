@@ -1,6 +1,6 @@
 """Недоступна пошта не має ламати жоден крок покупки.
 
-Баг з AUDIT.md #4: `_send_order_email` викликав `send(fail_silently=False)`
+Баг: `_send_order_email` викликав `send(fail_silently=False)`
 і ловив тільки `BadHeaderError`. У dev backend — console, і це не стріляло,
 але на проді будь-який `SMTPException` прилітав у view вже ПІСЛЯ того, як
 замовлення створене й склад списаний, і ДО `cart.clear()`. Покупець бачив

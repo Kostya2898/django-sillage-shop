@@ -36,7 +36,7 @@ class SessionCart:
         # context processor на КОЖНОМУ рендері — тож кожен анонімний
         # відвідувач отримував cookie і рядок у django_session уже на
         # головній сторінці. Це чотири зайві запити на кожен показ каталогу
-        # і неможливість кешувати сторінки анонімів (AUDIT.md, борг #1).
+        # і неможливість кешувати сторінки анонімів.
         self.cart = self.session.get(settings.CART_SESSION_ID) or {}
 
     def add(self, product, quantity=1, update_quantity=False):

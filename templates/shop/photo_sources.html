@@ -22,7 +22,7 @@
 
 {% if rendered %}
     <div class="alert alert-warning">
-        <strong>Лишились на рендері B5 ({{ rendered|length }}):</strong>
+        <strong>Лишились на рендері ({{ rendered|length }}):</strong>
         {% for product in rendered %}
             <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>{% if not forloop.last %}, {% endif %}
         {% endfor %}
@@ -74,7 +74,7 @@
                         {% if image.source_url %}
                             <span class="photo-sources__url">{{ image.source_url }}</span>
                         {% else %}
-                            <span class="badge text-bg-secondary">рендер B5</span>
+                            <span class="badge text-bg-secondary">рендер</span>
                         {% endif %}
                     </td>
                     <td class="small text-muted">{{ image.source_query|default:'—' }}</td>
