@@ -127,17 +127,10 @@ Render бере код з GitHub. Репозиторій може бути **п�
 На безкоштовному тарифі немає консолі, тож `createsuperuser` руками не
 запустити — акаунт створить сам контейнер.
 
-1. Сервіс **sillage** → вкладка **Environment** → **Add Environment Variable**,
-   тричі:
-
-   | Key | Value |
-   |---|---|
-   | `DJANGO_SUPERUSER_USERNAME` | ваш логін |
-   | `DJANGO_SUPERUSER_EMAIL` | ваша пошта |
-   | `DJANGO_SUPERUSER_PASSWORD` | пароль |
-
-2. **Save Changes** → Render перезапустить сервіс. У **Logs**:
-   `Створено адміністратора <логін>.`
+1. Render питає `DJANGO_SUPERUSER_USERNAME`, `_EMAIL` і `_PASSWORD` разом із
+   ключами на кроці 2. Якщо їх тоді лишили порожніми — сервіс **sillage** →
+   **Environment** → заповніть ці три змінні → **Save Changes**.
+2. У **Logs** з'явиться `Створено адміністратора <логін>.`
 3. Увійдіть на `https://…onrender.com/admin/`.
 4. Поверніться в **Environment** і **видаліть** `DJANGO_SUPERUSER_PASSWORD`
    (іконка кошика біля змінної → **Save Changes**). Акаунт лишиться, а пароль
@@ -148,7 +141,7 @@ Render бере код з GitHub. Репозиторій може бути **п�
 ## 5. Усі змінні оточення
 
 Більшість Render заповнить сам із `render.yaml`. Руками — лише два ключі
-(крок 2) і, за бажанням, адміністратор (крок 4).
+і, за бажанням, адміністратор: Render спитає їх в одній формі на кроці 2.
 
 | Змінна | Звідки | Значення |
 |---|---|---|
@@ -161,7 +154,7 @@ Render бере код з GitHub. Репозиторій може бути **п�
 | `GUNICORN_WORKERS` | `render.yaml` | `2` (512 МБ пам'яті) |
 | `EMAIL_BACKEND` | `render.yaml` | листи пишуться в **Logs** |
 | `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SITE_URL` | контейнер, з домену Render | нічого не задавати |
-| `DJANGO_SUPERUSER_*` | **ви**, крок 4 | після входу пароль видалити |
+| `DJANGO_SUPERUSER_*` | **ви**, крок 2 | після входу пароль видалити |
 
 `DJANGO_SETTINGS_MODULE=shop_project.settings.prod` уже вшитий в образ.
 Змінні `SECURE_*`, `*_COOKIE_SECURE`, `USE_X_FORWARDED_PROTO` **не задавайте**:

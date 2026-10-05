@@ -23,6 +23,15 @@ services:
         sync: false
       - key: PAYMENT_SECRET_KEY
         sync: false
+      # Адміністратор для /admin/. Render спитає значення разом із ключами
+      # вище; entrypoint створить акаунт один раз. Можна лишити порожніми —
+      # тоді адміністратора просто не буде.
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
       - key: DATABASE_URL
         fromDatabase:
           name: sillage-db
